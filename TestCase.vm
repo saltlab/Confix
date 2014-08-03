@@ -1,0 +1,22 @@
+// QUnit test cases generated @ ${date}
+
+module("${module}", {
+    setup: function() {
+        // runs before each test
+    },
+    teardown: function() {
+        // runs after each test
+    }
+});
+
+
+#foreach( $function in $testFunctions )
+
+test("${function.functionName}", function() {
+    // test something
+#foreach( $statement in $function.statements )
+	$statement
+#end
+});
+
+#end

@@ -1,0 +1,3 @@
+select("descendant::switch[ancestor::head]/descendant::seq/
+descendant::audio[preceding-sibling::video]",
+type("smil.dtd", "smil"))
