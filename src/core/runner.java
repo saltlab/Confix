@@ -118,9 +118,8 @@ public class runner {
 
 		
 		/*
-		 * DOM accessing statements in JavaScript
-		 * 
-		 * 
+		 * DOM accessing statements in JavaScript:
+		 * E.g. document.getElementByID('id') / document.getElementByTag('div') / $('id')
 		 */
 		
 		
