@@ -34,13 +34,8 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 	private List<String> excludeFilenamePatterns;
 
 	private JSASTModifier modifier;
-	private DomJsCodeLevelVisitor domJsVisitor;
 	private String outputfolder;
-	private int indexOfJsDomToVisit=0;
-	private boolean singleMutationDone=false;
 
-	private boolean shouldStartDomJsMutations=false;
-	private boolean shouldGetInfoFromCode=false;
 
 	/**
 	 * Construct without patterns.
@@ -77,16 +72,6 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 	}
 
 
-	public void setJSModifyProxyPluginForDOMJSVis(DomJsCodeLevelVisitor domVis, int indexOfDom){
-
-		shouldGetInfoFromCode=false;
-		shouldStartDomJsMutations=true;
-		domJsVisitor=domVis;
-		indexOfJsDomToVisit=indexOfDom;
-		singleMutationDone=false;
-
-
-	}
 
 	/**
 	 * Adds some defaults to the list of files that should be excluded from modification. These
@@ -201,42 +186,14 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 			System.out.println(ast.toSource());
 			System.out.println(ast.debugPrint());
 
-			shouldGetInfoFromCode = true;
-			if(shouldGetInfoFromCode){
-				modifier.setScopeName(scopename);
-				modifier.start();
+			modifier.setScopeName(scopename);
+			modifier.start();
 
-				/* recurse through AST */
-				modifier.shouldTrackFunctionNodes=true;
-				ast.visit(modifier);
+			/* recurse through AST */
+			modifier.shouldTrackFunctionNodes=true;
+			ast.visit(modifier);
 
-				//if(modifier.shouldTrackFunctionCalls){
-				//	modifier.shouldTrackFunctionNodes=false;
-				//	ast.visit(modifier);
-				//}
-
-
-				modifier.finish(ast);
-			}
-			else if(shouldStartDomJsMutations){
-
-				domJsVisitor.setScopeName(scopename);
-				ast.visit(domJsVisitor);
-				domJsVisitor.setJsDomList();
-				List<Object> desiredList=domJsVisitor.getElementfromJsDomList(indexOfJsDomToVisit);
-				if(desiredList!=null){
-					NodeMutator nm=new NodeMutator(outputfolder,scopename);
-					singleMutationDone=nm.mutateDomJsCodeLevel(desiredList);
-				}
-				else{
-					NodeMutator nm=new NodeMutator(outputfolder,scopename);
-					StringBuffer stb=new StringBuffer();
-					stb.append("no changes made to the code"+"\n");
-					stb.append("================"+"\n");
-					nm.writeResultsToFile(stb.toString());
-				}
-			}
-
+			modifier.finish(ast);
 
 			/* clean up */
 			Context.exit();
