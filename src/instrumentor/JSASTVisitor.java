@@ -12,20 +12,40 @@ import org.mozilla.javascript.CompilerEnvirons;
 import org.mozilla.javascript.Parser;
 import org.mozilla.javascript.Token;
 import org.mozilla.javascript.ast.AstNode;
+import org.mozilla.javascript.ast.AstRoot;
+import org.mozilla.javascript.ast.Block;
+import org.mozilla.javascript.ast.ExpressionStatement;
+import org.mozilla.javascript.ast.ForLoop;
 import org.mozilla.javascript.ast.FunctionCall;
+import org.mozilla.javascript.ast.FunctionNode;
+import org.mozilla.javascript.ast.IfStatement;
+import org.mozilla.javascript.ast.InfixExpression;
 import org.mozilla.javascript.ast.Name;
 import org.mozilla.javascript.ast.NodeVisitor;
+import org.mozilla.javascript.ast.ObjectProperty;
+import org.mozilla.javascript.ast.ParenthesizedExpression;
 import org.mozilla.javascript.ast.PropertyGet;
+import org.mozilla.javascript.ast.ReturnStatement;
 import org.mozilla.javascript.ast.StringLiteral;
 import org.mozilla.javascript.ast.Symbol;
+import org.mozilla.javascript.ast.WhileLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.crawljax.plugins.aji.ConsoleErrorReporter;
 
-public class DomJsCodeLevelVisitor implements NodeVisitor{
+
+public abstract class JSASTVisitor implements NodeVisitor{
+
+	protected static final Logger LOGGER = LoggerFactory.getLogger(JSASTVisitor.class.getName());
+
+	private static List<String> functionCallsNotToVisit=new ArrayList<String>();
+	private static List<String> functionNodes=new ArrayList<String>();
 	
-	protected static final Logger LOGGER = LoggerFactory.getLogger(DomJsCodeLevelVisitor.class.getName());
+	public boolean shouldTrackFunctionCalls=true;
+	public boolean shouldTrackFunctionNodes=true;
 	
+
 	/**
 	 * This is used by the JavaScript node creation functions that follow.
 	 */
@@ -36,16 +56,17 @@ public class DomJsCodeLevelVisitor implements NodeVisitor{
 	 */
 	private String scopeName = null;
 
+	//To store js corresponding name
+	protected String jsName = null;
 
 	/* forexample for variable x we have: typeOfCode -> <sourceCode>*/ 
-	
 	private HashMap<String,ArrayList<AstNode>> jsDomMap;
 	private final ArrayList<String> jqueryList=new ArrayList<String>();
 	private final ArrayList<String> jsList=new ArrayList<String>();
 	private ArrayList<ArrayList<Object>> jsDomList=new ArrayList<ArrayList<Object>>();
-	
-	public DomJsCodeLevelVisitor(){
-		
+
+	public JSASTVisitor(){
+
 		jsDomMap=new HashMap<String,ArrayList<AstNode>>();
 		jqueryList.add("addClass");
 		jqueryList.add("removeClass");
@@ -53,40 +74,60 @@ public class DomJsCodeLevelVisitor implements NodeVisitor{
 		jqueryList.add("css");
 		jqueryList.add("attr");
 		jqueryList.add("prop");
-//		jqueryList.add("append");
-//		jqueryList.add("appendTo");
-//		jqueryList.add("prepend");
-//		jqueryList.add("prependTo");
-//		jqueryList.add("insertBefore");
-//		jqueryList.add("insertAfter");
+		//		jqueryList.add("append");
+		//		jqueryList.add("appendTo");
+		//		jqueryList.add("prepend");
+		//		jqueryList.add("prependTo");
+		//		jqueryList.add("insertBefore");
+		//		jqueryList.add("insertAfter");
 		jqueryList.add("detach");
 		jqueryList.add("remove");
-		
+
 		jsList.add("getElementById");
 		jsList.add("getElementsByTagName");
 		jsList.add("setAttribute");
 		jsList.add("getAttribute");
 		jsList.add("removeAttribute");
-		
-		
-		
-		
+
+
+		// Function calls that we do not need to visit
+		functionCallsNotToVisit.add("parseInt");
+		functionCallsNotToVisit.add("jQuery");
+		functionCallsNotToVisit.add("setTimeout");
+		functionCallsNotToVisit.add("$");
+		functionCallsNotToVisit.add(".css");
+		functionCallsNotToVisit.add(".addClass");
+		functionCallsNotToVisit.add(".click");
+		functionCallsNotToVisit.add(".unbind");
+		functionCallsNotToVisit.add("Math.");
+		functionCallsNotToVisit.add(".append");
+		functionCallsNotToVisit.add(".attr");
+		functionCallsNotToVisit.add(".random");
+		functionCallsNotToVisit.add("push");
+		functionCallsNotToVisit.add(".split");
+		functionCallsNotToVisit.add("v");
+		functionCallsNotToVisit.add("send(new Array(");
+		functionCallsNotToVisit.add("new Array(");
+		functionCallsNotToVisit.add("btoa");
+		functionCallsNotToVisit.add("atob");
+		functionCallsNotToVisit.add("atob");
+
+
 		/*
 		 * Amin: DOM accessor
-		 * 
 		 * 
 		 * 
 		 *  Finding HTML Elements
 			document.getElementById() 	Find an element by element id
 			document.getElementsByTagName() 	Find elements by tag name
 			document.getElementsByClassName() 	Find elements by class name
-			
+
 			Changing HTML Elements
 			element.innerHTML= 	Change the inner HTML of an element
 			element.attribute= 	Change the attribute of an HTML element
 			element.setAttribute(attribute,value) 	Change the attribute of an HTML element
 			element.style.property= 	Change the style of an HTML element
-			
+
 			Adding and Deleting Elements
 			document.createElement() 	Create an HTML element
 			document.removeChild() 	Remove an HTML element
@@ -120,10 +161,10 @@ public class DomJsCodeLevelVisitor implements NodeVisitor{
 			document.strictErrorChecking 	Returns if error checking is enforced 
 			document.title 	Returns the <title> element 
 			document.URL 	Returns the complete URL of the document 
-			
-			
-			
-			
+
+
+
+
 			This example finds the element with id="main", and then finds all <p> elements inside "main":
 Example
 var x = document.getElementById("main");
@@ -151,12 +192,12 @@ document.getElementById(id).attribute=new value
 
 
  <img id="myImage" src="smiley.gif">
- 
+
  document.getElementById("myImage").src = "landscape.jpg";
- 
- 
- 
- 
+
+
+
+
  The following example collects the node value of an <h1> element and copies it into a <p> element:
 Example
 <html>
@@ -217,8 +258,8 @@ replaceChild
 removeChild
 insertBefore
 
- 
- 
+
+
 The getElementsByTagName() method returns a node list. A node list is an array-like collection of nodes.
 
 
@@ -240,12 +281,12 @@ $(document).ready(myFunction);
 
 
      $("#h01").attr("style", "color:red").html("Hello jQuery")
-     
-     
- 
- 
- 
- 
+
+
+
+
+
+
 The JavaScript Way:
 function myFunction() {
     var obj = document.getElementById("h01");
@@ -271,8 +312,8 @@ var x = document.getElementById("btn1").value;
 <button id="btn1" type="button">HTML</button>
 </form>
 var x = document.getElementById("btn1").form.id;
-	
- 
+
+
 
 
 
@@ -281,12 +322,12 @@ First name: <input type="text" name="fname"><br>
 Last name: <input type="text" name="lname"><br><br>
 <input type="button" onclick="myFunction()" value="Submit">
 </form>
-  
+
   document.getElementById("frm1").submit();
       document.getElementById("frm1").reset();
-      
-        
-    
+
+
+
 		 * Document Object Properties and Methods
 
 The following properties and methods can be used on HTML documents:
@@ -412,7 +453,7 @@ element.tagName 	Returns the tag name of an element
 element.textContent 	Sets or returns the textual content of a node and its descendants
 element.title 	Sets or returns the title attribute of an element
 element.toString() 	Converts an element to a string
-  	 
+
 nodelist.item() 	Returns the node at the specified index in a NodeList
 nodelist.length 	Returns the number of nodes in a NodeList
 
@@ -426,7 +467,7 @@ attr.isId 	Returns true if the attribute is of type Id, otherwise it returns fal
 attr.name 	Returns the name of an attribute
 attr.value 	Sets or returns the value of the attribute
 attr.specified 	Returns true if the attribute has been specified, otherwise it returns false
-  	 
+
 nodemap.getNamedItem() 	Returns a specified attribute node from a NamedNodeMap.
 nodemap.item() 	Returns the node at a specified index in a NamedNodeMap
 nodemap.length 	Returns the number of nodes in a NamedNodeMap
@@ -455,55 +496,48 @@ document.getElementById('myAnchor').target="_blank";
 		 * document.title in <title>
 		 * 
 		 *     var x = document.getElementsByName("x");
-    	*		document.getElementById("demo").innerHTML = x.length;   => How many elements named x?
-    
-    
+		 *		document.getElementById("demo").innerHTML = x.length;   => How many elements named x?
+
+
     document.getElementsByTagName
 
     document.anchors.length  => Number of anchors
         document.getElementById("demo").innerHTML =
     document.anchors[0].innerHTML;
 
-    
+
     "Number of links: " + document.links.length
-    
+
     "The href of the first link is " + document.links[0].href;
-    
+
     "Number of forms: " + document.forms.length
-    
+
     "The name of the first for is " + document.forms[0].name
-    
+
     "Number of images: " + document.images.length
-    
+
     document.getElementById("demo").innerHTML =
 	"The id of the first image is " + document.images[0].id
 
 	document.getElementById('p1').style.visibility='visible'"
-	
-	
-    
-    
-		 */
-		
-		
-		
-		
-		
-		
-		
 
+		 */
 	}
-	
+
+
+
 	/**
 	 * @param scopeName
 	 *            the scopeName to set
 	 */
 	public void setScopeName(String scopeName) {
 		this.scopeName = scopeName;
+		//This is used to name the array which stores execution count for the scope in URL 
+		int index = scopeName.lastIndexOf('/');
+		String s = scopeName.substring(index+1, scopeName.length());
+		jsName = s.replace('.', '_');
 	}
-	
 
-	
 
 	/**
 	 * @return the scopeName
@@ -520,23 +554,120 @@ document.getElementById('myAnchor').target="_blank";
 	 * @return The AST node.
 	 */
 	public AstNode parse(String code) {
-		Parser p = new Parser(compilerEnvirons, null);
+		//Parser p = new Parser(compilerEnvirons, null);
+		compilerEnvirons.setErrorReporter(new ConsoleErrorReporter());
+		Parser p = new Parser(compilerEnvirons, new ConsoleErrorReporter());
+		//System.out.print(code+"*******\n");
 		return p.parse(code, null, 0);
-		
 	}
-	
-	
 
-	
+
+	/**
+	 * Find out the function name of a certain node and return "anonymous" if it's an anonymous
+	 * function.
+	 * 
+	 * @param f
+	 *            The function node.
+	 * @return The function name.
+	 */
+	protected String getFunctionName(FunctionNode f) {
+		if (f==null)
+			return "NoFunctionNode";
+		else if(f.getParent() instanceof ObjectProperty){
+			return ((ObjectProperty)f.getParent()).getLeft().toSource();
+		}
+		Name functionName = f.getFunctionName();
+
+		if (functionName == null) {
+			return "anonymous" + f.getLineno();
+		} else {
+			return functionName.toSource();
+		}
+	}
+
+	/**
+	 * Create a new block node with two children.
+	 * 
+	 * @param node
+	 *            The child.
+	 * @return The new block.
+	 */
+	private Block createBlockWithNode(AstNode node) {
+		Block b = new Block();
+		b.addChild(node);
+		return b;
+	}
+
+
+	/**
+	 * @param node
+	 *            The node we want to have wrapped.
+	 * @return The (new) node parent (the block probably)
+	 */
+	private AstNode makeSureBlockExistsAround(AstNode node) {
+
+		AstNode parent = node.getParent();
+
+		if (parent instanceof IfStatement) {
+			/* the parent is an if and there are no braces, so we should make a new block */
+			IfStatement i = (IfStatement) parent;
+
+			/* replace the if or the then, depending on what the current node is */
+			if (i.getThenPart().equals(node)) {
+				i.setThenPart(createBlockWithNode(node));
+			} else if (i.getElsePart()!=null){
+				if (i.getElsePart().equals(node))
+					i.setElsePart(createBlockWithNode(node));
+			}
+
+		} else if (parent instanceof WhileLoop) {
+			/* the parent is a while and there are no braces, so we should make a new block */
+			/* I don't think you can find this in the real world, but just to be sure */
+			WhileLoop w = (WhileLoop) parent;
+			if (w.getBody().equals(node))
+				w.setBody(createBlockWithNode(node));
+		} else if (parent instanceof ForLoop) {
+			/* the parent is a for and there are no braces, so we should make a new block */
+			/* I don't think you can find this in the real world, but just to be sure */
+			ForLoop f = (ForLoop) parent;
+			if (f.getBody().equals(node))
+				f.setBody(createBlockWithNode(node));
+		}
+
+		return node.getParent();
+	}
+
+
+	private boolean shouldVisitFunctionCall(FunctionCall function){
+		if (functionCallsNotToVisit.size()==0)
+			return true;
+		for (String funcName:functionCallsNotToVisit){
+
+			if (function.getTarget().toSource().contains(funcName)){
+				return false;
+			}
+		}
+		return true;
+	}
+
+
+	/**
+	 * Actual visiting method.
+	 * 
+	 * @param node
+	 *            The node that is currently visited.
+	 * @return Whether to visit the children.
+	 */
 	public boolean visit(AstNode node) {	
-		
+
+		System.out.println("visit");
+
 		System.out.println(node.debugPrint());
-		
-		
+
 		String ASTNodeName = node.shortName();
 		int type = node.getType();
 		int ASTDepth = node.depth();
-		
+
 		System.out.println("node.shortName() : " + ASTNodeName);
 		System.out.println("node.depth() : " + ASTDepth);
 		System.out.println("node.getLineno() : " + (node.getLineno()+1));
@@ -545,6 +676,37 @@ document.getElementById('myAnchor').target="_blank";
 		System.out.println("node.getAstRoot() : " + node.getAstRoot());
 		System.out.println("node.debugPrint() : " + node.debugPrint());
 
+		
+		
+		
+		
+		if(shouldTrackFunctionNodes){
+			if(node instanceof FunctionNode){
+				FunctionNode fNode=(FunctionNode) node;
+				System.out.println(fNode.debugPrint());
+				System.out.println(getFunctionName(fNode));
+				functionNodes.add(getFunctionName((FunctionNode)node));
+			}
+		}
+		else{
+			if(node instanceof FunctionNode){
+				FunctionNode fNode=(FunctionNode) node;
+				String funcName=getFunctionName(fNode);
+				String code="var me = arguments.callee;";
+				code+="me.funcName = " + "'" + funcName + "'" +";";
+				code+="var callerName = arguments.callee.caller.funcName;";
+				AstNode funcNameNode=parse(code);
+				fNode.getBody().addChildToFront(funcNameNode);
+				AstNode newNode=createFunctionTrackingNode(fNode, "callerName");
+				//	appendNodeAfterFunctionCall(node, newNode);
+				fNode.getBody().addChildAfter(newNode,funcNameNode);
+
+			}
+		}
+
+		if (1==1)
+			return true;
+			
 		/*
 		// check if we are in the up the currentObjectNodeDepth
 		if (ASTDepth < currentObjectNodeDepth && lastMessageChain==1 && ignoreDepthChange==false){  // dealing with a.b.c = ... patterns  
@@ -553,7 +715,7 @@ document.getElementById('myAnchor').target="_blank";
 			//System.out.println("analyseAstNode(): Level changed! nextNameIsObject");
 			//System.out.println("analyseAstNode(): Level changed! nextName is not property anymore");
 		}
-		
+
 		// check if we are in LHS of the current assignment, used to check if a property is defined and not just used
 		if (ASTDepth==assignmentNodeDepth+1){
 			if (assignmentLHSVisited == false){
@@ -562,7 +724,7 @@ document.getElementById('myAnchor').target="_blank";
 				LHS = false;
 		}
 
-		
+
 		if (ASTNodeName.equals("Name")){
 			//System.out.println(ASTNode.debugPrint());
 
@@ -587,9 +749,9 @@ document.getElementById('myAnchor').target="_blank";
 //			System.out.println(f.getSymbolTable());
 //			System.out.println(f.getSymbols());
 //		}        
-		
-		
-		
+
+
+
 		if (ASTNodeName.equals("Name"))
 			analyseNameNode();
 		else if (ASTNodeName.equals("VariableDeclaration"))
@@ -619,12 +781,12 @@ document.getElementById('myAnchor').target="_blank";
 		else if (type == Token.THIS)
 			thisInClosure();
 
-		*/
+		 */
 
-		
-		
-		
-		
+
+
+
+
 		if (node instanceof Name) {
 			/* function calls like .addClass, .css, .attr ... */
 			if (node.getParent() instanceof PropertyGet
@@ -638,9 +800,9 @@ document.getElementById('myAnchor').target="_blank";
 				}
 				else if(node.toSource().equals("insertBefore")
 						|| node.toSource().equals("replaceChild")){
-	//				setJsDomMap(node.getParent().getParent(), "js_s_arg");
+					//				setJsDomMap(node.getParent().getParent(), "js_s_arg");
 				}
-				
+
 			}
 			else if(node.getParent() instanceof PropertyGet){
 				if(node.toSource().equals("innerHTML")
@@ -651,47 +813,47 @@ document.getElementById('myAnchor').target="_blank";
 		}
 		else if(node instanceof FunctionCall){
 			if( ((FunctionCall)node).getTarget() instanceof Name){
-			
+
 				if(((Name)((FunctionCall)node).getTarget()).getIdentifier().equals("$")){
-	//				setJsDomMap(((Name)((FunctionCall)node).getTarget()), "jquery_r_dollar");
-				
+					//				setJsDomMap(((Name)((FunctionCall)node).getTarget()), "jquery_r_dollar");
+
 					if(((FunctionCall)node).getArguments().size()==1
 							&& ((FunctionCall)node).getArguments().get(0) instanceof StringLiteral
 							&& ((FunctionCall)node).getArguments().get(0).toSource().startsWith(".")
-									|| ((FunctionCall)node).getArguments().get(0).toSource().startsWith("#") ){
+							|| ((FunctionCall)node).getArguments().get(0).toSource().startsWith("#") ){
 						setJsDomMap(((FunctionCall)node).getArguments().get(0), "jquery_c_selSign");
 					}
-				
+
 				}
 			}
 		}
-		
-		
+
+
 		return true;
 	}
-	
+
 	private void setJsDomMap(AstNode node,String codeType){
-			
+
 		ArrayList<AstNode> list=new ArrayList<AstNode>();
 		if(jsDomMap.get(codeType)!=null){
-				
+
 			list=jsDomMap.get(codeType);
-								
+
 		}				
 		list.add(node);
 		jsDomMap.put(codeType, list);					
-		
+
 	}
-	
+
 	public  HashMap<String,ArrayList<AstNode>> getJsDomList(){
 		return jsDomMap;
-		
+
 	}
 	public void setJsDomList(){
 
 		System.out.println("****** jsDomList ******");
 
-		
+
 		if(jsDomList.size()>0 || jsDomMap.size()==0)
 			return;
 		Set<String> keys=jsDomMap.keySet();
@@ -703,25 +865,169 @@ document.getElementById('myAnchor').target="_blank";
 				ArrayList<Object> list=new ArrayList<Object>();
 				list.add(codeType);
 				list.add(node);
-				
+
 				System.out.println(node.toSource());
-				
-				NodeMutator nm=new NodeMutator("All",scopeName);
-				nm.mutateDomJsCodeLevel(list);
-				
-				
+
+				//NodeMutator nm=new NodeMutator("All",scopeName);
+				//nm.mutateDomJsCodeLevel(list);
+
+
 				jsDomList.add(list);
-				
+
 			}
 		}
-		
+
 		//System.out.println(jsDomList);
-		
+
 	}
-		
+
 	public ArrayList<Object> getElementfromJsDomList(int index){
 		if(jsDomList.size()==0 || index>=jsDomList.size()) return null;
 		return jsDomList.get(index);
+	}
+
+	
+	/**
+	 * Creates a node that can be inserted at a certain point in function.
+	 * 
+	 * @param function
+	 *            The function that will enclose the node.
+	 * @param postfix
+	 *            The postfix function name (enter/exit).
+	 * @param lineNo
+	 *            Linenumber where the node will be inserted.
+	 * @return The new node.
+	 */
+	protected abstract AstNode createNode(FunctionNode function, String postfix, int lineNo);
+
+	/**
+	 * Creates a node that can be inserted at a certain point in the AST root.
+	 * Changed by Amin
+	 * 
+	 * @param root
+	 * 			The AST root that will enclose the node.
+	 * @param postfix
+	 * 			The postfix name.
+	 * @param lineNo
+	 * 			Linenumber where the node will be inserted.
+	 * @param rootCount
+	 * 			Unique integer that identifies the AstRoot
+	 * @return The new node
+	 */
+	protected abstract AstNode createNode(AstRoot root, String postfix, int lineNo, int rootCount);
+
+
+	protected abstract AstNode createFunctionTypeNameTrackingNode(FunctionNode callerFunc, AstNode node);
+	/**
+	 *  create node for logging variable/function-parameters
+	 */
+	protected abstract AstNode createNode(FunctionNode function, AstNode nodeForVarLog, String statementCategory);
+
+
+	/**
+	 * create node for tracking function calls
+	 */
+
+	protected abstract AstNode createFunctionTrackingNode(FunctionNode calleeFunction, String callerName);
+	/**
+	 * This method is called when the complete AST has been traversed.
+	 * 
+	 * @param node
+	 *            The AST root node.
+	 */
+	public abstract void finish(AstRoot node);
+
+	/**
+	 * This method is called before the AST is going to be traversed.
+	 */
+	public abstract void start();
+
+	public void appendNode(AstNode node, AstNode newNode){
+		AstNode parent = node;
+
+		while (parent!=null && ! (parent instanceof ReturnStatement) && ! (parent instanceof ExpressionStatement)){
+			parent=parent.getParent();
+		}
+
+		if (parent instanceof ReturnStatement){
+			AstNode attachBefore=parent;
+			AstNode parentToAttach=makeSureBlockExistsAround(parent);
+			parentToAttach.addChildBefore(newNode, attachBefore);
+		}
+
+		else if (parent!=null){
+			AstNode attachAfter=parent;
+			AstNode parentToAttach=makeSureBlockExistsAround(parent);
+			parentToAttach.addChildAfter(newNode, attachAfter);
+		}
+	}
+
+
+	public void appendElemGetNode(AstNode node, AstNode newNode){
+		AstNode parent = node;
+
+		while (parent!=null && ! (parent instanceof ReturnStatement) 
+				&& ! (parent instanceof ExpressionStatement) && ! (parent instanceof InfixExpression)){
+			parent=parent.getParent();
+		}
+
+		if (parent instanceof ReturnStatement){
+			AstNode attachBefore=parent;
+			AstNode parentToAttach=makeSureBlockExistsAround(parent);
+			parentToAttach.addChildBefore(newNode, attachBefore);
+			return;
+		}
+
+		if (parent instanceof InfixExpression){
+			while(parent instanceof InfixExpression || parent instanceof ParenthesizedExpression){
+				parent=parent.getParent();
+			}
+		}
+		if (parent!=null){
+			AstNode attachAfter=parent;
+			AstNode parentToAttach=makeSureBlockExistsAround(parent);
+			parentToAttach.addChildAfter(newNode, attachAfter);
+		}
+	}
+
+	
+	public void appendNodeAfterFunctionCall(AstNode node, AstNode newNode){
+		AstNode parent = node;
+
+		while (parent!=null && ! (parent instanceof ReturnStatement) && ! (parent instanceof ExpressionStatement)){
+
+			if(parent instanceof IfStatement){
+				AstNode parentToAttach=makeSureBlockExistsAround(parent);
+				parentToAttach.addChildAfter(newNode, parent);
+				return;
+			}
+			if(parent.getParent() instanceof WhileLoop){
+				WhileLoop whileLoop=(WhileLoop) parent.getParent();
+				AstNode parentToAttach=makeSureBlockExistsAround(whileLoop.getBody());
+				parentToAttach.addChildrenToFront(newNode);
+				return;
+			}
+
+			if(parent.getParent() instanceof ForLoop){
+				ForLoop forLoop=(ForLoop) parent.getParent();
+				AstNode parentToAttach=makeSureBlockExistsAround(forLoop.getBody());
+				parentToAttach.addChildrenToFront(newNode);
+				return;
+			}
+			parent=parent.getParent();
+		}
+
+		if (parent instanceof ReturnStatement){
+			AstNode attachBefore=parent;
+			AstNode parentToAttach=makeSureBlockExistsAround(parent);
+			parentToAttach.addChildBefore(newNode, attachBefore);
+		}
+
+		else if (parent!=null){
+			AstNode attachAfter=parent;
+			AstNode parentToAttach=makeSureBlockExistsAround(parent);
+			parentToAttach.addChildAfter(newNode, attachAfter);
+		}
 	}
 
 }

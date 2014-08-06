@@ -33,37 +33,32 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 
 	private List<String> excludeFilenamePatterns;
 
-	private JSASTModifier modifier;
+	private JSASTVisitor astVisitor;
 	private String outputfolder;
 
 
 	/**
 	 * Construct without patterns.
 	 * 
-	 * @param modify
-	 *            The JSASTModifier to run over all JavaScript.
+	 * @param astVisit
+	 *            The JSASTVisitor to run over all JavaScript.
 	 */
-	public JSModifyProxyPlugin(JSASTModifier modify) {
-
+	public JSModifyProxyPlugin(JSASTVisitor astVisit) {
 		excludeFilenamePatterns = new ArrayList<String>();
-		modifier = modify;
-		shouldGetInfoFromCode=true;
-		shouldStartDomJsMutations=false;
+		astVisitor = astVisit;
 	}
 
 	/**
 	 * Constructor with patterns.
 	 * 
-	 * @param modify
-	 *            The JSASTModifier to run over all JavaScript.
+	 * @param astVisit
+	 *            The JSASTVisitor to run over all JavaScript.
 	 * @param excludes
 	 *            List with variable patterns to exclude.
 	 */
-	public JSModifyProxyPlugin(JSASTModifier modify, List<String> excludes) {
+	public JSModifyProxyPlugin(JSASTVisitor astVisit, List<String> excludes) {
 		excludeFilenamePatterns = excludes;
-		modifier = modify;
-		shouldGetInfoFromCode=true;
-		shouldStartDomJsMutations=false;
+		astVisitor = astVisit;
 	}
 
 	public JSModifyProxyPlugin(String outputfolder){
@@ -186,14 +181,14 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 			System.out.println(ast.toSource());
 			System.out.println(ast.debugPrint());
 
-			modifier.setScopeName(scopename);
-			modifier.start();
+			astVisitor.setScopeName(scopename);
+			astVisitor.start();
 
 			/* recurse through AST */
-			modifier.shouldTrackFunctionNodes=true;
-			ast.visit(modifier);
+			astVisitor.shouldTrackFunctionNodes=true;
+			ast.visit(astVisitor);
 
-			modifier.finish(ast);
+			astVisitor.finish(ast);
 
 			/* clean up */
 			Context.exit();

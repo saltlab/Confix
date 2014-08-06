@@ -32,11 +32,11 @@ import org.mozilla.javascript.ast.FunctionNode;
  * @author Amin Milani Fard
  * @author Frank Groeneveld
  */
-public class AstInstrumenter extends JSASTModifier {
+public class JSASTInstrumenter extends JSASTVisitor {
 
 	private int instrumentedLinesCounter = 0;
 	
-	public AstInstrumenter() {
+	public JSASTInstrumenter() {
 		super();
 	}
 
