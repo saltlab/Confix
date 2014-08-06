@@ -15,6 +15,8 @@ import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.proxy.Proxy;
 import org.owasp.webscarab.plugin.*;
 
+import com.crawljax.plugins.aji.executiontracer.AstInstrumenter;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -139,7 +141,8 @@ public class runner {
 
 	private static void runProxy(ProxyConfiguration prox) {
 		prox.setPort(3128);
-		JSModifyProxyPlugin modifier = new JSModifyProxyPlugin("TEMP");
+		JSModifyProxyPlugin modifier = new JSModifyProxyPlugin(new instrumentor.AstInstrumenter());
+		//JSModifyProxyPlugin modifier = new JSModifyProxyPlugin("TEMP");  // output forlder name
 		DomJsCodeLevelVisitor domJsVis=new DomJsCodeLevelVisitor();
 		modifier.setJSModifyProxyPluginForDOMJSVis(domJsVis, 4);
 		modifier.excludeDefaults();

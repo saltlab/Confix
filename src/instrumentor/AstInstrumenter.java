@@ -37,7 +37,7 @@ public class AstInstrumenter extends JSASTModifier {
 	private int instrumentedLinesCounter = 0;
 	
 	public AstInstrumenter() {
-		super(true);
+		super();
 	}
 
 	/**

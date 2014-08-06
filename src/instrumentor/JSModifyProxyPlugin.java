@@ -213,9 +213,8 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 			System.out.println(ast.toSource());
 			System.out.println(ast.debugPrint());
 			
-			//shouldGetInfoFromCode = true;
+			shouldGetInfoFromCode = true;
 			if(shouldGetInfoFromCode){
-			
 				modifier.setScopeName(scopename);
 				modifier.start();
 
@@ -223,10 +222,10 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 				modifier.shouldTrackFunctionNodes=true;
 				ast.visit(modifier);
 			
-				if(modifier.shouldTrackFunctionCalls){
-					modifier.shouldTrackFunctionNodes=false;
-					ast.visit(modifier);
-				}
+				//if(modifier.shouldTrackFunctionCalls){
+				//	modifier.shouldTrackFunctionNodes=false;
+				//	ast.visit(modifier);
+				//}
 				
 
 				modifier.finish(ast);

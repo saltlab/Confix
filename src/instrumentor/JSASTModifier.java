@@ -43,7 +43,7 @@ public abstract class JSASTModifier implements NodeVisitor  {
 
 	protected static final Logger LOGGER = LoggerFactory.getLogger(JSASTModifier.class.getName());
 
-	private static List<String> functionCallsNotToLog=new ArrayList<String>();
+	private static List<String> functionCallsNotToVisit=new ArrayList<String>();
 	public static List<String> functionNodes=new ArrayList<String>();
 	/**
 	 * This is used by the JavaScript node creation functions that follow.
@@ -62,49 +62,37 @@ public abstract class JSASTModifier implements NodeVisitor  {
 	 * shouldTrackFunctionCalls==false means that we are logging variable/function-parameters
 	 */
 
-	public boolean shouldTrackFunctionCalls;
+	public boolean shouldTrackFunctionCalls=true;
 	public boolean shouldTrackFunctionNodes=true;
 
 
 	/**
 	 * constructor without specifying functions that should be visited
 	 */
-	protected JSASTModifier(boolean shouldTrackFunctionCalls){
-		this.shouldTrackFunctionCalls=shouldTrackFunctionCalls;
+	protected JSASTModifier(){
 
-		functionCallsNotToLog.add("parseInt");
-		functionCallsNotToLog.add("jQuery");
-		functionCallsNotToLog.add("setTimeout");
-		functionCallsNotToLog.add("$");
-		functionCallsNotToLog.add(".css");
-		functionCallsNotToLog.add(".addClass");
-		functionCallsNotToLog.add(".click");
-		functionCallsNotToLog.add(".unbind");
-		functionCallsNotToLog.add("Math.");
-		functionCallsNotToLog.add(".append");
-		functionCallsNotToLog.add(".attr");
-		functionCallsNotToLog.add(".random");
-		functionCallsNotToLog.add("push");
-		functionCallsNotToLog.add(".split");
-		functionCallsNotToLog.add("v");
-		functionCallsNotToLog.add("send(new Array(");
-		functionCallsNotToLog.add("new Array(");
-		functionCallsNotToLog.add("btoa");
-		functionCallsNotToLog.add("atob");
-		functionCallsNotToLog.add("atob");
+		functionCallsNotToVisit.add("parseInt");
+		functionCallsNotToVisit.add("jQuery");
+		functionCallsNotToVisit.add("setTimeout");
+		functionCallsNotToVisit.add("$");
+		functionCallsNotToVisit.add(".css");
+		functionCallsNotToVisit.add(".addClass");
+		functionCallsNotToVisit.add(".click");
+		functionCallsNotToVisit.add(".unbind");
+		functionCallsNotToVisit.add("Math.");
+		functionCallsNotToVisit.add(".append");
+		functionCallsNotToVisit.add(".attr");
+		functionCallsNotToVisit.add(".random");
+		functionCallsNotToVisit.add("push");
+		functionCallsNotToVisit.add(".split");
+		functionCallsNotToVisit.add("v");
+		functionCallsNotToVisit.add("send(new Array(");
+		functionCallsNotToVisit.add("new Array(");
+		functionCallsNotToVisit.add("btoa");
+		functionCallsNotToVisit.add("atob");
+		functionCallsNotToVisit.add("atob");
 	}
 
-	/**
-	 * constructor with specifying functions that should be visited
-	 */
-
-	protected JSASTModifier(List<String> funcsToLogVars, boolean shouldTrackFunctionCalls){
-
-		this.shouldTrackFunctionCalls=shouldTrackFunctionCalls;
-		functionsToLogVars=new ArrayList<String>();
-		functionsToLogVars=funcsToLogVars;
-
-	}
 
 	//To store js corresponding name
 	protected String jsName = null;
@@ -212,9 +200,9 @@ public abstract class JSASTModifier implements NodeVisitor  {
 
 
 	private boolean shouldVisitFunctionCall(FunctionCall function){
-		if (functionCallsNotToLog.size()==0)
+		if (functionCallsNotToVisit.size()==0)
 			return true;
-		for (String funcName:functionCallsNotToLog){
+		for (String funcName:functionCallsNotToVisit){
 
 			if (function.getTarget().toSource().contains(funcName)){
 				return false;
@@ -236,7 +224,7 @@ public abstract class JSASTModifier implements NodeVisitor  {
 		System.out.println("visit");
 		System.out.println(node);
 
-		if (!shouldTrackFunctionCalls){
+		/*if (!shouldTrackFunctionCalls){
 			if (node instanceof FunctionNode)
 				if (!shouldVisitFunction((FunctionNode) node)){
 					return false;
@@ -261,7 +249,7 @@ public abstract class JSASTModifier implements NodeVisitor  {
 				}
 
 			}
-			/* we will not log the incremental part of the for loops */
+			// we will not log the incremental part of the for loops
 			if (node.getParent() instanceof ForLoop){
 				ForLoop forloop=(ForLoop)node.getParent();
 				if (forloop.getIncrement().equals(node))
@@ -325,7 +313,7 @@ public abstract class JSASTModifier implements NodeVisitor  {
 
 					AstNode parent = makeSureBlockExistsAround(node);
 
-					/* the parent is something we can prepend to */
+					// the parent is something we can prepend to
 					parent.addChildBefore(newNode, node);
 				}
 
@@ -341,7 +329,7 @@ public abstract class JSASTModifier implements NodeVisitor  {
 
 					AstNode parent = makeSureBlockExistsAround(node);
 
-					/* the parent is something we can prepend to */
+					// the parent is something we can prepend to
 					parent.addChildAfter(newNode, node);
 				}
 
@@ -357,7 +345,7 @@ public abstract class JSASTModifier implements NodeVisitor  {
 
 					AstNode parent = makeSureBlockExistsAround(node);
 
-					/* the parent is something we can prepend to */
+					// the parent is something we can prepend to
 					parent.addChildAfter(newNode, node);
 				}
 			}
@@ -373,7 +361,7 @@ public abstract class JSASTModifier implements NodeVisitor  {
 
 					AstNode parent = makeSureBlockExistsAround(node);
 
-					/* the parent is something we can prepend to */
+					// the parent is something we can prepend to
 					parent.addChildAfter(newNode, node);
 				}
 
@@ -387,13 +375,13 @@ public abstract class JSASTModifier implements NodeVisitor  {
 
 					AstNode parent = makeSureBlockExistsAround(node);
 
-					/* the parent is something we can prepend to */
+					// the parent is something we can prepend to
 					parent.addChildAfter(newNode, node);
 				}
 			}
 		}
 
-		else{
+		else*/{
 			if(shouldTrackFunctionNodes){
 				if(node instanceof FunctionNode){
 					functionNodes.add(getFunctionName((FunctionNode)node));
