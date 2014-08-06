@@ -33,6 +33,8 @@ import org.mozilla.javascript.ast.WhileLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.crawljax.plugins.aji.ConsoleErrorReporter;
+
 import core.ConstraintExtractor;
 
 
@@ -125,9 +127,11 @@ public abstract class JSASTModifier implements NodeVisitor  {
 	 * @return The AST node.
 	 */
 	public AstNode parse(String code) {
-		Parser p = new Parser(compilerEnvirons, null);
+		//Parser p = new Parser(compilerEnvirons, null);
+		compilerEnvirons.setErrorReporter(new ConsoleErrorReporter());
+		Parser p = new Parser(compilerEnvirons, new ConsoleErrorReporter());
+		//System.out.print(code+"*******\n");
 		return p.parse(code, null, 0);
-
 	}
 
 	/**
@@ -141,12 +145,9 @@ public abstract class JSASTModifier implements NodeVisitor  {
 	protected String getFunctionName(FunctionNode f) {
 		if (f==null)
 			return "NoFunctionNode";
-		/*	else if(f.getParent() instanceof LabeledStatement){
-				return ((LabeledStatement)f.getParent()).shortName();
-			}
-		 */	else if(f.getParent() instanceof ObjectProperty){
-			 return ((ObjectProperty)f.getParent()).getLeft().toSource();
-		 }
+		else if(f.getParent() instanceof ObjectProperty){
+			return ((ObjectProperty)f.getParent()).getLeft().toSource();
+		}
 		Name functionName = f.getFunctionName();
 
 		if (functionName == null) {
@@ -156,8 +157,13 @@ public abstract class JSASTModifier implements NodeVisitor  {
 		}
 	}
 
-
-
+	/**
+	 * Create a new block node with two children.
+	 * 
+	 * @param node
+	 *            The child.
+	 * @return The new block.
+	 */
 	private Block createBlockWithNode(AstNode node) {
 		Block b = new Block();
 		b.addChild(node);
@@ -165,6 +171,11 @@ public abstract class JSASTModifier implements NodeVisitor  {
 	}
 
 
+	/**
+	 * @param node
+	 *            The node we want to have wrapped.
+	 * @return The (new) node parent (the block probably)
+	 */
 	private AstNode makeSureBlockExistsAround(AstNode node) {
 
 		AstNode parent = node.getParent();
@@ -222,7 +233,7 @@ public abstract class JSASTModifier implements NodeVisitor  {
 	public boolean visit(AstNode node) {
 
 		System.out.println("visit");
-		System.out.println(node);
+		//System.out.println(node);
 
 		/*if (!shouldTrackFunctionCalls){
 			if (node instanceof FunctionNode)
@@ -381,32 +392,32 @@ public abstract class JSASTModifier implements NodeVisitor  {
 			}
 		}
 
-		else*/{
+		else*/  {  // if (shouldTrackFunctionCalls)
 			if(shouldTrackFunctionNodes){
 				if(node instanceof FunctionNode){
+					FunctionNode fNode=(FunctionNode) node;
+					System.out.println(fNode.debugPrint());
+					System.out.println(getFunctionName(fNode));
 					functionNodes.add(getFunctionName((FunctionNode)node));
 				}
 			}
 			else{
-
 				if(node instanceof FunctionNode){
-
 					FunctionNode fNode=(FunctionNode) node;
 					String funcName=getFunctionName(fNode);
-
 					String code="var me = arguments.callee;";
 					code+="me.funcName = " + "'" + funcName + "'" +";";
 					code+="var callerName = arguments.callee.caller.funcName;";
 					AstNode funcNameNode=parse(code);
 					fNode.getBody().addChildToFront(funcNameNode);
 					AstNode newNode=createFunctionTrackingNode(fNode, "callerName");
-					//				appendNodeAfterFunctionCall(node, newNode);
+					//	appendNodeAfterFunctionCall(node, newNode);
 					fNode.getBody().addChildAfter(newNode,funcNameNode);
 
 				}
 
 
-				/*			if (node instanceof FunctionCall
+				/*if (node instanceof FunctionCall
 							&& !(((FunctionCall) node).getTarget() instanceof PropertyGet)
 							&& !(node instanceof NewExpression)
 							&& shouldVisitFunctionCall((FunctionCall)node)
@@ -418,7 +429,7 @@ public abstract class JSASTModifier implements NodeVisitor  {
 							appendNodeAfterFunctionCall(node, newNode);
 						}
 
-					}
+				}
 			    else
 			    	if(node instanceof Name){
 			    		if(node.getParent() instanceof PropertyGet 
@@ -448,16 +459,13 @@ public abstract class JSASTModifier implements NodeVisitor  {
 				    			}
 				    		}
 				    	}
-
 			    	}
 				 */	
 
 			}
 		}
 
-
 		return true;
-
 	}
 
 
@@ -491,9 +499,6 @@ public abstract class JSASTModifier implements NodeVisitor  {
 	protected abstract AstNode createNode(AstRoot root, String postfix, int lineNo, int rootCount);
 
 
-
-
-
 	protected abstract AstNode createFunctionTypeNameTrackingNode(FunctionNode callerFunc, AstNode node);
 	/**
 	 *  create node for logging variable/function-parameters
@@ -522,20 +527,14 @@ public abstract class JSASTModifier implements NodeVisitor  {
 	public void appendNode(AstNode node, AstNode newNode){
 		AstNode parent = node;
 
-
 		while (parent!=null && ! (parent instanceof ReturnStatement) && ! (parent instanceof ExpressionStatement)){
-
 			parent=parent.getParent();
-
 		}
-
-
 
 		if (parent instanceof ReturnStatement){
 			AstNode attachBefore=parent;
 			AstNode parentToAttach=makeSureBlockExistsAround(parent);
 			parentToAttach.addChildBefore(newNode, attachBefore);
-
 		}
 
 		else if (parent!=null){
@@ -543,22 +542,16 @@ public abstract class JSASTModifier implements NodeVisitor  {
 			AstNode parentToAttach=makeSureBlockExistsAround(parent);
 			parentToAttach.addChildAfter(newNode, attachAfter);
 		}
-
-
 	}
 
 
 	public void appendElemGetNode(AstNode node, AstNode newNode){
 		AstNode parent = node;
 
-
 		while (parent!=null && ! (parent instanceof ReturnStatement) 
 				&& ! (parent instanceof ExpressionStatement) && ! (parent instanceof InfixExpression)){
-
 			parent=parent.getParent();
-
 		}
-
 
 		if (parent instanceof ReturnStatement){
 			AstNode attachBefore=parent;
@@ -579,9 +572,9 @@ public abstract class JSASTModifier implements NodeVisitor  {
 		}
 	}
 
+	
 	public void appendNodeAfterFunctionCall(AstNode node, AstNode newNode){
 		AstNode parent = node;
-
 
 		while (parent!=null && ! (parent instanceof ReturnStatement) && ! (parent instanceof ExpressionStatement)){
 
@@ -604,17 +597,12 @@ public abstract class JSASTModifier implements NodeVisitor  {
 				return;
 			}
 			parent=parent.getParent();
-
 		}
-
-
 
 		if (parent instanceof ReturnStatement){
 			AstNode attachBefore=parent;
 			AstNode parentToAttach=makeSureBlockExistsAround(parent);
 			parentToAttach.addChildBefore(newNode, attachBefore);
-
-
 		}
 
 		else if (parent!=null){
@@ -623,6 +611,5 @@ public abstract class JSASTModifier implements NodeVisitor  {
 			parentToAttach.addChildAfter(newNode, attachAfter);
 		}
 	}
-
 
 }

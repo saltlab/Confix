@@ -124,8 +124,7 @@ public class runner {
 		 * E.g. document.getElementByID('id') / document.getElementByTag('div') / $('id')
 		 */
 		
-		
-		
+			
 		
 		
 		driverQuit();
@@ -143,8 +142,8 @@ public class runner {
 		prox.setPort(3128);
 		JSModifyProxyPlugin modifier = new JSModifyProxyPlugin(new instrumentor.AstInstrumenter());
 		//JSModifyProxyPlugin modifier = new JSModifyProxyPlugin("TEMP");  // output forlder name
-		DomJsCodeLevelVisitor domJsVis=new DomJsCodeLevelVisitor();
-		modifier.setJSModifyProxyPluginForDOMJSVis(domJsVis, 4);
+		//DomJsCodeLevelVisitor domJsVis=new DomJsCodeLevelVisitor();
+		//modifier.setJSModifyProxyPluginForDOMJSVis(domJsVis, 4);
 		modifier.excludeDefaults();
 		Framework framework = new Framework();
 		Preferences.setPreference("Proxy.listeners", "127.0.0.1:" + prox.getPort());

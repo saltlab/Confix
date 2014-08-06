@@ -28,7 +28,7 @@ import com.crawljax.util.Helper;
 
 
 public class JSModifyProxyPlugin extends ProxyPlugin {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(JSModifyProxyPlugin.class.getName());
 
 	private List<String> excludeFilenamePatterns;
@@ -37,9 +37,8 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 	private DomJsCodeLevelVisitor domJsVisitor;
 	private String outputfolder;
 	private int indexOfJsDomToVisit=0;
-	private int indexOfJsSpecToVisit=0;
 	private boolean singleMutationDone=false;
-	
+
 	private boolean shouldStartDomJsMutations=false;
 	private boolean shouldGetInfoFromCode=false;
 
@@ -50,7 +49,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 	 *            The JSASTModifier to run over all JavaScript.
 	 */
 	public JSModifyProxyPlugin(JSASTModifier modify) {
-		
+
 		excludeFilenamePatterns = new ArrayList<String>();
 		modifier = modify;
 		shouldGetInfoFromCode=true;
@@ -71,22 +70,22 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 		shouldGetInfoFromCode=true;
 		shouldStartDomJsMutations=false;
 	}
-	
+
 	public JSModifyProxyPlugin(String outputfolder){
 		excludeFilenamePatterns = new ArrayList<String>();
 		this.outputfolder=outputfolder;
 	}
 
-	
+
 	public void setJSModifyProxyPluginForDOMJSVis(DomJsCodeLevelVisitor domVis, int indexOfDom){
-		
+
 		shouldGetInfoFromCode=false;
 		shouldStartDomJsMutations=true;
 		domJsVisitor=domVis;
 		indexOfJsDomToVisit=indexOfDom;
 		singleMutationDone=false;
 
-			
+
 	}
 
 	/**
@@ -106,7 +105,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 	public void excludeDefaults() {
 		excludeFilenamePatterns.add(".*jquery[-0-9.]*.js?.*");
 		excludeFilenamePatterns.add(".*jquery.*.js?.*");
-	//	excludeFilenamePatterns.add(".*same-game.*.htm?.*");
+		//	excludeFilenamePatterns.add(".*same-game.*.htm?.*");
 		excludeFilenamePatterns.add(".*prototype.*js?.*");
 		excludeFilenamePatterns.add(".*scriptaculous.*.js?.*");
 		excludeFilenamePatterns.add(".*mootools.js?.*");
@@ -120,7 +119,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 		excludeFilenamePatterns.add(".*o9dKSTNLPEg.*.js?.*");
 		excludeFilenamePatterns.add(".*gdn6pnx.*.js?.*");
 		excludeFilenamePatterns.add(".*show_ads.*.js?.*");
-	//	excludeFilenamePatterns.add(".*ga.*.js?.*");
+		//	excludeFilenamePatterns.add(".*ga.*.js?.*");
 		//The following 10 excluded files are just for Tudu
 		excludeFilenamePatterns.add(".*builder.js");
 		excludeFilenamePatterns.add(".*controls.js");
@@ -130,7 +129,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 		excludeFilenamePatterns.add(".*scriptaculous.js");
 		excludeFilenamePatterns.add(".*slider.js");
 		excludeFilenamePatterns.add(".*unittest.js");
-	//	excludeFilenamePatterns.add(".*engine.js");
+		//	excludeFilenamePatterns.add(".*engine.js");
 		excludeFilenamePatterns.add(".*util.js");
 		excludeFilenamePatterns.add(".*cycle.js");
 		///////
@@ -139,11 +138,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 		excludeFilenamePatterns.add(".*functional.js");
 		excludeFilenamePatterns.add(".*test.core.js");
 		excludeFilenamePatterns.add(".*inject.js");
-		 
-	}
-	
-	public boolean getSingleMutationDone(){
-		return singleMutationDone;
+
 	}
 
 	@Override
@@ -184,54 +179,47 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 	 * @return The modified JavaScript
 	 */
 	private synchronized String modifyJS(String input, String scopename) {
-		
-		
-		/*this line should be removed when it is used for collecting exec
-		 * traces, mutating, and testing jquery library*/
-		input = input.replaceAll("[\r\n]","\n\n");
+
 		if (!shouldModify(scopename)) {
 			return input;
 		}
-		
-		else
-			if(singleMutationDone)
-				return input;
-		
+
 		try {
-		
+
 			AstRoot ast = null;	
-			
+
 			/* initialize JavaScript context */
 			Context cx = Context.enter();
 
 			/* create a new parser */
 			Parser rhinoParser = new Parser(new CompilerEnvirons(), cx.getErrorReporter());
-			
+
 			/* parse some script and save it in AST */
 			ast = rhinoParser.parse(new String(input), scopename, 0);
 
+			System.out.println("AST BEFORE INSTRUMENTATION: ");
 			System.out.println(ast.toSource());
 			System.out.println(ast.debugPrint());
-			
+
 			shouldGetInfoFromCode = true;
 			if(shouldGetInfoFromCode){
 				modifier.setScopeName(scopename);
 				modifier.start();
 
-			/* recurse through AST */
+				/* recurse through AST */
 				modifier.shouldTrackFunctionNodes=true;
 				ast.visit(modifier);
-			
+
 				//if(modifier.shouldTrackFunctionCalls){
 				//	modifier.shouldTrackFunctionNodes=false;
 				//	ast.visit(modifier);
 				//}
-				
+
 
 				modifier.finish(ast);
 			}
 			else if(shouldStartDomJsMutations){
-			
+
 				domJsVisitor.setScopeName(scopename);
 				ast.visit(domJsVisitor);
 				domJsVisitor.setJsDomList();
@@ -248,21 +236,22 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 					nm.writeResultsToFile(stb.toString());
 				}
 			}
-			
-			
+
+
 			/* clean up */
 			Context.exit();
-			
-			System.out.println(ast.toSource());
 
-			
+			System.out.println("AST AFTER INSTRUMENTATION: ");
+			System.out.println(ast.toSource());
+			System.out.println(ast.debugPrint());
+
 			return ast.toSource();
 		} catch (RhinoException re) {
 			System.err.println(re.getMessage());
 			LOGGER.warn("Unable to instrument. This might be a JSON response sent"
-			        + " with the wrong Content-Type or a syntax error.");
+					+ " with the wrong Content-Type or a syntax error.");
 		} catch (IllegalArgumentException iae) {
-			
+
 			LOGGER.warn("Invalid operator exception catched. Not instrumenting code.");
 		}
 		LOGGER.warn("Here is the corresponding buffer: \n" + input + "\n");
@@ -280,9 +269,9 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 	 * @return The modified response.
 	 */
 	private Response createResponse(Response response, Request request) {
-		
+
 		System.out.println("createResponse");
-		
+
 		String type = response.getHeader("Content-Type");
 
 		if (request.getURL().toString().contains("?thisisavarexectracingcall")) {
@@ -290,7 +279,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 			return response;
 		}
 		if (request.getURL().toString().contains("?thisisafuncexectracingcall")){
-			
+
 			LOGGER.info("Execution trace request " + request.getURL().toString());
 			return response;
 		}
@@ -299,7 +288,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 
 			/* instrument the code if possible */
 			response.setContent(modifyJS(new String(response.getContent()),
-			        request.getURL().toString()).getBytes());
+					request.getURL().toString()).getBytes());
 		} else if (type != null && type.contains("html")) {
 			try {
 				Document dom = Helper.getDocument(new String(response.getContent()));
@@ -307,11 +296,11 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 				NodeList nodes = dom.getElementsByTagName("script");
 
 				for (int i = 0; i < nodes.getLength(); i++) {
-					
+
 					Node nType = nodes.item(i).getAttributes().getNamedItem("type");
 					/* instrument if this is a JavaScript node */
 					if ((nType != null && nType.getTextContent() != null && nType
-					        .getTextContent().toLowerCase().contains("javascript"))) {
+							.getTextContent().toLowerCase().contains("javascript"))) {
 						String content = nodes.item(i).getTextContent();
 						if (content.length() > 0) {
 							String js = modifyJS(content, request.getURL() + "script" + i);
@@ -323,7 +312,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 					/* also check for the less used language="javascript" type tag */
 					nType = nodes.item(i).getAttributes().getNamedItem("language");
 					if ((nType != null && nType.getTextContent() != null && nType
-					        .getTextContent().toLowerCase().contains("javascript"))) {
+							.getTextContent().toLowerCase().contains("javascript"))) {
 						String content = nodes.item(i).getTextContent();
 						if (content.length() > 0) {
 							String js = modifyJS(content, request.getURL() + "script" + i);
@@ -361,14 +350,14 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 		}
 
 		public Response fetchResponse(Request request) throws IOException {
-			
+
 			System.out.println("fetchResponse");
-			
+
 			Response response = client.fetchResponse(request);
 			return createResponse(response, request);
 		}
 	}
-	
+
 
 
 
