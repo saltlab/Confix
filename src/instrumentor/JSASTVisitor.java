@@ -14,6 +14,8 @@ import org.mozilla.javascript.Token;
 import org.mozilla.javascript.ast.AstNode;
 import org.mozilla.javascript.ast.AstRoot;
 import org.mozilla.javascript.ast.Block;
+import org.mozilla.javascript.ast.BreakStatement;
+import org.mozilla.javascript.ast.ContinueStatement;
 import org.mozilla.javascript.ast.ExpressionStatement;
 import org.mozilla.javascript.ast.ForLoop;
 import org.mozilla.javascript.ast.FunctionCall;
@@ -27,12 +29,17 @@ import org.mozilla.javascript.ast.ParenthesizedExpression;
 import org.mozilla.javascript.ast.PropertyGet;
 import org.mozilla.javascript.ast.ReturnStatement;
 import org.mozilla.javascript.ast.StringLiteral;
+import org.mozilla.javascript.ast.SwitchCase;
 import org.mozilla.javascript.ast.Symbol;
+import org.mozilla.javascript.ast.ThrowStatement;
+import org.mozilla.javascript.ast.TryStatement;
+import org.mozilla.javascript.ast.VariableDeclaration;
 import org.mozilla.javascript.ast.WhileLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.crawljax.plugins.aji.ConsoleErrorReporter;
+import com.crawljax.plugins.aji.executiontracer.ProgramPoint;
 
 
 public abstract class JSASTVisitor implements NodeVisitor{
@@ -45,6 +52,8 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	public boolean shouldTrackFunctionCalls=true;
 	public boolean shouldTrackFunctionNodes=true;
 	
+	private int m_rootCount = 0;
+
 
 	/**
 	 * This is used by the JavaScript node creation functions that follow.
@@ -662,8 +671,6 @@ document.getElementById('myAnchor').target="_blank";
 
 		System.out.println("visit");
 
-		System.out.println(node.debugPrint());
-
 		String ASTNodeName = node.shortName();
 		int type = node.getType();
 		int ASTDepth = node.depth();
@@ -671,14 +678,231 @@ document.getElementById('myAnchor').target="_blank";
 		System.out.println("node.shortName() : " + ASTNodeName);
 		System.out.println("node.depth() : " + ASTDepth);
 		System.out.println("node.getLineno() : " + (node.getLineno()+1));
-		System.out.println("node.toSource() : " + node.toSource());
+		System.out.println("node.toSource() : \n" + node.toSource());
 		System.out.println("node.getType() : " + node.getType());
 		System.out.println("node.getAstRoot() : " + node.getAstRoot());
-		System.out.println("node.debugPrint() : " + node.debugPrint());
+		System.out.println("node.debugPrint() : \n" + node.debugPrint());
 
 		
+		/*
+		 
+		node.shortName() : ExpressionStatement
+		a = document.getElementById("demo");
+		44	      EXPR_VOID 18 36
+		44	        ASSIGN 0 35
+		44	          NAME 0 1 a
+		48	          CALL 4 31
+		48	            GETPROP 0 23
+		48	              NAME 0 8 document
+		57	              NAME 9 14 getElementById
+		72	            STRING 24 6
+
+		node.shortName() : Assignment
+		node.depth() : 4
+		node.getLineno() : 3
+		node.toSource() : 
+		a = document.getElementById("demo")
+		node.getType() : 90
+
+		node.shortName() : ExpressionStatement
+		node.depth() : 3
+		node.getLineno() : 9
+		node.toSource() : 
+		var inner = f();
+
+		node.getType() : 133
+		node.getAstRoot() : 136
+		node.debugPrint() : 
+		236	      EXPR_VOID 18 16
+		236	        VAR 0 15
+		240	          VAR 4 11
+		240	            NAME 0 5 inner
+		248	            CALL 8 3
+		248	              NAME 0 1 f
+
+		node.shortName() : VariableDeclaration
+		node.depth() : 4
+		node.getLineno() : 9
+		node.toSource() : 
+		var inner = f()
+		node.getType() : 122
+		node.getAstRoot() : 136
+		node.debugPrint() : 
+		236	        VAR 0 15
+		240	          VAR 4 11
+		240	            NAME 0 5 inner
+		248	            CALL 8 3
+		248	              NAME 0 1 f
+		
+		node.shortName() : VariableInitializer
+		node.depth() : 5
+		node.getLineno() : 9
+		node.toSource() : 
+		inner = f()	
+			  
+		 */
 		
 		
+		
+		
+		/*if (!shouldTrackFunctionCalls){
+		if (node instanceof FunctionNode)
+			if (!shouldVisitFunction((FunctionNode) node)){
+				return false;
+			}
+
+		if (node instanceof SwitchCase) {
+			//Add block around all statements in the switch case
+			SwitchCase sc = (SwitchCase)node;
+			List<AstNode> statements = sc.getStatements();
+			List<AstNode> blockStatement = new ArrayList<AstNode>();
+			Block b = new Block();
+
+			if (statements != null) {
+				Iterator<AstNode> it = statements.iterator();
+				while (it.hasNext()) {
+					AstNode stmnt = it.next();
+					b.addChild(stmnt);
+				}
+
+				blockStatement.add(b);
+				sc.setStatements(blockStatement);
+			}
+
+		}
+		// we will not log the incremental part of the for loops
+		if (node.getParent() instanceof ForLoop){
+			ForLoop forloop=(ForLoop)node.getParent();
+			if (forloop.getIncrement().equals(node))
+				return false;
+		}
+
+		else if (node instanceof FunctionCall){
+
+			FunctionNode func=node.getEnclosingFunction();
+			List<AstNode> nodeForVarLog=((FunctionCall) node).getArguments();
+			String statementCategory="FunctionCallArgument";
+
+			for (int i=0;i<nodeForVarLog.size();i++){
+				if (!(nodeForVarLog.get(i) instanceof KeywordLiteral)){
+					AstNode newNode=createNode(func, nodeForVarLog.get(i), statementCategory);
+					appendNode(node, newNode);
+
+
+				}
+			}
+
+
+		}
+		else if (node instanceof Assignment){
+
+			FunctionNode func=node.getEnclosingFunction();
+			String statementCategory="AssignmentComputation";
+			AstNode nodeForVarLog=node;
+			AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
+
+			appendNode(node, newNode);
+
+		}
+
+		else if (node instanceof UnaryExpression){
+
+			FunctionNode func=node.getEnclosingFunction();
+			String statementCategory="UnaryExpression";
+			AstNode nodeForVarLog=node;
+			AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
+			appendNode(node, newNode);
+
+		}
+
+		if (node.getParent() instanceof ElementGet){
+			FunctionNode func=node.getEnclosingFunction();
+			String statementCategory="ElementGet";
+			AstNode nodeForVarLog=node;
+			AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
+			appendElemGetNode(node, newNode);
+		}
+
+
+		else if (node instanceof ReturnStatement){
+
+			FunctionNode func=node.getEnclosingFunction();
+			String statementCategory="ReturnStatementArgument";
+			AstNode nodeForVarLog=((ReturnStatement)node).getReturnValue();
+			if (!(nodeForVarLog instanceof KeywordLiteral) && nodeForVarLog!=null){
+				AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
+
+				AstNode parent = makeSureBlockExistsAround(node);
+
+				// the parent is something we can prepend to
+				parent.addChildBefore(newNode, node);
+			}
+
+		}
+
+		else if (node instanceof IfStatement){
+
+			FunctionNode func=node.getEnclosingFunction();
+			String statementCategory="IfStatementCondition";
+			AstNode nodeForVarLog=((IfStatement) node).getCondition();
+			if (!(nodeForVarLog instanceof KeywordLiteral)){
+				AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
+
+				AstNode parent = makeSureBlockExistsAround(node);
+
+				// the parent is something we can prepend to
+				parent.addChildAfter(newNode, node);
+			}
+
+		}
+
+		else if (node instanceof ForLoop){
+
+			FunctionNode func=node.getEnclosingFunction();
+			String statementCategory="ForLoopCondition";
+			AstNode nodeForVarLog=((ForLoop) node).getCondition();
+			if (!(nodeForVarLog instanceof KeywordLiteral)){
+				AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
+
+				AstNode parent = makeSureBlockExistsAround(node);
+
+				// the parent is something we can prepend to
+				parent.addChildAfter(newNode, node);
+			}
+		}
+
+
+		else if (node instanceof WhileLoop){
+
+			FunctionNode func=node.getEnclosingFunction();
+			String statementCategory="WhileLoopCondition";
+			AstNode nodeForVarLog=((WhileLoop) node).getCondition();
+			if (!(nodeForVarLog instanceof KeywordLiteral)){
+				AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
+
+				AstNode parent = makeSureBlockExistsAround(node);
+
+				// the parent is something we can prepend to
+				parent.addChildAfter(newNode, node);
+			}
+
+		}
+		else if (node instanceof SwitchStatement){
+			FunctionNode func=node.getEnclosingFunction();
+			AstNode nodeForVarLog=((SwitchStatement) node).getExpression();
+			String statementCategory="SwitchStatementCondition";
+			if (!(nodeForVarLog instanceof KeywordLiteral)){
+				AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
+
+				AstNode parent = makeSureBlockExistsAround(node);
+
+				// the parent is something we can prepend to
+				parent.addChildAfter(newNode, node);
+			}
+		}
+	}
+
+	else*/
 		
 		if(shouldTrackFunctionNodes){
 			if(node instanceof FunctionNode){
@@ -829,6 +1053,223 @@ document.getElementById('myAnchor').target="_blank";
 		}
 
 
+		FunctionNode func;
+		
+		if (!((node instanceof FunctionNode || node instanceof ReturnStatement || node instanceof SwitchCase || node instanceof AstRoot || node instanceof ExpressionStatement || node instanceof BreakStatement || node instanceof ContinueStatement || node instanceof ThrowStatement || node instanceof VariableDeclaration))) {// || node instanceof ExpressionStatement || node instanceof BreakStatement || node instanceof ContinueStatement || node instanceof ThrowStatement || node instanceof VariableDeclaration || node instanceof ReturnStatement || node instanceof SwitchCase)) {
+			return true;
+		}
+
+		if (node instanceof FunctionNode) {
+			func = (FunctionNode) node;
+
+			/* this is function enter */
+			AstNode newNode = createNode(func, ProgramPoint.ENTERPOSTFIX, func.getLineno());
+
+			func.getBody().addChildToFront(newNode);
+			
+			node = (AstNode) func.getBody().getFirstChild();
+			node = (AstNode) node.getNext(); //The first node is the node just added in front, so get next node
+			int firstLine = 0;
+			if (node != null) {
+				firstLine = node.getLineno();
+			}
+
+			/* get last line of the function */
+			node = (AstNode) func.getBody().getLastChild();
+			/* if this is not a return statement, we need to add logging here also */
+			if (!(node instanceof ReturnStatement)) {
+				AstNode newNode_end = createNode(func, ProgramPoint.EXITPOSTFIX, node.getLineno()-firstLine+1);
+				/* add as last statement */
+				func.getBody().addChildToBack(newNode_end);
+			}			
+			//System.out.println(func.toSource());
+		}
+		else if (node instanceof AstRoot) {
+			AstRoot rt = (AstRoot) node;
+			
+			if (rt.getSourceName() == null) { //make sure this is an actual AstRoot, not one we created
+				return true;
+			}
+			
+			//this is the entry point of the AST root
+			m_rootCount++;
+			AstNode newNode = createNode(rt, ProgramPoint.ENTERPOSTFIX, rt.getLineno(), m_rootCount);
+
+			rt.addChildToFront(newNode);
+			
+			node = (AstNode) rt.getFirstChild();
+			node = (AstNode) node.getNext(); //The first node is the node just added in front, so get next node
+			int firstLine = 0;
+			if (node != null) {
+				firstLine = node.getLineno();
+			}
+			
+			// get last line of the function
+			node = (AstNode) rt.getLastChild();
+			//if this is not a return statement, we need to add logging here also
+			if (!(node instanceof ReturnStatement)) {
+				AstNode newNode_end = createNode(rt, ProgramPoint.EXITPOSTFIX, node.getLineno()-firstLine+1, m_rootCount);
+				//add as last statement
+				rt.addChildToBack(newNode_end);
+			}
+		}
+		//else if (node instanceof BreakStatement || node instanceof ConditionalExpression || node instanceof ContinueStatement || node instanceof ExpressionStatement || node instanceof FunctionCall || node instanceof Assignment || node instanceof InfixExpression || node instanceof ThrowStatement || node instanceof UnaryExpression || node instanceof VariableDeclaration || node instanceof VariableInitializer || node instanceof XmlDotQuery || node instanceof XmlMemberGet || node instanceof XmlPropRef || node instanceof Yield) {
+		else if (node instanceof ExpressionStatement || node instanceof BreakStatement || node instanceof ContinueStatement || node instanceof ThrowStatement || node instanceof VariableDeclaration) {
+			if (node instanceof VariableDeclaration) {
+				//Make sure this variable declaration is not part of a for loop
+				if (node.getParent() instanceof ForLoop) {
+					return true;
+				}
+			}
+			
+			//Make sure additional try statement is not instrumented
+			if (node instanceof TryStatement) {
+				return true; //no need to add instrumentation before try statement anyway since we only instrument what's inside the blocks
+			}
+			
+			func = node.getEnclosingFunction();
+			
+			if (func != null) {
+				AstNode firstLine_node = (AstNode) func.getBody().getFirstChild();
+				if (func instanceof FunctionNode && firstLine_node instanceof IfStatement) { //Perform extra check due to addition if statement
+					firstLine_node = (AstNode) firstLine_node.getNext();
+				}
+				if (func instanceof FunctionNode && firstLine_node instanceof TryStatement) {
+					TryStatement firstLine_node_try = (TryStatement) firstLine_node;
+					firstLine_node = (AstNode) firstLine_node_try.getTryBlock().getFirstChild();
+				}
+				firstLine_node = (AstNode) firstLine_node.getNext();
+				int firstLine = 0;
+				if (firstLine_node != null) {
+					//If first child is an ExpressionStatement or VariableDeclaration, then there might be multiple instances of the instrumented node at the beginning of the FunctionNode's list of children
+					while (firstLine_node != null) {
+						firstLine = firstLine_node.getLineno();
+						if (firstLine > 0) {
+							break;
+						}
+						else {
+							firstLine_node = (AstNode) firstLine_node.getNext();
+						}
+					}
+				}
+				
+				if (node.getLineno() >= firstLine) {
+					AstNode newNode = createNode(func, ":::INTERMEDIATE", node.getLineno()-firstLine+1);
+					//AstNode parent = node.getParent();
+					
+					AstNode parent = makeSureBlockExistsAround(node);
+					
+					//parent.addChildAfter(newNode, node);
+					try {
+						parent.addChildBefore(newNode, node);
+					}
+					catch (NullPointerException npe) {
+						//System.out.println("Could not addChildBefore!");
+						//System.out.println(npe.getMessage());
+					}
+				}
+			}
+			else { //The expression must be outside a function
+				AstRoot rt = node.getAstRoot();
+				if (rt == null || rt.getSourceName() == null) {
+					return true;
+				}
+				AstNode firstLine_node = (AstNode) rt.getFirstChild();
+				//if (firstLine_node instanceof IfStatement) { //Perform extra check due to addition if statement
+				//	firstLine_node = (AstNode) firstLine_node.getNext();
+				//}
+				if (firstLine_node instanceof Block) {
+					firstLine_node = (AstNode)firstLine_node.getFirstChild(); //Try statement
+				}
+				if (firstLine_node instanceof TryStatement) {
+					TryStatement firstLine_node_try = (TryStatement) firstLine_node;
+					firstLine_node = (AstNode) firstLine_node_try.getTryBlock().getFirstChild();
+				}
+				firstLine_node = (AstNode) firstLine_node.getNext();
+				int firstLine = 0;
+				if (firstLine_node != null) {
+					//If first child is an ExpressionStatement or VariableDeclaration, then there might be multiple instances of the instrumented node at the beginning of the FunctionNode's list of children
+					while (firstLine_node != null) {
+						firstLine = firstLine_node.getLineno();
+						if (firstLine > 0) {
+							break;
+						}
+						else {
+							firstLine_node = (AstNode) firstLine_node.getNext();
+						}
+					}
+				}
+				
+				if (node.getLineno() >= firstLine) {
+					AstNode newNode = createNode(rt, ":::INTERMEDIATE", node.getLineno()-firstLine+1, m_rootCount);
+					//AstNode parent = node.getParent();
+					
+					AstNode parent = makeSureBlockExistsAround(node);
+					
+					//parent.addChildAfter(newNode, node);
+					try {
+						parent.addChildBefore(newNode, node);
+					}
+					catch (NullPointerException npe) {
+						System.out.println(npe.getMessage());
+					}
+				}
+			}
+		}
+		else if (node instanceof ReturnStatement) {
+			func = node.getEnclosingFunction();
+			AstNode firstLine_node = (AstNode) func.getBody().getFirstChild();
+			if (func instanceof FunctionNode && firstLine_node instanceof IfStatement) { //Perform extra check due to addition if statement
+				firstLine_node = (AstNode) firstLine_node.getNext();
+			}
+			if (func instanceof FunctionNode && firstLine_node instanceof TryStatement) {
+				TryStatement firstLine_node_try = (TryStatement) firstLine_node;
+				firstLine_node = (AstNode) firstLine_node_try.getTryBlock().getFirstChild();
+			}
+			firstLine_node = (AstNode) firstLine_node.getNext();
+			int firstLine = 0;
+			if (firstLine_node != null) {
+				//If first child is an ExpressionStatement or VariableDeclaration, then there might be multiple instances of the instrumented node at the beginning of the FunctionNode's list of children
+				while (firstLine_node != null) {
+					firstLine = firstLine_node.getLineno();
+					if (firstLine > 0) {
+						break;
+					}
+					else {
+						firstLine_node = (AstNode) firstLine_node.getNext();
+					}
+				}
+			}
+			
+			AstNode parent = makeSureBlockExistsAround(node);
+			
+			AstNode newNode = createNode(func, ProgramPoint.EXITPOSTFIX, node.getLineno()-firstLine+1);
+
+			/* the parent is something we can prepend to */
+			parent.addChildBefore(newNode, node);
+
+		}
+		else if (node instanceof SwitchCase) {
+			//Add block around all statements in the switch case
+			SwitchCase sc = (SwitchCase)node;
+			List<AstNode> statements = sc.getStatements();
+			List<AstNode> blockStatement = new ArrayList<AstNode>();
+			Block b = new Block();
+			
+			if (statements != null) {
+				Iterator<AstNode> it = statements.iterator();
+				while (it.hasNext()) {
+					AstNode stmnt = it.next();
+					b.addChild(stmnt);
+				}
+				
+				blockStatement.add(b);
+				sc.setStatements(blockStatement);
+			}
+		}
+
+		
+		/* have a look at the children of this node */
 		return true;
 	}
 
@@ -941,6 +1382,8 @@ document.getElementById('myAnchor').target="_blank";
 	 * This method is called before the AST is going to be traversed.
 	 */
 	public abstract void start();
+	
+	
 
 	public void appendNode(AstNode node, AstNode newNode){
 		AstNode parent = node;

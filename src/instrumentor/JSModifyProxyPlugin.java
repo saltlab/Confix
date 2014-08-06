@@ -85,7 +85,6 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 	public void excludeDefaults() {
 		excludeFilenamePatterns.add(".*jquery[-0-9.]*.js?.*");
 		excludeFilenamePatterns.add(".*jquery.*.js?.*");
-		//	excludeFilenamePatterns.add(".*same-game.*.htm?.*");
 		excludeFilenamePatterns.add(".*prototype.*js?.*");
 		excludeFilenamePatterns.add(".*scriptaculous.*.js?.*");
 		excludeFilenamePatterns.add(".*mootools.js?.*");
@@ -99,9 +98,17 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 		excludeFilenamePatterns.add(".*o9dKSTNLPEg.*.js?.*");
 		excludeFilenamePatterns.add(".*gdn6pnx.*.js?.*");
 		excludeFilenamePatterns.add(".*show_ads.*.js?.*");
-		//	excludeFilenamePatterns.add(".*ga.*.js?.*");
-		//The following 10 excluded files are just for Tudu
-		excludeFilenamePatterns.add(".*builder.js");
+		excludeFilenamePatterns.add(".*ga.*.js?.*");
+
+		// QUnit
+		excludeFilenamePatterns.add(".*qunit.js");
+		//excludeFilenamePatterns.add(".*filesystem.js");
+		//excludeFilenamePatterns.add(".*functional.js");
+		//excludeFilenamePatterns.add(".*test.core.js");
+		//excludeFilenamePatterns.add(".*inject.js");
+		
+		//exclude list for tudu
+		/*excludeFilenamePatterns.add(".*builder.js");
 		excludeFilenamePatterns.add(".*controls.js");
 		excludeFilenamePatterns.add(".*dragdrop.js");
 		excludeFilenamePatterns.add(".*effects.js");
@@ -109,16 +116,10 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 		excludeFilenamePatterns.add(".*scriptaculous.js");
 		excludeFilenamePatterns.add(".*slider.js");
 		excludeFilenamePatterns.add(".*unittest.js");
-		//	excludeFilenamePatterns.add(".*engine.js");
+	//	excludeFilenamePatterns.add(".*engine.js");
 		excludeFilenamePatterns.add(".*util.js");
 		excludeFilenamePatterns.add(".*cycle.js");
-		///////
-		excludeFilenamePatterns.add(".*qunit.js");
-		excludeFilenamePatterns.add(".*filesystem.js");
-		excludeFilenamePatterns.add(".*functional.js");
-		excludeFilenamePatterns.add(".*test.core.js");
-		excludeFilenamePatterns.add(".*inject.js");
-
+		*/
 	}
 
 	@Override
@@ -179,7 +180,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 
 			System.out.println("AST BEFORE INSTRUMENTATION: ");
 			System.out.println(ast.toSource());
-			System.out.println(ast.debugPrint());
+			//System.out.println(ast.debugPrint());
 
 			astVisitor.setScopeName(scopename);
 			astVisitor.start();
