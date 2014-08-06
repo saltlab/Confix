@@ -1,6 +1,5 @@
 package core;
 
-import instrumentor.DomJsCodeLevelVisitor;
 import instrumentor.JSModifyProxyPlugin;
 import instrumentor.ProxyConfiguration;
 
@@ -75,6 +74,20 @@ public class runner {
 	 */
 	public static void main(String[] args) throws Exception {
 
+		/*
+		 * TODO:
+		 * Extract all DOM dependent functions
+		 * Determine different paths in a function
+		 * Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for easch psth)
+		 * Execute test cases
+		 * Extract all DOM element variables (direct and indirect)
+		 * Generate the constarint table
+		 * Transform constarints to xpath using string/int solver
+		 * Solve xpath using xpath solver
+		 * Extreact generated xml from output file or console and generaete fixture
+		 */
+		
+		
 
 		ProxyConfiguration prox = new ProxyConfiguration();
 		runProxy(prox);
