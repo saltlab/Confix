@@ -1,7 +1,6 @@
 package instrumentor;
 
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -24,6 +23,7 @@ import org.mozilla.javascript.ast.IfStatement;
 import org.mozilla.javascript.ast.InfixExpression;
 import org.mozilla.javascript.ast.Name;
 import org.mozilla.javascript.ast.NodeVisitor;
+import org.mozilla.javascript.ast.ObjectLiteral;
 import org.mozilla.javascript.ast.ObjectProperty;
 import org.mozilla.javascript.ast.ParenthesizedExpression;
 import org.mozilla.javascript.ast.PropertyGet;
@@ -38,8 +38,7 @@ import org.mozilla.javascript.ast.WhileLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.crawljax.plugins.aji.ConsoleErrorReporter;
-import com.crawljax.plugins.aji.executiontracer.ProgramPoint;
+
 
 
 public abstract class JSASTVisitor implements NodeVisitor{
@@ -48,11 +47,15 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	private static List<String> functionCallsNotToVisit=new ArrayList<String>();
 	private static List<String> functionNodes=new ArrayList<String>();
-	
+
 	public boolean shouldTrackFunctionCalls=true;
 	public boolean shouldTrackFunctionNodes=true;
-	
+
 	private int m_rootCount = 0;
+
+	private boolean LHS = false;			// This is to decide if the ASTNode is at the left hand-side of an assignment 
+	private int assignmentNodeDepth = 0;	// This is to store ASTNode depth of assignment to be used for detecting LHS value 
+	private boolean assignmentLHSVisited = false; 
 
 
 	/**
@@ -83,12 +86,12 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		jqueryList.add("css");
 		jqueryList.add("attr");
 		jqueryList.add("prop");
-		//		jqueryList.add("append");
-		//		jqueryList.add("appendTo");
-		//		jqueryList.add("prepend");
-		//		jqueryList.add("prependTo");
-		//		jqueryList.add("insertBefore");
-		//		jqueryList.add("insertAfter");
+		//jqueryList.add("append");
+		//jqueryList.add("appendTo");
+		//jqueryList.add("prepend");
+		//jqueryList.add("prependTo");
+		//jqueryList.add("insertBefore");
+		//jqueryList.add("insertAfter");
 		jqueryList.add("detach");
 		jqueryList.add("remove");
 
@@ -126,10 +129,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		 * Amin: DOM accessor
 		 * 
 		 * 
-		 *  Finding HTML Elements
-			document.getElementById() 	Find an element by element id
-			document.getElementsByTagName() 	Find elements by tag name
-			document.getElementsByClassName() 	Find elements by class name
 
 			Changing HTML Elements
 			element.innerHTML= 	Change the inner HTML of an element
@@ -495,10 +494,6 @@ document.getElementById('myAnchor').target="_blank";
 
 
 
-
-		 * 
-		 * 
-		 * 
 		 * 
 		 * document.getElementById()
 		 * innerHTML for <p>
@@ -511,7 +506,7 @@ document.getElementById('myAnchor').target="_blank";
     document.getElementsByTagName
 
     document.anchors.length  => Number of anchors
-        document.getElementById("demo").innerHTML =
+    document.getElementById("demo").innerHTML =
     document.anchors[0].innerHTML;
 
 
@@ -669,23 +664,22 @@ document.getElementById('myAnchor').target="_blank";
 	 */
 	public boolean visit(AstNode node) {	
 
-		System.out.println("visit");
+		//System.out.println("visit");
 
-		String ASTNodeName = node.shortName();
-		int type = node.getType();
-		int ASTDepth = node.depth();
+		String nodeName = node.shortName();
+		int nodeType = node.getType();
+		int nodeDepth = node.depth();
 
-		System.out.println("node.shortName() : " + ASTNodeName);
-		System.out.println("node.depth() : " + ASTDepth);
+		/*
+		System.out.println("node.shortName() : " + nodeName);
+		System.out.println("node.depth() : " + nodeDepth);
 		System.out.println("node.getLineno() : " + (node.getLineno()+1));
 		System.out.println("node.toSource() : \n" + node.toSource());
 		System.out.println("node.getType() : " + node.getType());
 		System.out.println("node.getAstRoot() : " + node.getAstRoot());
 		System.out.println("node.debugPrint() : \n" + node.debugPrint());
-
-		
 		/*
-		 
+
 		node.shortName() : ExpressionStatement
 		a = document.getElementById("demo");
 		44	      EXPR_VOID 18 36
@@ -733,18 +727,18 @@ document.getElementById('myAnchor').target="_blank";
 		240	            NAME 0 5 inner
 		248	            CALL 8 3
 		248	              NAME 0 1 f
-		
+
 		node.shortName() : VariableInitializer
 		node.depth() : 5
 		node.getLineno() : 9
 		node.toSource() : 
 		inner = f()	
-			  
+
 		 */
-		
-		
-		
-		
+
+
+
+
 		/*if (!shouldTrackFunctionCalls){
 		if (node instanceof FunctionNode)
 			if (!shouldVisitFunction((FunctionNode) node)){
@@ -902,20 +896,20 @@ document.getElementById('myAnchor').target="_blank";
 		}
 	}
 
-	else*/
-		
-		if(shouldTrackFunctionNodes){
-			if(node instanceof FunctionNode){
-				FunctionNode fNode=(FunctionNode) node;
-				System.out.println(fNode.debugPrint());
-				System.out.println(getFunctionName(fNode));
-				functionNodes.add(getFunctionName((FunctionNode)node));
+		 */
+
+
+		/* if shouldTrackFunctionCalls
+
+		if(node instanceof FunctionNode){
+			FunctionNode fNode=(FunctionNode) node;
+			String funcName=getFunctionName(fNode);
+			if(shouldTrackFunctionNodes){
+				//System.out.println(fNode.debugPrint());
+				System.out.println("Function name is: " + funcName);
+				functionNodes.add(funcName);
 			}
-		}
-		else{
-			if(node instanceof FunctionNode){
-				FunctionNode fNode=(FunctionNode) node;
-				String funcName=getFunctionName(fNode);
+			else{
 				String code="var me = arguments.callee;";
 				code+="me.funcName = " + "'" + funcName + "'" +";";
 				code+="var callerName = arguments.callee.caller.funcName;";
@@ -924,24 +918,13 @@ document.getElementById('myAnchor').target="_blank";
 				AstNode newNode=createFunctionTrackingNode(fNode, "callerName");
 				//	appendNodeAfterFunctionCall(node, newNode);
 				fNode.getBody().addChildAfter(newNode,funcNameNode);
-
 			}
 		}
 
-		if (1==1)
-			return true;
-			
-		/*
-		// check if we are in the up the currentObjectNodeDepth
-		if (ASTDepth < currentObjectNodeDepth && lastMessageChain==1 && ignoreDepthChange==false){  // dealing with a.b.c = ... patterns  
-			nextNameIsProperty = false;
-			//nextNameIsObject = true;
-			//System.out.println("analyseAstNode(): Level changed! nextNameIsObject");
-			//System.out.println("analyseAstNode(): Level changed! nextName is not property anymore");
-		}
+		 */
 
 		// check if we are in LHS of the current assignment, used to check if a property is defined and not just used
-		if (ASTDepth==assignmentNodeDepth+1){
+		if (nodeDepth==assignmentNodeDepth+1){
 			if (assignmentLHSVisited == false){
 				assignmentLHSVisited = true;
 			}else
@@ -949,192 +932,60 @@ document.getElementById('myAnchor').target="_blank";
 		}
 
 
-		if (ASTNodeName.equals("Name")){
-			//System.out.println(ASTNode.debugPrint());
-
-			for (Symbol s: ASTNode.getAstRoot().getSymbols()){
-				int sType = s.getDeclType();
-			    if (sType == Token.LP || sType == Token.VAR || sType == Token.LET || sType == Token.CONST){
-			    	//System.out.println("global detected: " + s.getName());
-			    	globals.add(s.getName());
-			    }
-			}
-			//System.out.println();
-		}
-//		else if (ASTNodeName.equals("FunctionNode")){
-//			FunctionNode f = (FunctionNode) ASTNode;
-//			for (Symbol s: f.getSymbols()){
-//				int sType = s.getDeclType();
-//			    if (sType == Token.LP || sType == Token.VAR || sType == Token.LET || sType == Token.CONST){
-//			    	System.out.println("s.getName() : " + s.getName());
-//			    }
-//			}
-//			
-//			System.out.println(f.getSymbolTable());
-//			System.out.println(f.getSymbols());
-//		}        
-
-
-
-		if (ASTNodeName.equals("Name"))
-			analyseNameNode();
-		else if (ASTNodeName.equals("VariableDeclaration"))
+		if (nodeName.equals("AstRoot"))  // = if (node instanceof AstRoot)
+			analyseAstRootNode(node);
+		else if (nodeName.equals("Name"))  // = if (node instanceof Name)
+			analyseNameNode(node);
+		else if (nodeName.equals("VariableDeclaration"))
 			analyseVariable();
-		else if (ASTNodeName.equals("ObjectLiteral"))
-			analyseObjectLiteralNode();
-		else if (ASTNodeName.equals("ObjectProperty"))
-			analyseObjectPropertyNode();
-		else if (ASTNodeName.equals("FunctionNode"))
-			analyseFunctionNode();
-		else if (ASTNodeName.equals("PropertyGet"))  // this is for inner function defined properties such as this.name = ...
+		else if (nodeName.equals("ObjectLiteral"))
+			analyseObjectLiteralNode(node);
+		else if (nodeName.equals("FunctionNode")) // = if (node instanceof FunctionNode)
+			analyseFunctionNode(node);
+		else if (nodeName.equals("PropertyGet"))  // this is for inner function defined properties such as this.name = ...
 			analysePropertyGetNode();
-		else if (ASTNodeName.equals("NewExpression"))
+		else if (nodeName.equals("NewExpression"))
 			analyseNewExpressionNode();
-		else if (ASTNodeName.equals("FunctionCall"))
-			analyseFunctionCallNode();
-		else if (ASTNodeName.equals("Assignment"))
-			analyseAssignmentNode();
-		else if (ASTNodeName.equals("CatchClause"))
-			analyseCatchClause();
-		else if (ASTNodeName.equals("ReturnStatement") || ASTNodeName.equals("BreakStatement") || ASTNodeName.equals("ContinueStatement") || ASTNodeName.equals("ThrowStatement"))
-			analyseRechability();
-		else if (ASTNodeName.equals("Block"))
-			analyseBlock();		
-		else if (type == Token.SWITCH)
-			isSwitchSmell();
-		else if (type == Token.THIS)
-			thisInClosure();
-
-		 */
+		else if (nodeName.equals("FunctionCall"))
+			analyseFunctionCallNode(node);
+		else if (nodeName.equals("Assignment"))
+			analyseAssignmentNode(node);
+		else if (nodeType == Token.SWITCH)
+			analyseSwitch();
 
 
 
 
 
-		if (node instanceof Name) {
-			/* function calls like .addClass, .css, .attr ... */
-			if (node.getParent() instanceof PropertyGet
-					&& node.getParent().getParent() instanceof FunctionCall
-					&& !node.getParent().toSource().contains("function")){
-				if(jqueryList.contains(node.toSource())){
-					setJsDomMap(node.getParent().getParent(), "jquery_c_arg");
-				}
-				else if(jsList.contains(node.toSource())){
-					setJsDomMap(node.getParent().getParent(), "js_c_id_tag");
-				}
-				else if(node.toSource().equals("insertBefore")
-						|| node.toSource().equals("replaceChild")){
-					//				setJsDomMap(node.getParent().getParent(), "js_s_arg");
-				}
+		FunctionNode f;
 
-			}
-			else if(node.getParent() instanceof PropertyGet){
-				if(node.toSource().equals("innerHTML")
-						|| node.toSource().equals("innerText")){
-					setJsDomMap(node, "js_innerHTML_innerText");
-				}
-			}
-		}
-		else if(node instanceof FunctionCall){
-			if( ((FunctionCall)node).getTarget() instanceof Name){
-
-				if(((Name)((FunctionCall)node).getTarget()).getIdentifier().equals("$")){
-					//				setJsDomMap(((Name)((FunctionCall)node).getTarget()), "jquery_r_dollar");
-
-					if(((FunctionCall)node).getArguments().size()==1
-							&& ((FunctionCall)node).getArguments().get(0) instanceof StringLiteral
-							&& ((FunctionCall)node).getArguments().get(0).toSource().startsWith(".")
-							|| ((FunctionCall)node).getArguments().get(0).toSource().startsWith("#") ){
-						setJsDomMap(((FunctionCall)node).getArguments().get(0), "jquery_c_selSign");
-					}
-
-				}
-			}
-		}
-
-
-		FunctionNode func;
-		
 		if (!((node instanceof FunctionNode || node instanceof ReturnStatement || node instanceof SwitchCase || node instanceof AstRoot || node instanceof ExpressionStatement || node instanceof BreakStatement || node instanceof ContinueStatement || node instanceof ThrowStatement || node instanceof VariableDeclaration))) {// || node instanceof ExpressionStatement || node instanceof BreakStatement || node instanceof ContinueStatement || node instanceof ThrowStatement || node instanceof VariableDeclaration || node instanceof ReturnStatement || node instanceof SwitchCase)) {
 			return true;
 		}
 
-		if (node instanceof FunctionNode) {
-			func = (FunctionNode) node;
 
-			/* this is function enter */
-			AstNode newNode = createNode(func, ProgramPoint.ENTERPOSTFIX, func.getLineno());
-
-			func.getBody().addChildToFront(newNode);
-			
-			node = (AstNode) func.getBody().getFirstChild();
-			node = (AstNode) node.getNext(); //The first node is the node just added in front, so get next node
-			int firstLine = 0;
-			if (node != null) {
-				firstLine = node.getLineno();
-			}
-
-			/* get last line of the function */
-			node = (AstNode) func.getBody().getLastChild();
-			/* if this is not a return statement, we need to add logging here also */
-			if (!(node instanceof ReturnStatement)) {
-				AstNode newNode_end = createNode(func, ProgramPoint.EXITPOSTFIX, node.getLineno()-firstLine+1);
-				/* add as last statement */
-				func.getBody().addChildToBack(newNode_end);
-			}			
-			//System.out.println(func.toSource());
-		}
-		else if (node instanceof AstRoot) {
-			AstRoot rt = (AstRoot) node;
-			
-			if (rt.getSourceName() == null) { //make sure this is an actual AstRoot, not one we created
-				return true;
-			}
-			
-			//this is the entry point of the AST root
-			m_rootCount++;
-			AstNode newNode = createNode(rt, ProgramPoint.ENTERPOSTFIX, rt.getLineno(), m_rootCount);
-
-			rt.addChildToFront(newNode);
-			
-			node = (AstNode) rt.getFirstChild();
-			node = (AstNode) node.getNext(); //The first node is the node just added in front, so get next node
-			int firstLine = 0;
-			if (node != null) {
-				firstLine = node.getLineno();
-			}
-			
-			// get last line of the function
-			node = (AstNode) rt.getLastChild();
-			//if this is not a return statement, we need to add logging here also
-			if (!(node instanceof ReturnStatement)) {
-				AstNode newNode_end = createNode(rt, ProgramPoint.EXITPOSTFIX, node.getLineno()-firstLine+1, m_rootCount);
-				//add as last statement
-				rt.addChildToBack(newNode_end);
-			}
-		}
-		//else if (node instanceof BreakStatement || node instanceof ConditionalExpression || node instanceof ContinueStatement || node instanceof ExpressionStatement || node instanceof FunctionCall || node instanceof Assignment || node instanceof InfixExpression || node instanceof ThrowStatement || node instanceof UnaryExpression || node instanceof VariableDeclaration || node instanceof VariableInitializer || node instanceof XmlDotQuery || node instanceof XmlMemberGet || node instanceof XmlPropRef || node instanceof Yield) {
-		else if (node instanceof ExpressionStatement || node instanceof BreakStatement || node instanceof ContinueStatement || node instanceof ThrowStatement || node instanceof VariableDeclaration) {
+		// if (node instanceof BreakStatement || node instanceof ConditionalExpression || node instanceof ContinueStatement || node instanceof ExpressionStatement || node instanceof FunctionCall || node instanceof Assignment || node instanceof InfixExpression || node instanceof ThrowStatement || node instanceof UnaryExpression || node instanceof VariableDeclaration || node instanceof VariableInitializer || node instanceof XmlDotQuery || node instanceof XmlMemberGet || node instanceof XmlPropRef || node instanceof Yield) {
+		if (node instanceof ExpressionStatement || node instanceof BreakStatement || node instanceof ContinueStatement || node instanceof ThrowStatement || node instanceof VariableDeclaration) {
 			if (node instanceof VariableDeclaration) {
 				//Make sure this variable declaration is not part of a for loop
 				if (node.getParent() instanceof ForLoop) {
 					return true;
 				}
 			}
-			
+
 			//Make sure additional try statement is not instrumented
 			if (node instanceof TryStatement) {
 				return true; //no need to add instrumentation before try statement anyway since we only instrument what's inside the blocks
 			}
-			
-			func = node.getEnclosingFunction();
-			
-			if (func != null) {
-				AstNode firstLine_node = (AstNode) func.getBody().getFirstChild();
-				if (func instanceof FunctionNode && firstLine_node instanceof IfStatement) { //Perform extra check due to addition if statement
+
+			f = node.getEnclosingFunction();
+
+			if (f != null) {
+				AstNode firstLine_node = (AstNode) f.getBody().getFirstChild();
+				if (f instanceof FunctionNode && firstLine_node instanceof IfStatement) { //Perform extra check due to addition if statement
 					firstLine_node = (AstNode) firstLine_node.getNext();
 				}
-				if (func instanceof FunctionNode && firstLine_node instanceof TryStatement) {
+				if (f instanceof FunctionNode && firstLine_node instanceof TryStatement) {
 					TryStatement firstLine_node_try = (TryStatement) firstLine_node;
 					firstLine_node = (AstNode) firstLine_node_try.getTryBlock().getFirstChild();
 				}
@@ -1152,13 +1003,13 @@ document.getElementById('myAnchor').target="_blank";
 						}
 					}
 				}
-				
+
 				if (node.getLineno() >= firstLine) {
-					AstNode newNode = createNode(func, ":::INTERMEDIATE", node.getLineno()-firstLine+1);
+					AstNode newNode = createNode(f, ":::INTERMEDIATE", node.getLineno()-firstLine+1);
 					//AstNode parent = node.getParent();
-					
+
 					AstNode parent = makeSureBlockExistsAround(node);
-					
+
 					//parent.addChildAfter(newNode, node);
 					try {
 						parent.addChildBefore(newNode, node);
@@ -1199,13 +1050,13 @@ document.getElementById('myAnchor').target="_blank";
 						}
 					}
 				}
-				
+
 				if (node.getLineno() >= firstLine) {
 					AstNode newNode = createNode(rt, ":::INTERMEDIATE", node.getLineno()-firstLine+1, m_rootCount);
 					//AstNode parent = node.getParent();
-					
+
 					AstNode parent = makeSureBlockExistsAround(node);
-					
+
 					//parent.addChildAfter(newNode, node);
 					try {
 						parent.addChildBefore(newNode, node);
@@ -1217,12 +1068,12 @@ document.getElementById('myAnchor').target="_blank";
 			}
 		}
 		else if (node instanceof ReturnStatement) {
-			func = node.getEnclosingFunction();
-			AstNode firstLine_node = (AstNode) func.getBody().getFirstChild();
-			if (func instanceof FunctionNode && firstLine_node instanceof IfStatement) { //Perform extra check due to addition if statement
+			f = node.getEnclosingFunction();
+			AstNode firstLine_node = (AstNode) f.getBody().getFirstChild();
+			if (f instanceof FunctionNode && firstLine_node instanceof IfStatement) { //Perform extra check due to addition if statement
 				firstLine_node = (AstNode) firstLine_node.getNext();
 			}
-			if (func instanceof FunctionNode && firstLine_node instanceof TryStatement) {
+			if (f instanceof FunctionNode && firstLine_node instanceof TryStatement) {
 				TryStatement firstLine_node_try = (TryStatement) firstLine_node;
 				firstLine_node = (AstNode) firstLine_node_try.getTryBlock().getFirstChild();
 			}
@@ -1240,10 +1091,10 @@ document.getElementById('myAnchor').target="_blank";
 					}
 				}
 			}
-			
+
 			AstNode parent = makeSureBlockExistsAround(node);
-			
-			AstNode newNode = createNode(func, ProgramPoint.EXITPOSTFIX, node.getLineno()-firstLine+1);
+
+			AstNode newNode = createNode(f, ProgramPoint.EXITPOSTFIX, node.getLineno()-firstLine+1);
 
 			/* the parent is something we can prepend to */
 			parent.addChildBefore(newNode, node);
@@ -1255,23 +1106,258 @@ document.getElementById('myAnchor').target="_blank";
 			List<AstNode> statements = sc.getStatements();
 			List<AstNode> blockStatement = new ArrayList<AstNode>();
 			Block b = new Block();
-			
+
 			if (statements != null) {
 				Iterator<AstNode> it = statements.iterator();
 				while (it.hasNext()) {
 					AstNode stmnt = it.next();
 					b.addChild(stmnt);
 				}
-				
+
 				blockStatement.add(b);
 				sc.setStatements(blockStatement);
 			}
 		}
 
-		
+
+
+		System.out.println(getJsDomList());
+
 		/* have a look at the children of this node */
 		return true;
 	}
+
+	private void analyseAstRootNode(AstNode node) {
+		AstRoot rt = (AstRoot) node;
+
+		if (rt.getSourceName() == null) //make sure this is an actual AstRoot, not one we created
+			return;
+
+		//this is the entry point of the AST root
+		m_rootCount++;
+		AstNode newNode = createNode(rt, ProgramPoint.ENTERPOSTFIX, rt.getLineno(), m_rootCount);
+
+		rt.addChildToFront(newNode);
+
+		node = (AstNode) rt.getFirstChild();
+		node = (AstNode) node.getNext(); //The first node is the node just added in front, so get next node
+		int firstLine = 0;
+		if (node != null) {
+			firstLine = node.getLineno();
+		}
+
+		// get last line of the function
+		node = (AstNode) rt.getLastChild();
+		//if this is not a return statement, we need to add logging here also
+		if (!(node instanceof ReturnStatement)) {
+			AstNode newNode_end = createNode(rt, ProgramPoint.EXITPOSTFIX, node.getLineno()-firstLine+1, m_rootCount);
+			//add as last statement
+			rt.addChildToBack(newNode_end);
+		}	
+	}
+
+
+
+	private void analyseSwitch() {
+		// TODO Auto-generated method stub
+
+	}
+
+
+
+	/**
+	 * Deciding if an expression is a LHS
+	 * Used to distinguish ownProperties and usedProperties
+	 */
+	private void analyseAssignmentNode(AstNode node) {
+		assignmentNodeDepth = node.depth();
+		assignmentLHSVisited = false;
+		LHS = true;
+	}
+
+
+
+	private void analyseNewExpressionNode() {
+		// TODO Auto-generated method stub
+
+	}
+
+
+
+	private void analysePropertyGetNode() {
+		// TODO Auto-generated method stub
+
+	}
+
+
+
+	private void analyseFunctionNode(AstNode node) {
+		FunctionNode f = (FunctionNode) node;
+		for (Symbol s: f.getSymbols()){
+			int sType = s.getDeclType();
+			if (sType == Token.LP || sType == Token.VAR || sType == Token.LET || sType == Token.CONST){
+				System.out.println("s.getName() : " + s.getName());
+			}
+		}
+		System.out.println(f.getSymbolTable());
+		System.out.println(f.getSymbols());
+
+		String fName = "";
+		if (f.getFunctionName()!=null){
+			fName = f.getFunctionName().getIdentifier();
+		}
+		
+		int numOfParam = f.getParams().size();
+		int lineNumber = node.getLineno()+1;
+		int fLength = f.getEndLineno() - f.getLineno();
+		int fDepth = node.depth();
+		
+		//System.out.println(f.debugPrint());
+
+		// TODO: Add the function to the list of DOM dependent jsFunctions if does not already exist
+		//FunctionInfo newFunction = new FunctionInfo(fName, numOfParam, fLength, lineNumber);
+
+
+
+		/* this is function enter */
+		AstNode newNode = createNode(f, ProgramPoint.ENTERPOSTFIX, f.getLineno());
+		f.getBody().addChildToFront(newNode);
+		node = (AstNode) f.getBody().getFirstChild();
+		node = (AstNode) node.getNext(); //The first node is the node just added in front, so get next node
+		int firstLine = 0;
+		if (node != null) {
+			firstLine = node.getLineno();
+		}
+		/* get last line of the function */
+		node = (AstNode) f.getBody().getLastChild();
+		/* if this is not a return statement, we need to add logging here also */
+		if (!(node instanceof ReturnStatement)) {
+			AstNode newNode_end = createNode(f, ProgramPoint.EXITPOSTFIX, node.getLineno()-firstLine+1);
+			/* add as last statement */
+			f.getBody().addChildToBack(newNode_end);
+		}			
+		//System.out.println(func.toSource());
+		
+	}
+
+
+
+
+	private void analyseObjectLiteralNode(AstNode node) {		
+		ObjectLiteral o = ( ObjectLiteral) node;
+		//System.out.println("Found object literal: " + candidateObjectName);
+		List<ObjectProperty> prop =  o.getElements();
+		for (ObjectProperty op : prop){
+			if (op.getLeft().shortName().equals("Name")){
+				//System.out.println("op.getString(): " + ((Name)(op.getLeft())).getIdentifier()  );
+				//newJSObj.addOwnProperty(((Name)(op.getLeft())).getIdentifier());
+			}
+			else if (op.getLeft().shortName().equals("StringLiteral")){
+				//System.out.println("op.getString(): " + ((StringLiteral)(op.getLeft())).getValue()  );
+				//newJSObj.addOwnProperty(((StringLiteral)(op.getLeft())).getValue());
+			}
+			else{
+				System.out.println("UNKNOWN!!");
+			}
+		}
+				
+	}
+
+
+
+	private void analyseVariable() {
+		// TODO Auto-generated method stub
+
+	}
+
+
+
+	private void analyseNameNode(AstNode node) {
+
+		//System.out.println(ASTNode.debugPrint());
+
+		for (Symbol s: node.getAstRoot().getSymbols()){
+			int sType = s.getDeclType();
+			if (sType == Token.LP || sType == Token.VAR || sType == Token.LET || sType == Token.CONST){
+				System.out.println("global detected: " + s.getName());
+			}
+		}
+
+
+		/* function calls like .addClass, .css, .attr ... */
+		if (node.getParent() instanceof PropertyGet
+				&& node.getParent().getParent() instanceof FunctionCall
+				&& !node.getParent().toSource().contains("function")){
+			if(jqueryList.contains(node.toSource())){
+				setJsDomMap(node.getParent().getParent(), "jquery_c_arg");
+			}
+			else if(jsList.contains(node.toSource())){
+				setJsDomMap(node.getParent().getParent(), "js_c_id_tag");
+			}
+			else if(node.toSource().equals("insertBefore")
+					|| node.toSource().equals("replaceChild")){
+				//				setJsDomMap(node.getParent().getParent(), "js_s_arg");
+			}
+
+		}
+		else if(node.getParent() instanceof PropertyGet){
+			if(node.toSource().equals("innerHTML")
+					|| node.toSource().equals("innerText")){
+				setJsDomMap(node, "js_innerHTML_innerText");
+			}
+		}
+
+	}
+
+
+
+	private void analyseFunctionCallNode(AstNode ASTNode) {
+		FunctionCall fcall = (FunctionCall) ASTNode;
+		System.out.println(ASTNode.debugPrint());
+		
+		if( fcall.getTarget() instanceof Name){
+			
+			System.out.println("(Name)fcall.getTarget()).getIdentifier() ->" + ((Name)fcall.getTarget()).getIdentifier());
+			
+			
+			if(((Name)fcall.getTarget()).getIdentifier().equals("$")){
+				setJsDomMap(((Name)fcall.getTarget()), "jquery_r_dollar");
+				if(fcall.getArguments().size()==1
+						&& fcall.getArguments().get(0) instanceof StringLiteral
+						&& fcall.getArguments().get(0).toSource().startsWith(".")
+						|| fcall.getArguments().get(0).toSource().startsWith("#") ){
+					setJsDomMap(fcall.getArguments().get(0), "jquery_c_selSign");
+				}
+			}
+					
+		}else if ( fcall.getTarget() instanceof PropertyGet){
+			//System.out.println("(PropertyGet)fcall.getTarget()).getRight().toSource() ->" + ((PropertyGet)fcall.getTarget()).getRight().toSource());
+			
+			/*  Finding HTML Elements
+				document.getElementById() 			Find an element by element id
+				document.getElementsByTagName() 	Find elements by tag name
+				document.getElementsByClassName() 	Find elements by class name
+			*/
+			
+			if (((PropertyGet)fcall.getTarget()).getRight().toSource().equals("getElementById"))
+				System.out.println("Accessing DOM via getElementById()");
+			if (((PropertyGet)fcall.getTarget()).getRight().toSource().equals("getElementsByTagName"))
+				System.out.println("Accessing DOM via getElementsByTagName()");
+			if (((PropertyGet)fcall.getTarget()).getRight().toSource().equals("getElementsByClassName"))
+				System.out.println("Accessing DOM via getElementsByClassName()");
+		}
+
+
+		// check for callback
+		boolean detected = false;
+		for (AstNode node : fcall.getArguments())
+			if (node.shortName().equals("FunctionNode")){
+				System.out.println("callback found at line : " + ( ASTNode.getLineno()+1));
+			}
+
+	}
+
+
 
 	private void setJsDomMap(AstNode node,String codeType){
 
@@ -1327,7 +1413,7 @@ document.getElementById('myAnchor').target="_blank";
 		return jsDomList.get(index);
 	}
 
-	
+
 	/**
 	 * Creates a node that can be inserted at a certain point in function.
 	 * 
@@ -1382,8 +1468,8 @@ document.getElementById('myAnchor').target="_blank";
 	 * This method is called before the AST is going to be traversed.
 	 */
 	public abstract void start();
-	
-	
+
+
 
 	public void appendNode(AstNode node, AstNode newNode){
 		AstNode parent = node;
@@ -1433,7 +1519,7 @@ document.getElementById('myAnchor').target="_blank";
 		}
 	}
 
-	
+
 	public void appendNodeAfterFunctionCall(AstNode node, AstNode newNode){
 		AstNode parent = node;
 
