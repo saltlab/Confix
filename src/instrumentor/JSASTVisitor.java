@@ -57,6 +57,8 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	private int assignmentNodeDepth = 0;	// This is to store ASTNode depth of assignment to be used for detecting LHS value 
 	private boolean assignmentLHSVisited = false; 
 
+	private static List<String> DomDependentFunctions = new ArrayList<String>();
+
 
 	/**
 	 * This is used by the JavaScript node creation functions that follow.
@@ -1190,9 +1192,13 @@ document.getElementById('myAnchor').target="_blank";
 	}
 
 
+	private String currentFunctionName = "";
 
 	private void analyseFunctionNode(AstNode node) {
 		FunctionNode f = (FunctionNode) node;
+
+		System.out.println("THIS IS A FUNCTION");
+
 		for (Symbol s: f.getSymbols()){
 			int sType = s.getDeclType();
 			if (sType == Token.LP || sType == Token.VAR || sType == Token.LET || sType == Token.CONST){
@@ -1205,13 +1211,15 @@ document.getElementById('myAnchor').target="_blank";
 		String fName = "";
 		if (f.getFunctionName()!=null){
 			fName = f.getFunctionName().getIdentifier();
+			System.out.println("fName = " + fName);
+			currentFunctionName = fName;
 		}
-		
+
 		int numOfParam = f.getParams().size();
 		int lineNumber = node.getLineno()+1;
 		int fLength = f.getEndLineno() - f.getLineno();
 		int fDepth = node.depth();
-		
+
 		//System.out.println(f.debugPrint());
 
 		// TODO: Add the function to the list of DOM dependent jsFunctions if does not already exist
@@ -1237,7 +1245,7 @@ document.getElementById('myAnchor').target="_blank";
 			f.getBody().addChildToBack(newNode_end);
 		}			
 		//System.out.println(func.toSource());
-		
+
 	}
 
 
@@ -1260,7 +1268,7 @@ document.getElementById('myAnchor').target="_blank";
 				System.out.println("UNKNOWN!!");
 			}
 		}
-				
+
 	}
 
 
@@ -1312,39 +1320,43 @@ document.getElementById('myAnchor').target="_blank";
 
 
 	private void analyseFunctionCallNode(AstNode ASTNode) {
+		/*  Detecting DOM acessing function calls
+		document.getElementById() 			Find an element by element id
+		document.getElementsByTagName() 	Find elements by tag name
+		document.getElementsByClassName() 	Find elements by class name
+		$()									Find an element by element id
+		 */
 		FunctionCall fcall = (FunctionCall) ASTNode;
 		System.out.println(ASTNode.debugPrint());
-		
+
+		String calledFunctionName = "";
+
 		if( fcall.getTarget() instanceof Name){
-			
-			System.out.println("(Name)fcall.getTarget()).getIdentifier() ->" + ((Name)fcall.getTarget()).getIdentifier());
-			
-			
-			if(((Name)fcall.getTarget()).getIdentifier().equals("$")){
-				setJsDomMap(((Name)fcall.getTarget()), "jquery_r_dollar");
+
+			calledFunctionName = ((Name)fcall.getTarget()).getIdentifier();
+			System.out.println("calledFunctionName is " + calledFunctionName);
+
+			if(calledFunctionName.equals("$")){
+				System.out.println("Accessing DOM via " + calledFunctionName + "() in function " + currentFunctionName);
+				DomDependentFunctions.add(currentFunctionName);
+
+				/*setJsDomMap(((Name)fcall.getTarget()), "jquery_r_dollar");
 				if(fcall.getArguments().size()==1
 						&& fcall.getArguments().get(0) instanceof StringLiteral
 						&& fcall.getArguments().get(0).toSource().startsWith(".")
 						|| fcall.getArguments().get(0).toSource().startsWith("#") ){
 					setJsDomMap(fcall.getArguments().get(0), "jquery_c_selSign");
-				}
+				}*/
 			}
-					
+
 		}else if ( fcall.getTarget() instanceof PropertyGet){
-			//System.out.println("(PropertyGet)fcall.getTarget()).getRight().toSource() ->" + ((PropertyGet)fcall.getTarget()).getRight().toSource());
-			
-			/*  Finding HTML Elements
-				document.getElementById() 			Find an element by element id
-				document.getElementsByTagName() 	Find elements by tag name
-				document.getElementsByClassName() 	Find elements by class name
-			*/
-			
-			if (((PropertyGet)fcall.getTarget()).getRight().toSource().equals("getElementById"))
-				System.out.println("Accessing DOM via getElementById()");
-			if (((PropertyGet)fcall.getTarget()).getRight().toSource().equals("getElementsByTagName"))
-				System.out.println("Accessing DOM via getElementsByTagName()");
-			if (((PropertyGet)fcall.getTarget()).getRight().toSource().equals("getElementsByClassName"))
-				System.out.println("Accessing DOM via getElementsByClassName()");
+			calledFunctionName = ((PropertyGet)fcall.getTarget()).getRight().toSource();		
+			System.out.println("calledFunctionName is " + calledFunctionName);
+
+			if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || calledFunctionName.equals("getElementsByClassName")){
+				System.out.println("Accessing DOM via " + calledFunctionName + "() in function " + currentFunctionName);
+				DomDependentFunctions.add(currentFunctionName);
+			}
 		}
 
 
