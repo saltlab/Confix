@@ -1,12 +1,19 @@
 package core;
 
-public class ElementConstraint {
+public class DOMConstraint {
+	
+	// Example: a = document.getElementById("demo");
+	private String variable;	// a 
+	private String value;		// document.getElementById("demo")   / document.anchors[0].innerHTML
+	
+	private String attributeConstraint;		// id = "demo"
+	
+	private String stringValueConstraint;	// document.anchors[0].innerHTML = "text"
+	private int intValueConstraint;			// x.size = 4
+	private boolean booleanValueConstraint; // radio button selected/not selected {true, false}
+	
 	private String xpath;
 	
-	private String stringValueConstraint;
-	private int intValueConstraint;
-	private boolean booleanValueConstraint; // {true, false}
-
 	private String comparisonNotation;  // {"!=","==","<",">"}
 	
 	public void addStringConstraint(String xpath, String comparisonNotation, String stringValueConstraint){
