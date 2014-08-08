@@ -196,7 +196,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 
 			System.out.println("AST AFTER INSTRUMENTATION: ");
 			System.out.println(ast.toSource());
-			System.out.println(ast.debugPrint());
+			//System.out.println(ast.debugPrint());
 
 			return ast.toSource();
 		} catch (RhinoException re) {

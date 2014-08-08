@@ -21,6 +21,7 @@ import org.mozilla.javascript.ast.FunctionCall;
 import org.mozilla.javascript.ast.FunctionNode;
 import org.mozilla.javascript.ast.IfStatement;
 import org.mozilla.javascript.ast.InfixExpression;
+import org.mozilla.javascript.ast.KeywordLiteral;
 import org.mozilla.javascript.ast.Name;
 import org.mozilla.javascript.ast.NodeVisitor;
 import org.mozilla.javascript.ast.ObjectLiteral;
@@ -176,69 +177,67 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 
 			This example finds the element with id="main", and then finds all <p> elements inside "main":
-Example
-var x = document.getElementById("main");
-var y = x.getElementsByTagName("p"); 
+
+			var x = document.getElementById("main");
+			var y = x.getElementsByTagName("p"); 
 
 
+			This example finds the form element with id="frm1", in the forms collection, and displays all element values:
 
-This example finds the form element with id="frm1", in the forms collection, and displays all element values:
-Example
-var x = document.getElementById("frm1");
-var text = "";
-var i;
-for (i = 0; i <x.length; i++) {
-    text += x.elements[i].value + "<br>";
-}
-document.getElementById("demo").innerHTML = text;
-
-
-
-
-Changing the Value of an Attribute
-
-To change the value of an HTML attribute, use this syntax:
-document.getElementById(id).attribute=new value
-
-
- <img id="myImage" src="smiley.gif">
-
- document.getElementById("myImage").src = "landscape.jpg";
+			var x = document.getElementById("frm1");
+			var text = "";
+			var i;
+			for (i = 0; i <x.length; i++) {
+			    text += x.elements[i].value + "<br>";
+			}
+			document.getElementById("demo").innerHTML = text;
 
 
 
 
- The following example collects the node value of an <h1> element and copies it into a <p> element:
-Example
-<html>
-<body>
-
-<h1 id="intro">My First Page</h1>
-
-<p id="demo">Hello!</p>
-
-<script>
-var myText = document.getElementById("intro").childNodes[0].nodeValue;
-document.getElementById("demo").innerHTML = myText;
-</script>
-
-</body>
-</html>
-
-Using the firstChild property is the same as using childNodes[0]:
-myText = document.getElementById("intro").firstChild.nodeValue;
+			Changing the Value of an Attribute
+			
+			To change the value of an HTML attribute, use this syntax:
+			document.getElementById(id).attribute=new value
+			
+			
+			 <img id="myImage" src="smiley.gif">
+			
+			 document.getElementById("myImage").src = "landscape.jpg";
 
 
 
-The nodeName property specifies the name of a node.
 
-    nodeName is read-only
-    nodeName of an element node is the same as the tag name
-    nodeName of an attribute node is the attribute name
-    nodeName of a text node is always #text
-    nodeName of the document node is always #document
+			The following example collects the node value of an <h1> element and copies it into a <p> element:
+			<html>
+			<body>
+			
+			<h1 id="intro">My First Page</h1>
+			
+			<p id="demo">Hello!</p>
+			
+			<script>
+			var myText = document.getElementById("intro").childNodes[0].nodeValue;
+			document.getElementById("demo").innerHTML = myText;
+			</script>
+			
+			</body>
+			</html>
 
-Note: nodeName always contains the uppercase tag name of an HTML element.
+
+			Using the firstChild property is the same as using childNodes[0]:
+			myText = document.getElementById("intro").firstChild.nodeValue;
+
+
+			The nodeName property specifies the name of a node.
+
+		    nodeName is read-only
+		    nodeName of an element node is the same as the tag name
+		    nodeName of an attribute node is the attribute name
+		    nodeName of a text node is always #text
+		    nodeName of the document node is always #document
+
+			Note: nodeName always contains the uppercase tag name of an HTML element.
 
 
 The nodeValue property specifies the value of a node.
@@ -270,27 +269,24 @@ insertBefore
 
 
 
-The getElementsByTagName() method returns a node list. A node list is an array-like collection of nodes.
+		The getElementsByTagName() method returns a node list. A node list is an array-like collection of nodes.
+		
+		The JavaScript Way:
+		function myFunction() {
+		    var obj = document.getElementById("h01");
+		    obj.innerHTML = "Hello jQuery";
+		}
+		onload = myFunction;
+		
+		The jQuery equivalent is different:
+		The jQuery Way:
+		function myFunction() {
+		    $("#h01").html("Hello jQuery");
+		}
+		$(document).ready(myFunction);
 
 
-
-
-The JavaScript Way:
-function myFunction() {
-    var obj = document.getElementById("h01");
-    obj.innerHTML = "Hello jQuery";
-}
-onload = myFunction;
-
-The jQuery equivalent is different:
-The jQuery Way:
-function myFunction() {
-    $("#h01").html("Hello jQuery");
-}
-$(document).ready(myFunction);
-
-
-     $("#h01").attr("style", "color:red").html("Hello jQuery")
+	    $("#h01").attr("style", "color:red").html("Hello jQuery")
 
 
 
@@ -954,7 +950,42 @@ document.getElementById('myAnchor').target="_blank";
 			analyseAssignmentNode(node);
 		else if (nodeType == Token.SWITCH)
 			analyseSwitch();
+		/*else {
+			System.out.println("node.shortName() : " + nodeName);
+			System.out.println("node.depth() : " + nodeDepth);
+			System.out.println("node.getLineno() : " + (node.getLineno()+1));
+			System.out.println("node.toSource() : \n" + node.toSource());
+			System.out.println("node.getType() : " + node.getType());
+			System.out.println("node.getAstRoot() : " + node.getAstRoot());
+			System.out.println("node.debugPrint() : \n" + node.debugPrint());
 
+		}*/
+			
+		if (node instanceof IfStatement){
+
+			FunctionNode func=node.getEnclosingFunction();
+			String statementCategory="IfStatementCondition";
+			AstNode nodeForVarLog=((IfStatement) node).getCondition();
+			
+			
+			System.out.println("nodeForVarLog.shortName() : " + nodeForVarLog.shortName());
+			System.out.println("nodeForVarLog.depth() : " + nodeForVarLog.depth());
+			System.out.println("nodeForVarLog.getLineno() : " + (nodeForVarLog.getLineno()+1));
+			System.out.println("nodeForVarLog.toSource() : \n" + nodeForVarLog.toSource());
+			System.out.println("nodeForVarLog.getType() : " + nodeForVarLog.getType());
+			System.out.println("nodeForVarLog.getAstRoot() : " + nodeForVarLog.getAstRoot());
+			System.out.println("nodeForVarLog.debugPrint() : \n" + nodeForVarLog.debugPrint());
+
+			
+			/*if (!(nodeForVarLog instanceof KeywordLiteral)){
+				AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
+
+				AstNode parent = makeSureBlockExistsAround(node);
+
+				// the parent is something we can prepend to
+				parent.addChildAfter(newNode, node);
+			}*/
+		}
 
 
 
@@ -1192,12 +1223,8 @@ document.getElementById('myAnchor').target="_blank";
 	}
 
 
-	private String currentFunctionName = "";
-
 	private void analyseFunctionNode(AstNode node) {
 		FunctionNode f = (FunctionNode) node;
-
-		System.out.println("THIS IS A FUNCTION");
 
 		for (Symbol s: f.getSymbols()){
 			int sType = s.getDeclType();
@@ -1212,7 +1239,6 @@ document.getElementById('myAnchor').target="_blank";
 		if (f.getFunctionName()!=null){
 			fName = f.getFunctionName().getIdentifier();
 			System.out.println("fName = " + fName);
-			currentFunctionName = fName;
 		}
 
 		int numOfParam = f.getParams().size();
@@ -1330,15 +1356,26 @@ document.getElementById('myAnchor').target="_blank";
 		System.out.println(ASTNode.debugPrint());
 
 		String calledFunctionName = "";
+		String enclosingFunctionName = "";
 
+		FunctionNode func=ASTNode.getEnclosingFunction();
+		if (func.getFunctionName()!=null){
+			enclosingFunctionName = func.getFunctionName().getIdentifier();
+			//System.out.println("enclosingFunctionName = " + enclosingFunctionName);
+		}
+
+		
 		if( fcall.getTarget() instanceof Name){
 
 			calledFunctionName = ((Name)fcall.getTarget()).getIdentifier();
-			System.out.println("calledFunctionName is " + calledFunctionName);
+			//System.out.println("calledFunctionName is " + calledFunctionName);
 
 			if(calledFunctionName.equals("$")){
-				System.out.println("Accessing DOM via " + calledFunctionName + "() in function " + currentFunctionName);
-				DomDependentFunctions.add(currentFunctionName);
+				System.out.println("Accessing DOM via " + calledFunctionName + "() in function " + enclosingFunctionName);
+				DomDependentFunctions.add(enclosingFunctionName);
+				
+
+				
 
 				/*setJsDomMap(((Name)fcall.getTarget()), "jquery_r_dollar");
 				if(fcall.getArguments().size()==1
@@ -1351,11 +1388,14 @@ document.getElementById('myAnchor').target="_blank";
 
 		}else if ( fcall.getTarget() instanceof PropertyGet){
 			calledFunctionName = ((PropertyGet)fcall.getTarget()).getRight().toSource();		
-			System.out.println("calledFunctionName is " + calledFunctionName);
+			//System.out.println("calledFunctionName is " + calledFunctionName);
 
 			if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || calledFunctionName.equals("getElementsByClassName")){
-				System.out.println("Accessing DOM via " + calledFunctionName + "() in function " + currentFunctionName);
-				DomDependentFunctions.add(currentFunctionName);
+				System.out.println("Accessing DOM via " + calledFunctionName + "() in function " + enclosingFunctionName);
+				
+				System.out.println("Parameter of the called function " + calledFunctionName + "() is " + fcall.getArguments().get(0).toSource());
+
+				DomDependentFunctions.add(enclosingFunctionName);
 			}
 		}
 
