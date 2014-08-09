@@ -12,6 +12,8 @@ public class DOMConstraint {
 	private int intValueConstraint;			// x.size = 4
 	private boolean booleanValueConstraint; // radio button selected/not selected {true, false}
 	
+	//TODO: what about dependency to anoter DOM element such as being a child node of another node?
+	
 	private String xpath;
 	
 	private String comparisonNotation;  // {"!=","==","<",">"}
