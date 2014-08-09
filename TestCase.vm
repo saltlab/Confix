@@ -1,11 +1,13 @@
 // QUnit test cases generated @ ${date}
 
-module("${module}", {
+module("${moduleName}", {
     setup: function() {
         // runs before each test
+		${testSetupCode}
     },
     teardown: function() {
         // runs after each test
+		${testTearDownCode}
     }
 });
 

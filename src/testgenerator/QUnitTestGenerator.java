@@ -29,6 +29,16 @@ public class QUnitTestGenerator {
 		context.put("date", new Date().toString());
 		context.put("moduleName", moduleName);
 		context.put("testFunctions", testFunctions);
+		
+		/*TODO
+		 if(generatedDOM!=""){
+			String qunitFixture="var fixture = $(\"#qunit-fixture\");" + "\n" + "\t";
+			qunitFixture+="fixture.append"+ "(" + "\"" + generatedDOM + "\"" + ")"+ ";" + "\n";
+			testCodeSetup+=qunitFixture;
+		}
+		 */
+		
+		
 	}
 
 	/**
