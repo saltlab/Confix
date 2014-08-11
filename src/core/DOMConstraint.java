@@ -18,6 +18,12 @@ public class DOMConstraint {
 	
 	private String comparisonNotation;  // {"!=","==","<",">"}
 	
+	// TODO:  Transform constraints to xpath using string/int solver
+	public String TransformToXpath(String DOMConstraint){		
+		String corresXpath = null;
+		return corresXpath;
+	}
+	
 	public void addStringConstraint(String xpath, String comparisonNotation, String stringValueConstraint){
 		this.xpath = xpath;
 		this.comparisonNotation = comparisonNotation;

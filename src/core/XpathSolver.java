@@ -31,4 +31,12 @@ public class XpathSolver {
 		fr.inrialpes.wam.treelogic.BottomUpSolver.CommandLineSolver.main(formula);		
 	}
 	
+	// TODO: Solve xpath using xpath solver
+	public String XpathToXML(DOMConstraint constraint){
+		String XML = null;
+		// Calling  xpth solver from here!
+		// Should then read the XML from the generated output file and return it
+		return XML;
+	}
+
 }

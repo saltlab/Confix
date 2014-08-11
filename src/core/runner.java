@@ -77,15 +77,10 @@ public class runner {
 
 		/*
 		 * TODO:
-		 * Extract all DOM dependent functions
-		 * Determine different paths in a function
 		 * Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for easch psth)
 		 * Execute test cases
-		 * Extract all DOM element variables (direct and indirect)
-		 * Generate the constarint table
 		 * Transform constarints to xpath using string/int solver
-		 * Solve xpath using xpath solver
-		 * Extreact generated xml from output file or console and generaete fixture
+ * Extract generated xml from output file or console and generate fixture
 		 */
 		
 		
@@ -113,6 +108,12 @@ public class runner {
 
 		//xpathsolver.solve();
 
+
+		//TODO: Solve xpath using xpath solver
+		DOMConstraint constraintOnDOM = null;
+		String XML = xpathsolver.XpathToXML(constraintOnDOM);
+		
+		//TODO: Extract generated xml from output file or console and generate fixture
 
 
 
