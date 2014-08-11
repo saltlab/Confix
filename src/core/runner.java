@@ -15,6 +15,8 @@ import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.proxy.Proxy;
 import org.owasp.webscarab.plugin.*;
 
+import testgenerator.TestSuiteGenerator;
+
 import com.crawljax.plugins.aji.executiontracer.AstInstrumenter;
 
 import java.io.File;
@@ -74,16 +76,12 @@ public class runner {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-
-		/*
-		 * TODO:
-		 * Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for easch psth)
+		/* TODO:
+		 * Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
 		 * Execute test cases
 		 * Transform constarints to xpath using string/int solver
- * Extract generated xml from output file or console and generate fixture
+		 * Extract generated xml from output file or console and generate fixture
 		 */
-		
-		
 
 		ProxyConfiguration prox = new ProxyConfiguration();
 		runProxy(prox);
@@ -115,31 +113,9 @@ public class runner {
 		
 		//TODO: Extract generated xml from output file or console and generate fixture
 
+		String testSuiteNameToGenerate = "";
+		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate);
 
-
-		/*
-		 * Concolic DOM generation
-		 * 1) Input variables take values w.r.t DOM elements. These variables will be treated as symbolic variables
-		 * during symbolic execution. All other variables will be treated as concrete values.
-		 * 2) Instrument the program so that each operation which may affect a symbolic variable value or a path condition
-		 * is logged to a trace file, as well as any error that occurs.
-		 * 3) Choose an arbitrary input to begin with.
-		 * 4) Execute the program.
-		 * 5) Symbolically re-execute the program on the trace, generating a set of symbolic constraints (including path conditions).
-		 * 6) Negate the last path condition not already negated in order to visit a new execution path. If there is no such path condition, 
-		 * the algorithm terminates.
-		 * 7) Invoke an automated theorem prover to generate a new input. If there is no input satisfying the constraints, 
-		 * return to step 6 to try the next execution path.
-		 * 8) Return to step 4.
-		 */
-
-		
-		/*
-		 * DOM accessing statements in JavaScript:
-		 * E.g. document.getElementByID('id') / document.getElementByTag('div') / $('id')
-		 */
-		
-			
 		
 		
 		driverQuit();
