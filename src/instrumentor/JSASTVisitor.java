@@ -40,7 +40,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-
+/*
+ * The visitor class extracts all DOM dependent functions and determine different paths in those functions.
+ * It generates a constraints table as well as DOM elements table to be used later for translating to xpath and solving them.
+ * Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
+ * Extracting all DOM element variables (direct and indirect) and generating the constraint table
+ */
 
 public abstract class JSASTVisitor implements NodeVisitor{
 
@@ -126,6 +131,11 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		functionCallsNotToVisit.add("btoa");
 		functionCallsNotToVisit.add("atob");
 		functionCallsNotToVisit.add("atob");
+
+		/*
+		 * DOM accessing statements in JavaScript:
+		 * E.g. document.getElementByID('id') / document.getElementByTag('div') / $('id')
+		 */
 
 
 		/*
@@ -1374,7 +1384,7 @@ insertBefore
 			calledFunctionName = ((Name)fcall.getTarget()).getIdentifier();
 			//System.out.println("calledFunctionName is " + calledFunctionName);
 
-			if(calledFunctionName.equals("$")){
+			if(calledFunctionName.equals("$")){ // or jQuery()?
 				System.out.println("Accessing DOM via " + calledFunctionName + "() in function " + enclosingFunctionName);
 				DomDependentFunctions.add(enclosingFunctionName);
 				

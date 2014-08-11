@@ -38,10 +38,16 @@ test("${function.functionName}", function() {
 
 public class TestSuiteGenerator {
 
+	private String testSuiteNameToGenerate;
+	
+	public TestSuiteGenerator(String testSuiteNameToGenerate){
+		this.testSuiteNameToGenerate = testSuiteNameToGenerate;
+	}
+	
 	/**
 	 * Generating the extended test suite in multiple files
 	 */
-	private void generateTestSuite(String testSuiteNameToGenerate) {
+	public void generateTestSuite() {
 
 		ArrayList<TestFunction> testFunctions = new ArrayList<TestFunction>();
 		int counter = 0;
