@@ -1,4 +1,4 @@
-package core;
+
 
 import instrumentor.JSASTInstrumenter;
 import instrumentor.JSModifyProxyPlugin;
@@ -19,6 +19,9 @@ import testgenerator.TestSuiteGenerator;
 
 import com.crawljax.plugins.aji.executiontracer.AstInstrumenter;
 
+import core.DOMConstraint;
+import core.XpathSolver;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -27,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.jar.JarFile;
 
 
-public class runner {
+public class ConfixRunner {
 
 	private static WebDriver driver;
 	private static String url;
