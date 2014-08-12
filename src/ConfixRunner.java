@@ -1,6 +1,7 @@
 
 
 import instrumentor.JSASTInstrumenter;
+import instrumentor.JSASTVisitor;
 import instrumentor.JSModifyProxyPlugin;
 import instrumentor.ProxyConfiguration;
 
@@ -79,35 +80,27 @@ public class ConfixRunner {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		/* TODO:
-		 * Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
-		 * Execute test cases
-		 * Transform constarints to xpath using string/int solver
-		 * Extract generated xml from output file or console and generate fixture
-		 */
 
+		// Intercepting and instrumenting the JavaScript code via a proxy
 		ProxyConfiguration prox = new ProxyConfiguration();
 		runProxy(prox);
 		driverSetup(prox);
 		load();
 		
-		// Intercepting and instrumenting the JavaScript code via a proxy
-
-		String constraint = "";
 		/*
-		 * transforming the DOM constraint into xpath
+		 * Transforming the DOM constraints in the JavaScript code into xpath constraint (xpath rule)
 		 */
-		String xpathToSolve = constraintToXpath(constraint);
+		String xpathToSolve = JSASTVisitor.generateXpathConstraint();
 
 		// The XML solver output is on the stream so we write it into a text file
-		//writeStreamToFile("output-file.txt");
+		//writeStreamToFile("output/output-file.txt");
 		XpathSolver xpathsolver = new XpathSolver();
 		xpathsolver.setXpath(xpathToSolve);
-		xpathsolver.setConstraintFileName("constraints.txt");
+		xpathsolver.setConstraintFileName("auxiliary/constraints.txt");
 		// writing the xpath in the constraints.txt file to be used by the solver
 		// TODO: write xpathToSolve to constraintFileName
 
-		//xpathsolver.solve();
+		xpathsolver.solve();
 
 
 		//TODO: Solve xpath using xpath solver
@@ -116,17 +109,17 @@ public class ConfixRunner {
 		
 		//TODO: Extract generated xml from output file or console and generate fixture
 
-		String testSuiteNameToGenerate = "";
-		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate);
-
-		
+		// Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
+		//String testSuiteNameToGenerate = "";
+		//TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate);
+	
 		
 		driverQuit();
 	}
 
 	private static void writeStreamToFile(String string) {
 		try {
-			System.setOut(new PrintStream(new File("output-file.txt")));
+			System.setOut(new PrintStream(new File("output/output-file.txt")));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}		
@@ -144,9 +137,6 @@ public class ConfixRunner {
 		proxy.run();
 	}
 
-	private static String constraintToXpath(String constraint) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+
 
 }

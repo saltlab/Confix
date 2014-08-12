@@ -1,3 +1,2 @@
-select("descendant::switch[ancestor::head]/descendant::seq/
-descendant::audio[preceding-sibling::video]",
-type("smil.dtd", "smil"))
+select("html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/
+descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]/temp")

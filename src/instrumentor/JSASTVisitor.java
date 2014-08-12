@@ -39,6 +39,9 @@ import org.mozilla.javascript.ast.WhileLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import core.DOMConstraint;
+import core.DOMElementTypeVariable;
+
 
 /*
  * The visitor class extracts all DOM dependent functions and determine different paths in those functions.
@@ -53,7 +56,18 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	private static List<String> functionCallsNotToVisit=new ArrayList<String>();
 	private static List<String> functionNodes=new ArrayList<String>();
+	
+	public static List<DOMConstraint> DOMConstraintList = new ArrayList<DOMConstraint>();
+	public static List<DOMElementTypeVariable> DOMElementTypeVariableList = new ArrayList<DOMElementTypeVariable>();
 
+	
+	public static String generateXpathConstraint() {
+		// TODO Generate xpath from the list of DOMConstraints in the DOMConstraintList
+		// Transform constraints to xpath using string/int solver
+
+		return null;
+	}
+	
 	public boolean shouldTrackFunctionCalls=true;
 	public boolean shouldTrackFunctionNodes=true;
 
