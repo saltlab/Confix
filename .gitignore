@@ -2,7 +2,6 @@ target
 git.properties
 *.class
 # Package Files #
-*.jar
 *.war
 *.ear
 *.classpath
@@ -19,7 +18,6 @@ git.properties
 *.dmg
 *.gz
 *.iso
-*.jar
 *.rar
 *.tar
 *.zip
