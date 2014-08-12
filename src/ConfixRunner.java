@@ -1,14 +1,13 @@
-
+import core.XpathSolver;
 
 import instrumentor.JSASTInstrumenter;
-import instrumentor.JSASTVisitor;
 import instrumentor.JSModifyProxyPlugin;
 import instrumentor.ProxyConfiguration;
 
-import org.openqa.selenium.By;
+import testgenerator.TestSuiteGenerator;
+
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.owasp.webscarab.model.Preferences;
@@ -16,19 +15,9 @@ import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.proxy.Proxy;
 import org.owasp.webscarab.plugin.*;
 
-import testgenerator.TestSuiteGenerator;
-
-import com.crawljax.plugins.aji.executiontracer.AstInstrumenter;
-
-import core.DOMConstraint;
-import core.XpathSolver;
-
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
-import java.util.jar.JarFile;
 
 
 public class ConfixRunner {
