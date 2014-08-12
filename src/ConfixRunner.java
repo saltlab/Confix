@@ -82,10 +82,10 @@ public class ConfixRunner {
 	public static void main(String[] args) throws Exception {
 
 		// Intercepting and instrumenting the JavaScript code via a proxy
-		ProxyConfiguration prox = new ProxyConfiguration();
-		runProxy(prox);
-		driverSetup(prox);
-		load();
+		//ProxyConfiguration prox = new ProxyConfiguration();
+		//runProxy(prox);
+		//driverSetup(prox);
+		//load();
 		
 		/*
 		 * Transforming the DOM constraints in the JavaScript code into xpath constraint (xpath rule)
@@ -96,10 +96,6 @@ public class ConfixRunner {
 		//writeStreamToFile("output/output-file.txt");
 		XpathSolver xpathsolver = new XpathSolver();
 		xpathsolver.setXpath(xpathToSolve);
-		xpathsolver.setConstraintFileName("auxiliary/constraints.txt");
-		// writing the xpath in the constraints.txt file to be used by the solver
-		// TODO: write xpathToSolve to constraintFileName
-
 		xpathsolver.solve();
 
 
@@ -114,7 +110,7 @@ public class ConfixRunner {
 		//TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate);
 	
 		
-		driverQuit();
+		//driverQuit();
 	}
 
 	private static void writeStreamToFile(String string) {

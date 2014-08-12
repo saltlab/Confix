@@ -64,6 +64,10 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	public static String generateXpathConstraint() {
 		// TODO Generate xpath from the list of DOMConstraints in the DOMConstraintList
 		// Transform constraints to xpath using string/int solver
+		
+		// select("html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/
+		//		descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]")
+
 
 		return null;
 	}
