@@ -56,22 +56,24 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	private static List<String> functionCallsNotToVisit=new ArrayList<String>();
 	private static List<String> functionNodes=new ArrayList<String>();
-	
+
 	public static List<DOMConstraint> DOMConstraintList = new ArrayList<DOMConstraint>();
 	public static List<DOMElementTypeVariable> DOMElementTypeVariableList = new ArrayList<DOMElementTypeVariable>();
 
-	
-	public static String generateXpathConstraint() {
+
+	public String generateXpathConstraint() {
+		DOMConstraint constraintOnDOM = null;
+
 		// TODO Generate xpath from the list of DOMConstraints in the DOMConstraintList
 		// Transform constraints to xpath using string/int solver
-		
+
 		// select("html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/
 		//		descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]")
 
 
 		return null;
 	}
-	
+
 	public boolean shouldTrackFunctionCalls=true;
 	public boolean shouldTrackFunctionNodes=true;
 
@@ -224,13 +226,13 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 
 			Changing the Value of an Attribute
-			
+
 			To change the value of an HTML attribute, use this syntax:
 			document.getElementById(id).attribute=new value
-			
-			
+
+
 			 <img id="myImage" src="smiley.gif">
-			
+
 			 document.getElementById("myImage").src = "landscape.jpg";
 
 
@@ -239,16 +241,16 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			The following example collects the node value of an <h1> element and copies it into a <p> element:
 			<html>
 			<body>
-			
+
 			<h1 id="intro">My First Page</h1>
-			
+
 			<p id="demo">Hello!</p>
-			
+
 			<script>
 			var myText = document.getElementById("intro").childNodes[0].nodeValue;
 			document.getElementById("demo").innerHTML = myText;
 			</script>
-			
+
 			</body>
 			</html>
 
@@ -298,14 +300,14 @@ insertBefore
 
 
 		The getElementsByTagName() method returns a node list. A node list is an array-like collection of nodes.
-		
+
 		The JavaScript Way:
 		function myFunction() {
 		    var obj = document.getElementById("h01");
 		    obj.innerHTML = "Hello jQuery";
 		}
 		onload = myFunction;
-		
+
 		The jQuery equivalent is different:
 		The jQuery Way:
 		function myFunction() {
@@ -327,7 +329,7 @@ insertBefore
 		    obj.innerHTML = "Hello Prototype";
 		}
 		onload = myFunction;
-		
+
 		The Prototype equivalent is different:
 		The Prototype Way:
 		function myFunction() {
@@ -412,7 +414,7 @@ insertBefore
 
 
 		Properties and Methods
-		
+
 		The following properties and methods can be used on all HTML elements:
 		Property / Method 	Description
 		element.accessKey 	Sets or returns the accesskey for an element
@@ -438,9 +440,9 @@ insertBefore
 		element.hasAttributes() 	Returns true if an element has any attributes, otherwise false
 		element.hasChildNodes() 	Returns true if an element has any child nodes, otherwise false
 		element.id 	Sets or returns the id of an element
-		
+
 		element.innerHTML 	Sets or returns the content of an element
-		
+
 		element.insertBefore() 	Inserts a new child node before a specified, existing, child node
 		element.isContentEditable 	Returns true if the content of an element is editable, otherwise false
 		element.isDefaultNamespace() 	Returns true if a specified namespaceURI is the default, otherwise false
@@ -483,30 +485,30 @@ insertBefore
 		element.textContent 	Sets or returns the textual content of a node and its descendants
 		element.title 	Sets or returns the title attribute of an element
 		element.toString() 	Converts an element to a string
-		
+
 		nodelist.item() 	Returns the node at the specified index in a NodeList
 		nodelist.length 	Returns the number of nodes in a NodeList
-		
-		
-		
-		
-		
+
+
+
+
+
 		Properties and Methods
 		Property / Method 	Description
 		attr.isId 	Returns true if the attribute is of type Id, otherwise it returns false
 		attr.name 	Returns the name of an attribute
 		attr.value 	Sets or returns the value of the attribute
 		attr.specified 	Returns true if the attribute has been specified, otherwise it returns false
-		
+
 		nodemap.getNamedItem() 	Returns a specified attribute node from a NamedNodeMap.
 		nodemap.item() 	Returns the node at a specified index in a NamedNodeMap
 		nodemap.length 	Returns the number of nodes in a NamedNodeMap
 		nodemap.removeNamedItem() 	Removes a specified attribute node
 		nodemap.setNamedItem() 	Sets the specified attribute node (by name)
-		
-		
-		
-		
+
+
+
+
 
 		<a id="myAnchor" href="http://www.microsoft.com">Microsoft</a>
 		document.getElementById('myAnchor').innerHTML="W3Schools";
@@ -523,27 +525,27 @@ insertBefore
 
 
 	    document.getElementsByTagName
-	
+
 	    document.anchors.length  => Number of anchors
 	    document.getElementById("demo").innerHTML =
 	    document.anchors[0].innerHTML;
-	
-	
+
+
 	    "Number of links: " + document.links.length
-	
+
 	    "The href of the first link is " + document.links[0].href;
-	
+
 	    "Number of forms: " + document.forms.length
-	
+
 	    "The name of the first for is " + document.forms[0].name
-	
+
 	    "Number of images: " + document.images.length
-	
+
 	    document.getElementById("demo").innerHTML =
 		"The id of the first image is " + document.images[0].id
-	
+
 		document.getElementById('p1').style.visibility='visible'"
-	
+
 		 */
 	}
 
@@ -981,7 +983,7 @@ insertBefore
 			System.out.println("node.debugPrint() : \n" + node.debugPrint());
 
 		}*/
-			
+
 		if (node instanceof InfixExpression){
 			System.out.println("=== InfixExpression ===");
 			InfixExpression ie = (InfixExpression) node;
@@ -989,15 +991,15 @@ insertBefore
 			System.out.println("Operator: " + ASTNodeUtility.operatorToString(ie.getOperator()));
 			System.out.println("Right: " + ie.getRight().toSource());
 		}
-		
-		
+
+
 		if (node instanceof IfStatement){
 
 			FunctionNode func=node.getEnclosingFunction();
 			String statementCategory="IfStatementCondition";
 			AstNode nodeForVarLog=((IfStatement) node).getCondition();
-			
-			
+
+
 			System.out.println("nodeForVarLog.shortName() : " + nodeForVarLog.shortName());
 			System.out.println("nodeForVarLog.depth() : " + nodeForVarLog.depth());
 			System.out.println("nodeForVarLog.getLineno() : " + (nodeForVarLog.getLineno()+1));
@@ -1007,8 +1009,8 @@ insertBefore
 			System.out.println("nodeForVarLog.debugPrint() : \n" + nodeForVarLog.debugPrint());
 
 			IfStatement ie = (IfStatement) node;
-						
-			
+
+
 			/*if (!(nodeForVarLog instanceof KeywordLiteral)){
 				AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
 
@@ -1235,6 +1237,9 @@ insertBefore
 	 * Used to distinguish ownProperties and usedProperties
 	 */
 	private void analyseAssignmentNode(AstNode node) {
+		
+		System.out.println("===Assignment===");
+		System.out.println(node.debugPrint());
 		assignmentNodeDepth = node.depth();
 		assignmentLHSVisited = false;
 		LHS = true;
@@ -1396,7 +1401,7 @@ insertBefore
 			//System.out.println("enclosingFunctionName = " + enclosingFunctionName);
 		}
 
-		
+
 		if( fcall.getTarget() instanceof Name){
 
 			calledFunctionName = ((Name)fcall.getTarget()).getIdentifier();
@@ -1405,9 +1410,9 @@ insertBefore
 			if(calledFunctionName.equals("$")){ // or jQuery()?
 				System.out.println("Accessing DOM via " + calledFunctionName + "() in function " + enclosingFunctionName);
 				DomDependentFunctions.add(enclosingFunctionName);
-				
 
-				
+
+
 
 				/*setJsDomMap(((Name)fcall.getTarget()), "jquery_r_dollar");
 				if(fcall.getArguments().size()==1
@@ -1422,13 +1427,32 @@ insertBefore
 			calledFunctionName = ((PropertyGet)fcall.getTarget()).getRight().toSource();		
 			//System.out.println("calledFunctionName is " + calledFunctionName);
 
-			if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || calledFunctionName.equals("getElementsByClassName")){
+			if (calledFunctionName.equals("getElementById")){
+				String id = fcall.getArguments().get(0).toSource();
 				System.out.println("Accessing DOM via " + calledFunctionName + "() in function " + enclosingFunctionName);
-				
-				System.out.println("Parameter of the called function " + calledFunctionName + "() is " + fcall.getArguments().get(0).toSource());
-
+				System.out.println("Parameter of the called function " + calledFunctionName + "() is " + id);
 				DomDependentFunctions.add(enclosingFunctionName);
+				DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+				DOMElement.setId_attribute(id);
 			}
+
+			if (calledFunctionName.equals("getElementsByTagName")){
+				String tagName = fcall.getArguments().get(0).toSource();
+				System.out.println("Accessing DOM via " + calledFunctionName + "() in function " + enclosingFunctionName);
+				System.out.println("Parameter of the called function " + calledFunctionName + "() is " + tagName);
+				DomDependentFunctions.add(enclosingFunctionName);
+				DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+				DOMElement.setTag_attribute(tagName);
+			}
+
+			if (calledFunctionName.equals("getElementsByClassName")){
+				String className = fcall.getArguments().get(0).toSource();
+				System.out.println("Accessing DOM via " + calledFunctionName + "() in function " + enclosingFunctionName);
+				System.out.println("Parameter of the called function " + calledFunctionName + "() is " + className);
+				DomDependentFunctions.add(enclosingFunctionName);
+				DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+				DOMElement.setClass_attribute(className);
+			}				
 		}
 
 

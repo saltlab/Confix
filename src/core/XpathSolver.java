@@ -19,6 +19,7 @@ public class XpathSolver {
 	private String xpathToSolve;
 	private String constraintFileName;
 	private String constraint;
+	private String DOMFixture;
 
 	public XpathSolver(){
 		this.xpathToSolve = "";
@@ -54,15 +55,16 @@ public class XpathSolver {
 		java.io.InputStream is=ps.getInputStream();
 		byte b[]=new byte[is.available()];
 		is.read(b,0,b.length);
-		System.out.println(new String(b));
+		//System.out.println(new String(b));
+		DOMFixture = new String(b);
 	} 
 
 	// TODO: Solve xpath using xpath solver
-	public String XpathToXML(DOMConstraint constraint){
-		String XML = null;
+	public String getDOMFixture(){
+		String Fixture = null;
 		// Calling  xpth solver from here!
 		// Should then read the XML from the generated output file and return it
-		return XML;
+		return DOMFixture;
 	}
 
 }

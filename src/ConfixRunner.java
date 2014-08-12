@@ -36,6 +36,8 @@ public class ConfixRunner {
 	private static WebDriver driver;
 	private static String url;
 	private String DOM = null;
+	
+	private static JSModifyProxyPlugin JSModifier;
 
 	public static void driverSetup(ProxyConfiguration prox) throws Exception {
 		FirefoxProfile profile = new FirefoxProfile();
@@ -81,38 +83,32 @@ public class ConfixRunner {
 	 */
 	public static void main(String[] args) throws Exception {
 
-		// Intercepting and instrumenting the JavaScript code via a proxy
-		//ProxyConfiguration prox = new ProxyConfiguration();
-		//runProxy(prox);
-		//driverSetup(prox);
-		//load();
+		// 1) Intercept and instrument the JavaScript code via a proxy
+		ProxyConfiguration prox = new ProxyConfiguration();
+		runProxy(prox);
+		driverSetup(prox);
+		load();
 		
-		/*
-		 * Transforming the DOM constraints in the JavaScript code into xpath constraint (xpath rule)
-		 */
-		String xpathToSolve = JSASTVisitor.generateXpathConstraint();
-
-		// The XML solver output is on the stream so we write it into a text file
-		//writeStreamToFile("output/output-file.txt");
+		// 2) Transform the DOM constraints in the JavaScript code into xpath constraint (xpath rule)
+		// 3) solve xpath constraints and generate corresponding XML as DOMFixture
+		String xpathToSolve = JSModifier.generateXpathConstraint();
 		XpathSolver xpathsolver = new XpathSolver();
 		xpathsolver.setXpath(xpathToSolve);
 		xpathsolver.solve();
-
-
-		//TODO: Solve xpath using xpath solver
-		DOMConstraint constraintOnDOM = null;
-		String XML = xpathsolver.XpathToXML(constraintOnDOM);
+		String DOMFixture = xpathsolver.getDOMFixture();
 		
-		//TODO: Extract generated xml from output file or console and generate fixture
-
-		// Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
+		System.out.println(DOMFixture);
+		
+		// 4) Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
 		//String testSuiteNameToGenerate = "";
 		//TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate);
 	
 		
-		//driverQuit();
+		driverQuit();
 	}
 
+
+	// The XML solver output is on the stream so we write it into a text file
 	private static void writeStreamToFile(String string) {
 		try {
 			System.setOut(new PrintStream(new File("output/output-file.txt")));
@@ -123,13 +119,13 @@ public class ConfixRunner {
 
 	private static void runProxy(ProxyConfiguration prox) {
 		prox.setPort(3128);
-		JSModifyProxyPlugin modifier = new JSModifyProxyPlugin(new JSASTInstrumenter());
+		JSModifier = new JSModifyProxyPlugin(new JSASTInstrumenter());
 		//JSModifyProxyPlugin modifier = new JSModifyProxyPlugin("TEMP");  // output forlder name
-		modifier.excludeDefaults();
+		JSModifier.excludeDefaults();
 		Framework framework = new Framework();
 		Preferences.setPreference("Proxy.listeners", "127.0.0.1:" + prox.getPort());
 		Proxy proxy = new Proxy(framework);
-		proxy.addPlugin(modifier);
+		proxy.addPlugin(JSModifier);
 		proxy.run();
 	}
 
