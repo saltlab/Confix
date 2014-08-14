@@ -42,11 +42,41 @@ public class DOMConstraint {
 	
 	// TODO:  Transform constraints to xpath using string/int solver
 	public String getCorrespondingXpath(){
+		String id = DOMElementVariable.getId_attribute();
 		String tag = DOMElementVariable.getTag_attribute();
+		String type = DOMElementVariable.getType_attribute();
+		String name = DOMElementVariable.getName_attribute();
+		String Class = DOMElementVariable.getClass_attribute();
+		String value = DOMElementVariable.getValue_attribute();
+		String src = DOMElementVariable.getSrc_attribute();
+		String innerHTML = DOMElementVariable.getInnerHTML_attribute();
+
+		
 		// select("html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/
 		//		descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]")
 
-		xpath = "";
+		xpath = "************** select(\"fixture[" + tag;
+		
+		if (id!=null || type!=null || name!=null || Class!=null || value!=null || src!=null)
+			xpath += "[";
+		
+		if(id!=null)
+			xpath += "@id_" + id;
+		if(type!=null)
+			xpath += "and @type_" + type;
+		if(name!=null)
+			xpath += "and @name_" + name;
+		if(Class!=null)
+			xpath += "and @class_" + Class;
+		if(value!=null)
+			xpath += "and @value_" + value;
+		if(src!=null)
+			xpath += "and @scr_" + src;
+		
+		if (id!=null || tag!=null || type!=null || name!=null || Class!=null || value!=null || src!=null)
+			xpath += "]";
+
+		xpath += "]\")";
 		System.out.println("DOMElementVariable: " + DOMElementVariable);
 		return xpath;
 	}

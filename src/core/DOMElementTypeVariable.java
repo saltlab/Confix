@@ -21,7 +21,7 @@ public class DOMElementTypeVariable {
 	private String id_attribute = null; // e.g. id="demo"
 	private String type_attribute = null; // e.g. type="button"
 	private String name_attribute = null; // e.g. name="subject"
-	private String tag_attribute = "\"div\""; // using tag="div" as a default value for the element as long as we have no more information about it
+	private String tag_attribute = "div"; // using tag="div" as a default value for the element as long as we have no more information about it
 	private String class_attribute = null; // e.g. class="main"
 	private String value_attribute = null; // e.g. value="test"
 	private String src_attribute = null; // e.g. scr="/image.jpg"
@@ -48,21 +48,21 @@ public class DOMElementTypeVariable {
 		attribues = "";
 		
 		if (id_attribute!=null)
-			attribues += (" id=" + id_attribute);		
+			attribues += (" id=\"" + id_attribute + "\"");		
 		if (type_attribute!=null)
-			attribues += (" type=" + type_attribute);		
+			attribues += (" type=\"" + type_attribute + "\"");		
 		if (name_attribute!=null)
-			attribues += (" name=" + name_attribute);		
+			attribues += (" name=\"" + name_attribute + "\"");		
 		if (tag_attribute!=null)
-			attribues += (" tag=" + tag_attribute);		
+			attribues += (" tag=\"" + tag_attribute + "\"");		
 		if (class_attribute!=null)
-			attribues += (" class=" + class_attribute);		
+			attribues += (" class=\"" + class_attribute + "\"");		
 		if (value_attribute!=null)
-			attribues += (" value=" + value_attribute);		
+			attribues += (" value=\"" + value_attribute + "\"");		
 		if (src_attribute!=null)
-			attribues += (" src=" + src_attribute);		
+			attribues += (" src=\"" + src_attribute + "\"");		
 		if (innerHTML_attribute!=null)
-			attribues += (" innerHTML=" + innerHTML_attribute);	
+			attribues += (" innerHTML=\"" + innerHTML_attribute + "\"");	
 
 		return attribues;
 	}
@@ -76,6 +76,7 @@ public class DOMElementTypeVariable {
 	}
 
 	public void setId_attribute(String id_attribute) {
+		id_attribute = id_attribute.replace("\"", "");
 		this.id_attribute = id_attribute;
 	}
 
@@ -84,6 +85,7 @@ public class DOMElementTypeVariable {
 	}
 
 	public void setType_attribute(String type_attribute) {
+		type_attribute = type_attribute.replace("\"", "");
 		this.type_attribute = type_attribute;
 	}
 
@@ -92,6 +94,7 @@ public class DOMElementTypeVariable {
 	}
 
 	public void setTag_attribute(String tag_attribute) {
+		tag_attribute = tag_attribute.replace("\"", "");
 		this.tag_attribute = tag_attribute;
 	}
 
@@ -100,6 +103,7 @@ public class DOMElementTypeVariable {
 	}
 
 	public void setName_attribute(String name_attribute) {
+		name_attribute = name_attribute.replace("\"", "");
 		this.name_attribute = name_attribute;
 	}
 
@@ -108,6 +112,7 @@ public class DOMElementTypeVariable {
 	}
 
 	public void setClass_attribute(String class_attribute) {
+		class_attribute = class_attribute.replace("\"", "");
 		this.class_attribute = class_attribute;
 	}
 
@@ -116,6 +121,7 @@ public class DOMElementTypeVariable {
 	}
 
 	public void setValue_attribute(String value_attribute) {
+		value_attribute = value_attribute.replace("\"", "");
 		this.value_attribute = value_attribute;
 	}
 
@@ -124,6 +130,7 @@ public class DOMElementTypeVariable {
 	}
 
 	public void setSrc_attribute(String src_attribute) {
+		src_attribute = src_attribute.replace("\"", "");
 		this.src_attribute = src_attribute;
 	}
 
@@ -132,6 +139,7 @@ public class DOMElementTypeVariable {
 	}
 
 	public void setInnerHTML_attribute(String innerHTML_attribute) {
+		innerHTML_attribute = innerHTML_attribute.replace("\"", "");
 		this.innerHTML_attribute = innerHTML_attribute;
 	}
 
