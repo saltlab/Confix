@@ -10,6 +10,7 @@ import java.util.Set;
 import org.mozilla.javascript.CompilerEnvirons;
 import org.mozilla.javascript.Parser;
 import org.mozilla.javascript.Token;
+import org.mozilla.javascript.ast.Assignment;
 import org.mozilla.javascript.ast.AstNode;
 import org.mozilla.javascript.ast.AstRoot;
 import org.mozilla.javascript.ast.Block;
@@ -35,6 +36,7 @@ import org.mozilla.javascript.ast.Symbol;
 import org.mozilla.javascript.ast.ThrowStatement;
 import org.mozilla.javascript.ast.TryStatement;
 import org.mozilla.javascript.ast.VariableDeclaration;
+import org.mozilla.javascript.ast.VariableInitializer;
 import org.mozilla.javascript.ast.WhileLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,15 +63,34 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	public static List<DOMElementTypeVariable> DOMElementTypeVariableList = new ArrayList<DOMElementTypeVariable>();
 
 
-	public String generateXpathConstraint() {
-		DOMConstraint constraintOnDOM = null;
+	/* DOM access */
+	private List<String> documentElements = new ArrayList<String>();
 
+	/*
+	Changing HTML Elements
+	element.innerHTML= 	Change the inner HTML of an element
+	element.attribute= 	Change the attribute of an HTML element
+	element.setAttribute(attribute,value) 	Change the attribute of an HTML element
+	element.style.property= 	Change the style of an HTML element
+
+	Adding and Deleting Elements
+	document.createElement() 	Create an HTML element
+	document.removeChild() 	Remove an HTML element
+	document.appendChild() 	Add an HTML element
+	document.replaceChild() 	Replace an HTML element
+	document.write(text) 	Write into the HTML output stream
+	 */
+
+
+
+	public String generateXpathConstraint() {
 		// TODO Generate xpath from the list of DOMConstraints in the DOMConstraintList
 		// Transform constraints to xpath using string/int solver
-
-		// select("html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/
-		//		descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]")
-
+		for (DOMConstraint dc : DOMConstraintList){
+			System.out.println(dc);
+			String xpath = dc.getCorrespondingXpath();
+			System.out.println("CorrespondingXpath: " + xpath);
+		}
 
 		return null;
 	}
@@ -106,6 +127,38 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	private ArrayList<ArrayList<Object>> jsDomList=new ArrayList<ArrayList<Object>>();
 
 	public JSASTVisitor(){
+
+		// Finding HTML Objects
+		documentElements.add("anchors"); // Returns all <a> with a value in the name attribute 
+		documentElements.add("applets");   // 	Returns all <applet> elements (Deprecated in HTML5)
+		documentElements.add("baseURI");   //  Returns the absolute base URI of the document 
+		documentElements.add("body");   //  Returns the <body> element 
+		documentElements.add("cookie");   //  Returns the document's cookie 
+		documentElements.add("doctype");   //  Returns the document's doctype 
+		documentElements.add("documentElement");   //  Returns the <html> element 
+		documentElements.add("documentMode");   //  Returns the mode used by the browser 
+		documentElements.add("documentURI");   //  Returns the URI of the document 
+		documentElements.add("domain");   //  Returns the domain name of the document server 
+		documentElements.add("domConfig");   //  Returns the DOM configuration 
+		documentElements.add("embeds");   //  Returns all <embed> elements 
+		documentElements.add("forms");   //  Returns all <form> elements 
+		documentElements.add("head");   //  Returns the <head> element 
+		documentElements.add("images");   //  Returns all <image> elements 
+		documentElements.add("implementation");   //  Returns the DOM implementation 
+		documentElements.add("inputEncoding");   //  Returns the document's encoding (character set) 
+		documentElements.add("lastModified");   //  Returns the date and time the document was updated 
+		documentElements.add("links");   //  Returns all <area> and <a> elements value in href 
+		documentElements.add("readyState");   //  Returns the (loading) status of the document 
+		documentElements.add("referrer");   //  Returns the URI of the referrer (the linking document) 
+		documentElements.add("scripts");   //  Returns all <script> elements 
+		documentElements.add("strictErrorChecking");   //  Returns if error checking is enforced 
+		documentElements.add("title");   //  Returns the <title> element 
+		documentElements.add("URL");   //  Returns the complete URL of the document
+
+
+
+
+
 
 		jsDomMap=new HashMap<String,ArrayList<AstNode>>();
 		jqueryList.add("addClass");
@@ -160,50 +213,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 		/*
 		 * Amin: DOM accessor
-		 * 
-		 * 
-
-			Changing HTML Elements
-			element.innerHTML= 	Change the inner HTML of an element
-			element.attribute= 	Change the attribute of an HTML element
-			element.setAttribute(attribute,value) 	Change the attribute of an HTML element
-			element.style.property= 	Change the style of an HTML element
-
-			Adding and Deleting Elements
-			document.createElement() 	Create an HTML element
-			document.removeChild() 	Remove an HTML element
-			document.appendChild() 	Add an HTML element
-			document.replaceChild() 	Replace an HTML element
-			document.write(text) 	Write into the HTML output stream
-
-			Finding HTML Objects
-			document.anchors 	Returns all <a> with a value in the name attribute 
-			document.applets 	Returns all <applet> elements (Deprecated in HTML5) 
-			document.baseURI 	Returns the absolute base URI of the document 
-			document.body 	Returns the <body> element 
-			document.cookie 	Returns the document's cookie 
-			document.doctype 	Returns the document's doctype 
-			document.documentElement 	Returns the <html> element 
-			document.documentMode 	Returns the mode used by the browser 
-			document.documentURI 	Returns the URI of the document 
-			document.domain 	Returns the domain name of the document server 
-			document.domConfig 	Returns the DOM configuration 
-			document.embeds 	Returns all <embed> elements 
-			document.forms 	Returns all <form> elements 
-			document.head 	Returns the <head> element 
-			document.images 	Returns all <image> elements 
-			document.implementation 	Returns the DOM implementation 
-			document.inputEncoding 	Returns the document's encoding (character set) 
-			document.lastModified 	Returns the date and time the document was updated 
-			document.links 	Returns all <area> and <a> elements value in href 
-			document.readyState 	Returns the (loading) status of the document 
-			document.referrer 	Returns the URI of the referrer (the linking document) 
-			document.scripts 	Returns all <script> elements 
-			document.strictErrorChecking 	Returns if error checking is enforced 
-			document.title 	Returns the <title> element 
-			document.URL 	Returns the complete URL of the document 
-
-
 
 
 			This example finds the element with id="main", and then finds all <p> elements inside "main":
@@ -987,9 +996,31 @@ insertBefore
 		if (node instanceof InfixExpression){
 			System.out.println("=== InfixExpression ===");
 			InfixExpression ie = (InfixExpression) node;
-			System.out.println("Left: " + ie.getLeft().toSource());
-			System.out.println("Operator: " + ASTNodeUtility.operatorToString(ie.getOperator()));
-			System.out.println("Right: " + ie.getRight().toSource());
+
+			String left = ie.getLeft().toSource();
+			String oprator = ASTNodeUtility.operatorToString(ie.getOperator());
+			String right = ie.getRight().toSource();
+
+			System.out.println("Left: " + left);
+			System.out.println("Operator: " + oprator);
+			System.out.println("Right: " + right);			
+
+			// serach the DOMElementVariable list to check if on the left or right a DOMJSVariable is used
+
+			for (DOMConstraint dc: DOMConstraintList){
+				String JSVar = dc.getDOMElementTypeVariable().getDOMJSVariable();
+				if (JSVar!=null)
+					if (JSVar.equals(left)){
+						System.out.println("********* A property of JSVAr: " + JSVar + " is being set");
+					}else if (JSVar.equals(right)){
+						System.out.println("********* A property of JSVAr: " + JSVar + " is being used");
+					}
+			}
+
+			// a.innerHTML = document.anchors[0].innerHTML; -> a is a DOMJSVariable in the DOMElementVariable list
+
+			// Amin: I was here
+
 		}
 
 
@@ -1188,7 +1219,7 @@ insertBefore
 
 
 
-		System.out.println(getJsDomList());
+		//System.out.println(getJsDomList());
 
 		/* have a look at the children of this node */
 		return true;
@@ -1237,7 +1268,7 @@ insertBefore
 	 * Used to distinguish ownProperties and usedProperties
 	 */
 	private void analyseAssignmentNode(AstNode node) {
-		
+
 		System.out.println("===Assignment===");
 		System.out.println(node.debugPrint());
 		assignmentNodeDepth = node.depth();
@@ -1263,14 +1294,15 @@ insertBefore
 	private void analyseFunctionNode(AstNode node) {
 		FunctionNode f = (FunctionNode) node;
 
-		for (Symbol s: f.getSymbols()){
+		/*for (Symbol s: f.getSymbols()){
 			int sType = s.getDeclType();
 			if (sType == Token.LP || sType == Token.VAR || sType == Token.LET || sType == Token.CONST){
 				System.out.println("s.getName() : " + s.getName());
 			}
-		}
-		System.out.println(f.getSymbolTable());
-		System.out.println(f.getSymbols());
+		}*/
+
+		//System.out.println(f.getSymbolTable());
+		//System.out.println(f.getSymbols());
 
 		String fName = "";
 		if (f.getFunctionName()!=null){
@@ -1345,14 +1377,14 @@ insertBefore
 
 	private void analyseNameNode(AstNode node) {
 
-		//System.out.println(ASTNode.debugPrint());
+		/*System.out.println(node.debugPrint());
 
 		for (Symbol s: node.getAstRoot().getSymbols()){
 			int sType = s.getDeclType();
 			if (sType == Token.LP || sType == Token.VAR || sType == Token.LET || sType == Token.CONST){
 				System.out.println("global detected: " + s.getName());
 			}
-		}
+		}*/
 
 
 		/* function calls like .addClass, .css, .attr ... */
@@ -1389,8 +1421,40 @@ insertBefore
 		document.getElementsByClassName() 	Find elements by class name
 		$()									Find an element by element id
 		 */
+		System.out.println("===analyseFunctionCallNode===");
 		FunctionCall fcall = (FunctionCall) ASTNode;
+		AstNode targetNode = fcall.getTarget(); // node evaluating to the function to call
 		System.out.println(ASTNode.debugPrint());
+
+		AstNode parentNode = ASTNode.getParent();
+
+		String DOMJSVariable = ""; // to store the var in the JS code that a DOM element is assigned to
+
+		System.out.println("parentNode.debugPrint(): ");
+		System.out.println(parentNode.shortName());
+		System.out.println(parentNode.debugPrint());
+
+		if (parentNode.shortName().equals("VariableInitializer")){
+			VariableInitializer vi = (VariableInitializer)parentNode;
+
+			Name varName = (Name) vi.getTarget();
+			AstNode varLiteral = vi.getInitializer();
+
+			DOMJSVariable = varName.toSource();
+
+			//System.out.println("parentNode.getChildBefore(ASTNode).getString() :" + parentNode.getChildBefore(ASTNode).getString());
+			System.out.println("varName: " + varName.toSource());
+			System.out.println("varLiteral: " + varLiteral.toSource());
+		}
+
+
+		if (parentNode.shortName().equals("Assignment")){
+			Assignment asmt = (Assignment)parentNode;
+
+			DOMJSVariable = asmt.getLeft().toSource();
+		}
+
+
 
 		String calledFunctionName = "";
 		String enclosingFunctionName = "";
@@ -1401,18 +1465,23 @@ insertBefore
 			//System.out.println("enclosingFunctionName = " + enclosingFunctionName);
 		}
 
-
-		if( fcall.getTarget() instanceof Name){
+		if(targetNode instanceof Name){
 
 			calledFunctionName = ((Name)fcall.getTarget()).getIdentifier();
 			//System.out.println("calledFunctionName is " + calledFunctionName);
 
 			if(calledFunctionName.equals("$")){ // or jQuery()?
-				System.out.println("Accessing DOM via " + calledFunctionName + "() in function " + enclosingFunctionName);
+				String argument = fcall.getArguments().get(0).toSource();
 				DomDependentFunctions.add(enclosingFunctionName);
 
+				System.out.println("Function " + enclosingFunctionName + " accesses DOM via $(" + argument + ")");
 
-
+				DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+				System.out.println("parentNodeElement: document");
+				DOMElement.setParentNodeElement("document");
+				DOMElement.setId_attribute(argument);
+				DOMConstraint dc = new DOMConstraint(DOMElement);
+				DOMConstraintList.add(dc);
 
 				/*setJsDomMap(((Name)fcall.getTarget()), "jquery_r_dollar");
 				if(fcall.getArguments().size()==1
@@ -1423,36 +1492,32 @@ insertBefore
 				}*/
 			}
 
-		}else if ( fcall.getTarget() instanceof PropertyGet){
-			calledFunctionName = ((PropertyGet)fcall.getTarget()).getRight().toSource();		
-			//System.out.println("calledFunctionName is " + calledFunctionName);
+		}else if (targetNode instanceof PropertyGet){
+			PropertyGet pg = (PropertyGet)targetNode;
+			calledFunctionName = pg.getRight().toSource();
+			String argument = fcall.getArguments().get(0).toSource();
 
-			if (calledFunctionName.equals("getElementById")){
-				String id = fcall.getArguments().get(0).toSource();
-				System.out.println("Accessing DOM via " + calledFunctionName + "() in function " + enclosingFunctionName);
-				System.out.println("Parameter of the called function " + calledFunctionName + "() is " + id);
+			if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || calledFunctionName.equals("getElementsByClassName")){
+
 				DomDependentFunctions.add(enclosingFunctionName);
+				String parentNodeElement = pg.getLeft().toSource();
 				DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
-				DOMElement.setId_attribute(id);
+				DOMElement.setParentNodeElement(pg.getLeft().toSource());
+				DOMElement.setDOMJSVariable(DOMJSVariable);
+
+				System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
+
+				if (calledFunctionName.equals("getElementById")){
+					DOMElement.setId_attribute(argument);
+				}else if (calledFunctionName.equals("getElementsByTagName")){
+					DOMElement.setTag_attribute(argument);
+				}else if (calledFunctionName.equals("getElementsByClassName")){
+					DOMElement.setClass_attribute(argument);
+				}	
+
+				DOMConstraint dc = new DOMConstraint(DOMElement);
+				DOMConstraintList.add(dc);
 			}
-
-			if (calledFunctionName.equals("getElementsByTagName")){
-				String tagName = fcall.getArguments().get(0).toSource();
-				System.out.println("Accessing DOM via " + calledFunctionName + "() in function " + enclosingFunctionName);
-				System.out.println("Parameter of the called function " + calledFunctionName + "() is " + tagName);
-				DomDependentFunctions.add(enclosingFunctionName);
-				DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
-				DOMElement.setTag_attribute(tagName);
-			}
-
-			if (calledFunctionName.equals("getElementsByClassName")){
-				String className = fcall.getArguments().get(0).toSource();
-				System.out.println("Accessing DOM via " + calledFunctionName + "() in function " + enclosingFunctionName);
-				System.out.println("Parameter of the called function " + calledFunctionName + "() is " + className);
-				DomDependentFunctions.add(enclosingFunctionName);
-				DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
-				DOMElement.setClass_attribute(className);
-			}				
 		}
 
 

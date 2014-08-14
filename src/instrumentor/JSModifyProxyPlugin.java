@@ -190,14 +190,17 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 			ast.visit(astVisitor);
 
 			astVisitor.finish(ast);
-			// setting the xpathToSolve
-			xpathToSolve = astVisitor.generateXpathConstraint();
 			
 			/* clean up */
 			Context.exit();
 
-			System.out.println("AST AFTER INSTRUMENTATION: ");
-			System.out.println(ast.toSource());
+			// setting the xpathToSolve
+			xpathToSolve = astVisitor.generateXpathConstraint();
+			System.out.println("xpathToSolve: " + xpathToSolve);
+
+			
+			//System.out.println("AST AFTER INSTRUMENTATION: ");
+			//System.out.println(ast.toSource());
 			//System.out.println(ast.debugPrint());
 
 			return ast.toSource();
@@ -219,7 +222,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 		// e.g. select("html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/
 		//		descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]")
 		xpathToSolve = "select(\"html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/" +
-			"descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]\")";
+			"descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]\")\n";
 		return xpathToSolve;
 	}
 

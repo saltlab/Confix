@@ -10,43 +10,32 @@ import java.util.List;
  */
 
 public class DOMElementTypeVariable {
-	
+
 	private String DOMJSVariable;	// e.g. a = document.getElementById("demo"); then a is a DOMJSVariable
 
-	private boolean isElement = false;				// e.g. x = document.getElementById("demo") then isElement = true for x
-	private boolean isPropertyOfElement = false;	// e.g. x = $('id').innerHTML then isPropertyOfElement = true for x
+	private String parentNodeElement;	// e.g. a = document.getElementById("demo"); then document is a DOMJSVariable / a.getElementByTag('p') -> a
+
 	private String attribues = "";
 	
 	// if isElement
 	private String id_attribute = null; // e.g. id="demo"
 	private String type_attribute = null; // e.g. type="button"
 	private String name_attribute = null; // e.g. name="subject"
-	private String tag_attribute = "div"; // using tag="div" as a default value for the element as long as we have no more information about it
+	private String tag_attribute = "\"div\""; // using tag="div" as a default value for the element as long as we have no more information about it
 	private String class_attribute = null; // e.g. class="main"
 	private String value_attribute = null; // e.g. value="test"
 	private String src_attribute = null; // e.g. scr="/image.jpg"
 	private String innerHTML_attribute = null; // e.g. innerHTML="text"
 	
 	
-	// construct the list of not-null attributes
-	public String getAttributes(){
-		addToAttributes("id", id_attribute);
-		addToAttributes("type", type_attribute);
-		addToAttributes("name", name_attribute);
-		addToAttributes("tag", tag_attribute);
-		addToAttributes("class", class_attribute);
-		addToAttributes("value", value_attribute);
-		addToAttributes("src", src_attribute);
-		addToAttributes("innerHTML", innerHTML_attribute);
+	@Override
+	public String toString() {
 
-		return attribues;
+		return "[DOMJSVariable=" + DOMJSVariable
+				+ "\n parentNodeElement:" + parentNodeElement
+				+ "\n attribues:" + getAttribues() + "]";
 	}
 	
-	public void addToAttributes(String att, String value){
-		if (value!=null)
-			attribues += " " + att + "=\"" + value +"\"";
-	}
-
 	public String getDOMJSVariable() {
 		return DOMJSVariable;
 	}
@@ -55,23 +44,26 @@ public class DOMElementTypeVariable {
 		DOMJSVariable = dOMJSVariable;
 	}
 
-	public boolean isElement() {
-		return isElement;
-	}
-
-	public void setElement(boolean isElement) {
-		this.isElement = isElement;
-	}
-
-	public boolean isPropertyOfElement() {
-		return isPropertyOfElement;
-	}
-
-	public void setPropertyOfElement(boolean isPropertyOfElement) {
-		this.isPropertyOfElement = isPropertyOfElement;
-	}
-
 	public String getAttribues() {
+		attribues = "";
+		
+		if (id_attribute!=null)
+			attribues += (" id=" + id_attribute);		
+		if (type_attribute!=null)
+			attribues += (" type=" + type_attribute);		
+		if (name_attribute!=null)
+			attribues += (" name=" + name_attribute);		
+		if (tag_attribute!=null)
+			attribues += (" tag=" + tag_attribute);		
+		if (class_attribute!=null)
+			attribues += (" class=" + class_attribute);		
+		if (value_attribute!=null)
+			attribues += (" value=" + value_attribute);		
+		if (src_attribute!=null)
+			attribues += (" src=" + src_attribute);		
+		if (innerHTML_attribute!=null)
+			attribues += (" innerHTML=" + innerHTML_attribute);	
+
 		return attribues;
 	}
 
@@ -141,6 +133,14 @@ public class DOMElementTypeVariable {
 
 	public void setInnerHTML_attribute(String innerHTML_attribute) {
 		this.innerHTML_attribute = innerHTML_attribute;
+	}
+
+	public String getParentNodeElement() {
+		return parentNodeElement;
+	}
+
+	public void setParentNodeElement(String parentNodeElement) {
+		this.parentNodeElement = parentNodeElement;
 	}
 	
 }
