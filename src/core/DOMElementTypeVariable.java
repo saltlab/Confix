@@ -13,12 +13,13 @@ public class DOMElementTypeVariable {
 
 	private String DOMJSVariable;	// e.g. a = document.getElementById("demo"); then a is a DOMJSVariable
 
-	private String parentNodeElement;	// e.g. a = document.getElementById("demo"); then document is a DOMJSVariable / a.getElementByTag('p') -> a
+	private String parentElementJSVariable;	// e.g. a = document.getElementById("demo"); then document is a DOMJSVariable / a.getElementByTag('p') -> a
+	private List<String> childrenElementJSVariables = new ArrayList<String>();	// e.g. b = a.getElementByTag("p"); then b is a child of a
 
 	private String attribues = "";
 	
 	// if isElement
-	private String id_attribute = null; // e.g. id="demo"
+	private String id_attribute = "ConfixGeneratedID"; // e.g. id="demo"  -> the "ConfixGeneratedID" id is to make sure all elements has at least one attribute for the sake of xpath generation step
 	private String type_attribute = null; // e.g. type="button"
 	private String name_attribute = null; // e.g. name="subject"
 	private String tag_attribute = "div"; // using tag="div" as a default value for the element as long as we have no more information about it
@@ -32,8 +33,12 @@ public class DOMElementTypeVariable {
 	public String toString() {
 
 		return "[DOMJSVariable=" + DOMJSVariable
-				+ "\n parentNodeElement:" + parentNodeElement
+				+ "\n parentElementJSVariable:" + parentElementJSVariable
 				+ "\n attribues:" + getAttribues() + "]";
+	}
+	
+	public void addChildElementJSVariables(String child){
+		childrenElementJSVariables.add(child);
 	}
 	
 	public String getDOMJSVariable() {
@@ -143,12 +148,12 @@ public class DOMElementTypeVariable {
 		this.innerHTML_attribute = innerHTML_attribute;
 	}
 
-	public String getParentNodeElement() {
-		return parentNodeElement;
+	public String getParentElementJSVariable() {
+		return parentElementJSVariable;
 	}
 
-	public void setParentNodeElement(String parentNodeElement) {
-		this.parentNodeElement = parentNodeElement;
+	public void setParentElementJSVariable(String parentElementJSVariable) {
+		this.parentElementJSVariable = parentElementJSVariable;
 	}
 	
 }

@@ -14,6 +14,9 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+
+import org.apache.commons.lang.StringUtils;
+
 public class XpathSolver {
 
 	private String xpathToSolve;
@@ -61,9 +64,12 @@ public class XpathSolver {
 
 	// TODO: Solve xpath using xpath solver
 	public String getDOMFixture(){
-		String Fixture = null;
 		// Calling  xpth solver from here!
 		// Should then read the XML from the generated output file and return it
+        DOMFixture = StringUtils.substringBetween(DOMFixture, "<document solver:target=\"true\">", "</document>");
+        DOMFixture = DOMFixture.replaceAll("_[0-9] ", " ").replaceAll("_[0-9]>", ">");
+        DOMFixture = DOMFixture.replace("=\"_otherValue\"", "\"").replace("_", "=\"");
+        
 		return DOMFixture;
 	}
 

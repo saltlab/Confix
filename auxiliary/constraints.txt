@@ -1,2 +1,1 @@
-select("html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]")
-
+select("document[div_0[@id_main and child::p_1[@id_ConfixGeneratedID]] and child::div_2[@id_demo] and child::div_3[@id_id] and child::div_4[@id_id] and child::div_5[@id_testinput] and child::div_6[@id_testinput2]]")

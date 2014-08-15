@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import org.mozilla.javascript.CompilerEnvirons;
@@ -81,19 +82,70 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	document.write(text) 	Write into the HTML output stream
 	 */
 
-
+	private String xpath="";
+	private int numOfDOMElementsInFixture = 0;
 
 	public String generateXpathConstraint() {
+		xpath = "select(\"document[";
+		List<String> JSDOMVars = new ArrayList<String>();
 		// TODO Generate xpath from the list of DOMConstraints in the DOMConstraintList
 		// Transform constraints to xpath using string/int solver
 		for (DOMConstraint dc : DOMConstraintList){
-			System.out.println(dc);
-			String xpath = dc.getCorrespondingXpath();
-			System.out.println("CorrespondingXpath: " + xpath);
+			if (dc.isAddedToTheXpath())
+				continue;
+			dc.setAddedToTheXpath(true); // this is to consider each constraint only once
+
+			if (dc.getDOMElementTypeVariable().getDOMJSVariable().equals("document")) // ignore the first node
+				continue;
+
+			// for each node consider all its children nodes
+			generateSubXpath(dc);
 		}
 
-		return null;
+		xpath += "]\")";
+
+		return xpath;
 	}
+
+	private void generateSubXpath(DOMConstraint currentConstraint){
+		// generate xpath for currentConstraint first (id+attributes) and then add its children
+		String id = currentConstraint.getDOMElementTypeVariable().getId_attribute();
+		String tag = currentConstraint.getDOMElementTypeVariable().getTag_attribute();
+		String type = currentConstraint.getDOMElementTypeVariable().getType_attribute();
+		String name = currentConstraint.getDOMElementTypeVariable().getName_attribute();
+		String Class = currentConstraint.getDOMElementTypeVariable().getClass_attribute();
+		String value = currentConstraint.getDOMElementTypeVariable().getValue_attribute();
+		String src = currentConstraint.getDOMElementTypeVariable().getSrc_attribute();
+		if (numOfDOMElementsInFixture>0)
+			xpath += " and child::";
+		xpath += (tag + "_" + Integer.toString(numOfDOMElementsInFixture++) + "[");  // e.g. div_0[, p_1[, img_2[, ...
+		if(id!=null)
+			xpath += "@id_" + id;
+		if(type!=null)
+			xpath += " and @type_" + type;
+		if(name!=null)
+			xpath += " and @name_" + name;
+		if(Class!=null)
+			xpath += " and @class_" + Class;
+		if(value!=null)
+			xpath += " and @value_" + value;
+		if(src!=null)
+			xpath += " and @scr_" + src;
+
+		currentConstraint.setAddedToTheXpath(true); // this is to consider each constraint only once
+		for (DOMConstraint dc : DOMConstraintList){
+			if (dc.getDOMElementTypeVariable().getDOMJSVariable().equals("document")) // ignore the first node
+				continue;
+			if(dc.getDOMElementTypeVariable().getParentElementJSVariable().equals(currentConstraint.getDOMElementTypeVariable().getDOMJSVariable())){
+				//xpath += " and child::";
+				generateSubXpath(dc);
+			}
+		}
+		xpath += "]";
+	}
+
+
+
 
 	public boolean shouldTrackFunctionCalls=true;
 	public boolean shouldTrackFunctionNodes=true;
@@ -127,6 +179,14 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	private ArrayList<ArrayList<Object>> jsDomList=new ArrayList<ArrayList<Object>>();
 
 	public JSASTVisitor(){
+
+
+		// adding the initial "document" node to be used for xpath generation
+		DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+		DOMElement.setDOMJSVariable("document");
+		DOMConstraint dc = new DOMConstraint(DOMElement);
+		DOMConstraintList.add(dc);
+
 
 		// Finding HTML Objects
 		documentElements.add("anchors"); // Returns all <a> with a value in the name attribute 
@@ -1428,7 +1488,8 @@ insertBefore
 
 		AstNode parentNode = ASTNode.getParent();
 
-		String DOMJSVariable = ""; // to store the var in the JS code that a DOM element is assigned to
+		Random rand = new Random();
+		String DOMJSVariable = "anonym"+Integer.toString(rand.nextInt(100)); // to store the var in the JS code that a DOM element is assigned to
 
 		System.out.println("parentNode.debugPrint(): ");
 		System.out.println(parentNode.shortName());
@@ -1478,7 +1539,15 @@ insertBefore
 
 				DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
 				System.out.println("parentNodeElement: document");
-				DOMElement.setParentNodeElement("document");
+				DOMElement.setParentElementJSVariable("document");
+				// adding the child node to the list for the parent
+				for (DOMConstraint d: DOMConstraintList){
+					if (d.getDOMElementTypeVariable().getDOMJSVariable().equals("document"))
+						System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+				}
+
+				DOMElement.setDOMJSVariable(DOMJSVariable);
+
 				DOMElement.setId_attribute(argument);
 				DOMConstraint dc = new DOMConstraint(DOMElement);
 				DOMConstraintList.add(dc);
@@ -1502,7 +1571,13 @@ insertBefore
 				DomDependentFunctions.add(enclosingFunctionName);
 				String parentNodeElement = pg.getLeft().toSource();
 				DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
-				DOMElement.setParentNodeElement(pg.getLeft().toSource());
+				DOMElement.setParentElementJSVariable(pg.getLeft().toSource());
+				// adding the child node to the list for the parent
+				for (DOMConstraint d: DOMConstraintList){
+					if (d.getDOMElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
+						System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+				}
+
 				DOMElement.setDOMJSVariable(DOMJSVariable);
 
 				System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");

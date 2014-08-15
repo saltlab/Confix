@@ -35,7 +35,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 
 	private JSASTVisitor astVisitor;
 	private String outputfolder;
-	private String xpathToSolve;
+	private List<String> xpathsToSolve = new ArrayList<String>();
 
 
 	/**
@@ -195,7 +195,8 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 			Context.exit();
 
 			// setting the xpathToSolve
-			xpathToSolve = astVisitor.generateXpathConstraint();
+			String xpathToSolve = astVisitor.generateXpathConstraint();
+			xpathsToSolve.add(xpathToSolve);
 			System.out.println("xpathToSolve: " + xpathToSolve);
 
 			
@@ -221,9 +222,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 	public String generateXpathConstraint() {
 		// e.g. select("html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/
 		//		descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]")
-		xpathToSolve = "select(\"html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/" +
-			"descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]\")\n";
-		return xpathToSolve;
+		return xpathsToSolve.get(0);
 	}
 
 	
