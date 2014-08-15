@@ -16,7 +16,6 @@ module("${moduleName}", {
 
 test("${function.functionName}", function() {
 	expect(0);
-    // test something
 #foreach( $statement in $function.statements )
 	$statement
 #end

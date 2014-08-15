@@ -3,6 +3,7 @@ package instrumentor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -62,6 +63,17 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	public static List<DOMConstraint> DOMConstraintList = new ArrayList<DOMConstraint>();
 	public static List<DOMElementTypeVariable> DOMElementTypeVariableList = new ArrayList<DOMElementTypeVariable>();
+
+	public boolean shouldTrackFunctionCalls=true;
+	public boolean shouldTrackFunctionNodes=true;
+
+	private int m_rootCount = 0;
+
+	private boolean LHS = false;			// This is to decide if the ASTNode is at the left hand-side of an assignment 
+	private int assignmentNodeDepth = 0;	// This is to store ASTNode depth of assignment to be used for detecting LHS value 
+	private boolean assignmentLHSVisited = false; 
+
+	private static HashSet<String> DomDependentFunctions = new HashSet<String>();
 
 
 	/* DOM access */
@@ -146,17 +158,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 
 
-
-	public boolean shouldTrackFunctionCalls=true;
-	public boolean shouldTrackFunctionNodes=true;
-
-	private int m_rootCount = 0;
-
-	private boolean LHS = false;			// This is to decide if the ASTNode is at the left hand-side of an assignment 
-	private int assignmentNodeDepth = 0;	// This is to store ASTNode depth of assignment to be used for detecting LHS value 
-	private boolean assignmentLHSVisited = false; 
-
-	private static List<String> DomDependentFunctions = new ArrayList<String>();
 
 
 	/**
@@ -265,24 +266,12 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		functionCallsNotToVisit.add("atob");
 		functionCallsNotToVisit.add("atob");
 
-		/*
-		 * DOM accessing statements in JavaScript:
-		 * E.g. document.getElementByID('id') / document.getElementByTag('div') / $('id')
-		 */
-
 
 		/*
 		 * Amin: DOM accessor
 
 
-			This example finds the element with id="main", and then finds all <p> elements inside "main":
-
-			var x = document.getElementById("main");
-			var y = x.getElementsByTagName("p"); 
-
-
-			This example finds the form element with id="frm1", in the forms collection, and displays all element values:
-
+			// This example finds the form element with id="frm1", in the forms collection, and displays all element values:
 			var x = document.getElementById("frm1");
 			var text = "";
 			var i;
@@ -429,55 +418,17 @@ insertBefore
       	document.getElementById("frm1").reset();
 
 
-		 * Document Object Properties and Methods
 
-		The following properties and methods can be used on HTML documents:
-		Property / Method 	Description
-		document.addEventListener() 	Attaches an event handler to the document
-		document.adoptNode(node) 	Returns an adopted node from another document to this document
+		The following properties can be used on HTML documents:
+
 		document.anchors 	Returns a collection of all the anchors in the document
 		document.applets 	Returns a collection of all the applets in the document
-		document.baseURI 	Returns the absolute base URI of a document
-		document.body 	Returns the body element of the document
-		document.close() 	Closes the output stream previously opened with document.open()
-		document.cookie 	Returns all name/value pairs of cookies in the document
-		document.createAttribute() 	Creates an attribute node
-		document.createComment() 	Creates a Comment node with the specified text
-		document.createDocumentFragment() 	Creates an empty DocumentFragment node
-		document.createElement() 	Creates an Element node
-		document.createTextNode() 	Creates a Text node
-		document.doctype 	Returns the Document Type Declaration associated with the document
-		document.documentElement 	Returns the Document Element of the document (the HTML element)
-		document.documentMode 	Returns the mode used by the browser to render the document
-		document.documentURI 	Sets or returns the location of the document
-		document.domain 	Returns the domain name of the server that loaded the document
-		document.domConfig 	Returns the configuration used when normalizeDocument() is invoked
 		document.embeds 	Returns a collection of all the embeds in the document
 		document.forms 	Returns a collection of all the forms in the document
-		document.getElementById() 	Returns the element that has the ID attribute with the specified value
-		document.getElementsByClassName() 	Returns a NodeList containing all elements with the specified class name
-		document.getElementsByName() 	Accesses all elements with a specified name
-		document.getElementsByTagName() 	Returns a NodeList containing all elements with the specified tagname
 		document.head 	Returns the head element of the document
 		document.images 	Returns a collection of all the images in the document
-		document.implementation 	Returns the DOMImplementation object that handles this document
-		document.importNode() 	Imports a node from another document
-		document.inputEncoding 	Returns the encoding, character set, used for the document
-		document.lastModified 	Returns the date and time the document was last modified
 		document.links 	Returns a collection of all the links in the document
-		document.normalize() 	Removes empty Text nodes, and joins adjacent nodes
-		document.normalizeDocument() 	Removes empty Text nodes, and joins adjacent nodes
-		document.open() 	Opens an HTML output stream to collect output from document.write()
-		document.readyState 	Returns the (loading) status of the document
-		document.referrer 	Returns the URL of the document that loaded the current document
-		document.removeEventListener() 	Removes an event handler from the document (that has been attached with the addEventListener() method)
-		document.renameNode() 	Renames the specified node
-		document.scripts 	Returns a collection of all the scripts in the document
-		document.strictErrorChecking 	Sets or returns whether error-checking is enforced or not
 		document.title 	Sets or returns the title of the document
-		document.URL 	Returns the full URL of the document
-		document.write() 	Writes HTML expressions or JavaScript code to a document
-		document.writeln() 	Same as write(), but adds a newline character after each statement
 
 
 
@@ -1476,10 +1427,15 @@ insertBefore
 
 	private void analyseFunctionCallNode(AstNode ASTNode) {
 		/*  Detecting DOM acessing function calls
-		document.getElementById() 			Find an element by element id
-		document.getElementsByTagName() 	Find elements by tag name
-		document.getElementsByClassName() 	Find elements by class name
-		$()									Find an element by element id
+
+		The following methods can be used on HTML documents:
+		document.getElementById() 			Returns the element that has the ID attribute with the specified value
+		document.getElementsByClassName() 	Returns a NodeList containing all elements with the specified class name
+		document.getElementsByName() 		Accesses all elements with a specified name
+		document.getElementsByTagName() 	Returns a NodeList containing all elements with the specified tagname
+
+		$()									(jQuery) : Find an element by element id
+
 		 */
 		System.out.println("===analyseFunctionCallNode===");
 		FunctionCall fcall = (FunctionCall) ASTNode;
@@ -1566,7 +1522,7 @@ insertBefore
 			calledFunctionName = pg.getRight().toSource();
 			String argument = fcall.getArguments().get(0).toSource();
 
-			if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || calledFunctionName.equals("getElementsByClassName")){
+			if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || calledFunctionName.equals("getElementsByName") || calledFunctionName.equals("getElementsByClassName")){
 
 				DomDependentFunctions.add(enclosingFunctionName);
 				String parentNodeElement = pg.getLeft().toSource();
@@ -1586,6 +1542,8 @@ insertBefore
 					DOMElement.setId_attribute(argument);
 				}else if (calledFunctionName.equals("getElementsByTagName")){
 					DOMElement.setTag_attribute(argument);
+				}else if (calledFunctionName.equals("getElementsByName")){
+					DOMElement.setName_attribute(argument);
 				}else if (calledFunctionName.equals("getElementsByClassName")){
 					DOMElement.setClass_attribute(argument);
 				}	
@@ -1805,6 +1763,10 @@ insertBefore
 			AstNode parentToAttach=makeSureBlockExistsAround(parent);
 			parentToAttach.addChildAfter(newNode, attachAfter);
 		}
+	}
+
+	public HashSet<String> getDOMDependentFunctionsList() {
+		return DomDependentFunctions;
 	}
 
 }

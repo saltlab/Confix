@@ -17,6 +17,8 @@ import org.owasp.webscarab.plugin.*;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 
@@ -81,6 +83,7 @@ public class ConfixRunner {
 		// 2) Transform the DOM constraints in the JavaScript code into xpath constraint (xpath rule)
 		// 3) solve xpath constraints and generate corresponding XML as DOMFixture
 		String xpathToSolve = JSModifier.generateXpathConstraint();
+		HashSet<String> functionsList = JSModifier.getDOMDependentFunctions();
 		XpathSolver xpathsolver = new XpathSolver();
 		xpathsolver.setXpath(xpathToSolve);
 		xpathsolver.solve();
@@ -90,7 +93,7 @@ public class ConfixRunner {
 		
 		// 4) Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
 		String testSuiteNameToGenerate = "test.js";
-		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixture);
+		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixture, functionsList);
 		tsg.generateTestSuite();
 		
 		driverQuit();

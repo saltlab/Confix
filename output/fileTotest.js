@@ -4,6 +4,7 @@ function a(){
 }
 
 function f() {
+	// find the element with id="main", and then find all <p> elements inside "main":
 	a = document.getElementById("demo");
 	a.innerHTML = document.anchors[0].innerHTML;
 	return a.innerHTML;

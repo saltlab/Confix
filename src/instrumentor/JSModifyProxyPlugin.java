@@ -2,6 +2,7 @@ package instrumentor;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.mozilla.javascript.CompilerEnvirons;
@@ -36,7 +37,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 	private JSASTVisitor astVisitor;
 	private String outputfolder;
 	private List<String> xpathsToSolve = new ArrayList<String>();
-
+	private HashSet<String> DOMDependentFunctionsList = new HashSet<String>();
 
 	/**
 	 * Construct without patterns.
@@ -198,6 +199,9 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 			String xpathToSolve = astVisitor.generateXpathConstraint();
 			xpathsToSolve.add(xpathToSolve);
 			System.out.println("xpathToSolve: " + xpathToSolve);
+			
+			HashSet<String> fList = astVisitor.getDOMDependentFunctionsList();
+			DOMDependentFunctionsList.addAll(fList); 
 
 			
 			//System.out.println("AST AFTER INSTRUMENTATION: ");
@@ -323,6 +327,11 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 			Response response = client.fetchResponse(request);
 			return createResponse(response, request);
 		}
+	}
+
+
+	public HashSet<String> getDOMDependentFunctions() {
+		return DOMDependentFunctionsList;
 	}
 
 

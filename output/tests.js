@@ -1,4 +1,4 @@
-// QUnit test cases generated @ Fri Aug 15 00:30:23 PDT 2014
+// QUnit test cases generated @ Fri Aug 15 10:55:20 PDT 2014
 
 module("test.js", {
     setup: function() {
@@ -11,10 +11,27 @@ module("test.js", {
     }
 });
 
-
-
-test("function0", function() {
+test("Testing function a", function() {
 	expect(0);
 	a();
+});
+
+
+test("Testing function f", function() {
+	expect(0);
+	f();
+});
+
+
+test("Testing function g", function() {
+	expect(0);
+	g();
+});
+
+
+
+test("Testing function doSomething", function() {
+	expect(0);
+	doSomething();
 });
 
