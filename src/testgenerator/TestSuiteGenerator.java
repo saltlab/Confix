@@ -13,8 +13,8 @@ import java.util.List;
 
 module("${moduleName}", {
     setup: function() {
-        // runs before each test
-		${testSetupCode}
+        // generate fixture before each test
+		$("#qunit-fixture").appendTo("${fixture});
     },
     teardown: function() {
         // runs after each test
@@ -26,6 +26,7 @@ module("${moduleName}", {
 #foreach( $function in $testFunctions )
 
 test("${function.functionName}", function() {
+	var $fixture = $( "#qunit-fixture" );
     // test something
 #foreach( $statement in $function.statements )
 	$statement
@@ -33,15 +34,18 @@ test("${function.functionName}", function() {
 });
 
 #end
- */
+
+*/
 
 
 public class TestSuiteGenerator {
 
 	private String testSuiteNameToGenerate;
+	private String DOMFixture;
 	
-	public TestSuiteGenerator(String testSuiteNameToGenerate){
+	public TestSuiteGenerator(String testSuiteNameToGenerate, String DOMFixture){
 		this.testSuiteNameToGenerate = testSuiteNameToGenerate;
+		this.DOMFixture = DOMFixture;
 	}
 	
 	/**
@@ -68,14 +72,14 @@ public class TestSuiteGenerator {
 
 			String moduleName = testSuiteNameToGenerate;
 
-			String TEST_SUITE_PATH = "src/test/confix/generated/" + testSuiteNameToGenerate;
+			String TEST_SUITE_PATH = "output/" + testSuiteNameToGenerate;
 
 			String FILE_NAME_TEMPLATE = "TestCase.vm";
 
 			try {
 				String fileName = null;
 
-				QUnitTestGenerator generator = new QUnitTestGenerator(moduleName, testFunctions);
+				QUnitTestGenerator generator = new QUnitTestGenerator(moduleName, testFunctions, DOMFixture);
 
 				fileName = generator.generate(TEST_SUITE_PATH, FILE_NAME_TEMPLATE);
 

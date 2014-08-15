@@ -69,6 +69,7 @@ public class XpathSolver {
         DOMFixture = StringUtils.substringBetween(DOMFixture, "<document solver:target=\"true\">", "</document>");
         DOMFixture = DOMFixture.replaceAll("_[0-9] ", " ").replaceAll("_[0-9]>", ">");
         DOMFixture = DOMFixture.replace("=\"_otherValue\"", "\"").replace("_", "=\"");
+        DOMFixture = DOMFixture.replaceAll("[\n\r]", "");
         
 		return DOMFixture;
 	}
