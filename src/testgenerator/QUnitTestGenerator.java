@@ -42,7 +42,7 @@ public class QUnitTestGenerator {
 	public String generate(String outputFolder, String fileNameTemplate) throws Exception {
 
 		Template template = engine.getTemplate(fileNameTemplate);
-		File f = new File(outputFolder + moduleName + ".js");
+		File f = new File(outputFolder);
 		FileWriter writer = new FileWriter(f);
 		template.merge(context, writer);
 		writer.flush();

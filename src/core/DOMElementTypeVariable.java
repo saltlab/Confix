@@ -2,6 +2,7 @@ package core;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Storing information regarding a DOM element type variable
@@ -19,7 +20,7 @@ public class DOMElementTypeVariable {
 	private String attribues = "";
 	
 	// if isElement
-	private String id_attribute = "ConfixGeneratedID"; // e.g. id="demo"  -> the "ConfixGeneratedID" id is to make sure all elements has at least one attribute for the sake of xpath generation step
+	private String id_attribute = "ConfixGeneID" + Integer.toString((new Random()).nextInt(100)); // e.g. id="demo"  -> the "ConfixGeneratedID" id is to make sure all elements has at least one attribute for the sake of xpath generation step
 	private String type_attribute = null; // e.g. type="button"
 	private String name_attribute = null; // e.g. name="subject"
 	private String tag_attribute = "div"; // using tag="div" as a default value for the element as long as we have no more information about it

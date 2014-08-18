@@ -92,7 +92,7 @@ public class ConfixRunner {
 		System.out.println(DOMFixture);
 		
 		// 4) Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
-		String testSuiteNameToGenerate = "test.js";
+		String testSuiteNameToGenerate = "tests.js";
 		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixture, functionsList);
 		tsg.generateTestSuite();
 		

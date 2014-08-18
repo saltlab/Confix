@@ -13,15 +13,23 @@ public class DOMConstraint {
 		this.DOMElementVariable = DOMElementVariable;
 	}
 	
-	private String stringValueConstraint;	// document.anchors[0].innerHTML = "text"
-	private int intValueConstraint;			// x.size = 4
+	// conditions : e.g. if (x < 10) 
+	private String left;	// x
+	private String operator;	// <
+	private String right;	// 10
+	
+	
+	
+	
+	private String stringValueConstraint;	// document.anchors[0].innerHTML === "text"
+	private int intValueConstraint;			// x.size === 4
 	private boolean booleanValueConstraint; // radio button selected/not selected {true, false}
+	private String comparisonNotation;  // {"!=","==","<",">"}
 	
 	//TODO: what about dependency to anoter DOM element such as being a child node of another node?
 	
 	private String xpath;
 	
-	private String comparisonNotation;  // {"!=","==","<",">"}
 	
 	public DOMElementTypeVariable getDOMElementTypeVariable(){
 		return DOMElementVariable;
@@ -129,6 +137,30 @@ public class DOMConstraint {
 
 	public void setAddedToTheXpath(boolean addedToTheXpath) {
 		this.addedToTheXpath = addedToTheXpath;
+	}
+
+	public String getLeft() {
+		return left;
+	}
+
+	public void setLeft(String left) {
+		this.left = left;
+	}
+
+	public String getOperator() {
+		return operator;
+	}
+
+	public void setOperator(String operator) {
+		this.operator = operator;
+	}
+
+	public String getRight() {
+		return right;
+	}
+
+	public void setRight(String right) {
+		this.right = right;
 	}
 
 	

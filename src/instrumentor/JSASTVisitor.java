@@ -37,6 +37,7 @@ import org.mozilla.javascript.ast.SwitchCase;
 import org.mozilla.javascript.ast.Symbol;
 import org.mozilla.javascript.ast.ThrowStatement;
 import org.mozilla.javascript.ast.TryStatement;
+import org.mozilla.javascript.ast.UnaryExpression;
 import org.mozilla.javascript.ast.VariableDeclaration;
 import org.mozilla.javascript.ast.VariableInitializer;
 import org.mozilla.javascript.ast.WhileLoop;
@@ -75,9 +76,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	private static HashSet<String> DomDependentFunctions = new HashSet<String>();
 
-
-	/* DOM access */
-	private List<String> documentElements = new ArrayList<String>();
 
 	/*
 	Changing HTML Elements
@@ -189,37 +187,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		DOMConstraintList.add(dc);
 
 
-		// Finding HTML Objects
-		documentElements.add("anchors"); // Returns all <a> with a value in the name attribute 
-		documentElements.add("applets");   // 	Returns all <applet> elements (Deprecated in HTML5)
-		documentElements.add("baseURI");   //  Returns the absolute base URI of the document 
-		documentElements.add("body");   //  Returns the <body> element 
-		documentElements.add("cookie");   //  Returns the document's cookie 
-		documentElements.add("doctype");   //  Returns the document's doctype 
-		documentElements.add("documentElement");   //  Returns the <html> element 
-		documentElements.add("documentMode");   //  Returns the mode used by the browser 
-		documentElements.add("documentURI");   //  Returns the URI of the document 
-		documentElements.add("domain");   //  Returns the domain name of the document server 
-		documentElements.add("domConfig");   //  Returns the DOM configuration 
-		documentElements.add("embeds");   //  Returns all <embed> elements 
-		documentElements.add("forms");   //  Returns all <form> elements 
-		documentElements.add("head");   //  Returns the <head> element 
-		documentElements.add("images");   //  Returns all <image> elements 
-		documentElements.add("implementation");   //  Returns the DOM implementation 
-		documentElements.add("inputEncoding");   //  Returns the document's encoding (character set) 
-		documentElements.add("lastModified");   //  Returns the date and time the document was updated 
-		documentElements.add("links");   //  Returns all <area> and <a> elements value in href 
-		documentElements.add("readyState");   //  Returns the (loading) status of the document 
-		documentElements.add("referrer");   //  Returns the URI of the referrer (the linking document) 
-		documentElements.add("scripts");   //  Returns all <script> elements 
-		documentElements.add("strictErrorChecking");   //  Returns if error checking is enforced 
-		documentElements.add("title");   //  Returns the <title> element 
-		documentElements.add("URL");   //  Returns the complete URL of the document
-
-
-
-
-
 
 		jsDomMap=new HashMap<String,ArrayList<AstNode>>();
 		jqueryList.add("addClass");
@@ -242,7 +209,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		jsList.add("setAttribute");
 		jsList.add("getAttribute");
 		jsList.add("removeAttribute");
-
 
 		// Function calls that we do not need to visit
 		functionCallsNotToVisit.add("parseInt");
@@ -270,109 +236,52 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		/*
 		 * Amin: DOM accessor
 
+			// Changing the Value of an Attribute: document.getElementById(id).attribute=new value
+			document.getElementById("myImage").src = "landscape.jpg";
 
-			// This example finds the form element with id="frm1", in the forms collection, and displays all element values:
-			var x = document.getElementById("frm1");
-			var text = "";
-			var i;
-			for (i = 0; i <x.length; i++) {
-			    text += x.elements[i].value + "<br>";
-			}
-			document.getElementById("demo").innerHTML = text;
+			//The following example collects the node value of an <h1> element and copies it into a <p> element:
+			//<h1 id="intro">My First Page</h1>
+			//<p id="demo">Hello!</p>
 
-
-
-
-			Changing the Value of an Attribute
-
-			To change the value of an HTML attribute, use this syntax:
-			document.getElementById(id).attribute=new value
-
-
-			 <img id="myImage" src="smiley.gif">
-
-			 document.getElementById("myImage").src = "landscape.jpg";
-
-
-
-
-			The following example collects the node value of an <h1> element and copies it into a <p> element:
-			<html>
-			<body>
-
-			<h1 id="intro">My First Page</h1>
-
-			<p id="demo">Hello!</p>
-
-			<script>
 			var myText = document.getElementById("intro").childNodes[0].nodeValue;
 			document.getElementById("demo").innerHTML = myText;
-			</script>
 
-			</body>
-			</html>
-
-
-			Using the firstChild property is the same as using childNodes[0]:
+			//Using the firstChild property is the same as using childNodes[0]:
 			myText = document.getElementById("intro").firstChild.nodeValue;
 
 
 			The nodeName property specifies the name of a node.
-
 		    nodeName is read-only
 		    nodeName of an element node is the same as the tag name
 		    nodeName of an attribute node is the attribute name
 		    nodeName of a text node is always #text
 		    nodeName of the document node is always #document
-
 			Note: nodeName always contains the uppercase tag name of an HTML element.
 
 
-The nodeValue property specifies the value of a node.
+			The nodeValue property specifies the value of a node.
+		    nodeValue for element nodes is undefined
+		    nodeValue for text nodes is the text itself
+		    nodeValue for attribute nodes is the attribute value
 
-    nodeValue for element nodes is undefined
-    nodeValue for text nodes is the text itself
-    nodeValue for attribute nodes is the attribute value
-
-
-The nodeType property returns the type of node. nodeType is read only.
-
-The most important node types are:
-Element type 	NodeType
-Element 	1
-Attribute 	2
-Text 	3
-Comment 	8
-Document 	9
+			The nodeType property returns the type of node. nodeType is read only.
+			The most important node types are:
+			Element type 	NodeType
+			Element 		1
+			Attribute 		2
+			Text 			3
+			Comment 		8
+			Document 		9
 
 
 
-
-createElement
-createTextNode
-appendChild
-replaceChild
-removeChild
-insertBefore
-
-
-
-		The getElementsByTagName() method returns a node list. A node list is an array-like collection of nodes.
-
-		The JavaScript Way:
-		function myFunction() {
+	function myFunction() {
 		    var obj = document.getElementById("h01");
 		    obj.innerHTML = "Hello jQuery";
 		}
-		onload = myFunction;
 
-		The jQuery equivalent is different:
 		The jQuery Way:
-		function myFunction() {
 		    $("#h01").html("Hello jQuery");
-		}
-		$(document).ready(myFunction);
-
 
 	    $("#h01").attr("style", "color:red").html("Hello jQuery")
 
@@ -381,108 +290,58 @@ insertBefore
 
 
 
-		The JavaScript Way:
-		function myFunction() {
-		    var obj = document.getElementById("h01");
-		    obj.innerHTML = "Hello Prototype";
-		}
-		onload = myFunction;
-
-		The Prototype equivalent is different:
-		The Prototype Way:
-		function myFunction() {
-		    $("h01").insert("Hello Prototype!");
-		}
-		Event.observe(window, "load", myFunction);
-
-
-
-		<button id="btn1" name="subject" type="submit" value="fav_HTML">HTML</button>
+		//<button id="btn1" name="subject" type="submit" value="fav_HTML">HTML</button>
 		var x = document.getElementById("btn1").value;
 
-
-
-		<form id="form1">
-		<button id="btn1" type="button">HTML</button>
-		</form>
+		//<form id="form1">
+		//<button id="btn1" type="button">HTML</button>
+		//</form>
 		var x = document.getElementById("btn1").form.id;
 
-
-		<form id="frm1" action="form_action.asp">
-		First name: <input type="text" name="fname"><br>
-		Last name: <input type="text" name="lname"><br><br>
-		<input type="button" onclick="myFunction()" value="Submit">
-		</form>
-
+		//<form id="frm1" action="form_action.asp">
+		//First name: <input type="text" name="fname"><br>
+		//Last name: <input type="text" name="lname"><br><br>
+		//<input type="button" onclick="myFunction()" value="Submit">
+		//</form>
 		document.getElementById("frm1").submit();
       	document.getElementById("frm1").reset();
 
 
 
-		The following properties can be used on HTML documents:
-
-		document.anchors 	Returns a collection of all the anchors in the document
-		document.applets 	Returns a collection of all the applets in the document
-		document.embeds 	Returns a collection of all the embeds in the document
-		document.forms 	Returns a collection of all the forms in the document
-		document.head 	Returns the head element of the document
-		document.images 	Returns a collection of all the images in the document
-		document.links 	Returns a collection of all the links in the document
-		document.title 	Sets or returns the title of the document
 
 
 
-
-		Properties and Methods
 
 		The following properties and methods can be used on all HTML elements:
-		Property / Method 	Description
-		element.accessKey 	Sets or returns the accesskey for an element
-		element.addEventListener() 	Attaches an event handler to the specified element
 		element.appendChild() 	Adds a new child node, to an element, as the last child node
 		element.attributes 	Returns a NamedNodeMap of an element's attributes
 		element.childNodes 	Returns a NodeList of child nodes for an element
 		element.className 	Sets or returns the class attribute of an element
 		element.clientHeight 	Returns the viewable height of an element
 		element.clientWidth 	Returns the viewable width of an element
-		element.cloneNode() 	Clones an element
-		element.compareDocumentPosition() 	Compares the document position of two elements
 		element.contentEditable 	Sets or returns whether the content of an element is editable or not
-		element.dir 	Sets or returns the text direction of an element
 		element.firstChild 	Returns the first child of an element
 		element.getAttribute() 	Returns the specified attribute value of an element node
 		element.getAttributeNode() 	Returns the specified attribute node
 		element.getElementsByClassName() 	Returns a collection of all child elements with the specified class name
 		element.getElementsByTagName() 	Returns a collection of all child elements with the specified tagname
-		element.getFeature() 	Returns an object which implements the APIs of a specified feature
-		element.getUserData() 	Returns the object associated to a key on an element
 		element.hasAttribute() 	Returns true if an element has the specified attribute, otherwise false
 		element.hasAttributes() 	Returns true if an element has any attributes, otherwise false
 		element.hasChildNodes() 	Returns true if an element has any child nodes, otherwise false
 		element.id 	Sets or returns the id of an element
-
 		element.innerHTML 	Sets or returns the content of an element
-
 		element.insertBefore() 	Inserts a new child node before a specified, existing, child node
 		element.isContentEditable 	Returns true if the content of an element is editable, otherwise false
-		element.isDefaultNamespace() 	Returns true if a specified namespaceURI is the default, otherwise false
-		element.isEqualNode() 	Checks if two elements are equal
-		element.isSameNode() 	Checks if two elements are the same node
-		element.isSupported() 	Returns true if a specified feature is supported on the element
-		element.lang 	Sets or returns the language code for an element
 		element.lastChild 	Returns the last child of an element
-		element.namespaceURI 	Returns the namespace URI of an element
 		element.nextSibling 	Returns the next node at the same node tree level
 		element.nodeName 	Returns the name of an element
 		element.nodeType 	Returns the node type of an element
 		element.nodeValue 	Sets or returns the value of an element
-		element.normalize() 	Joins adjacent text nodes and removes empty text nodes in an element
 		element.offsetHeight 	Returns the height of an element
 		element.offsetWidth 	Returns the width of an element
 		element.offsetLeft 	Returns the horizontal offset position of an element
 		element.offsetParent 	Returns the offset container of an element
 		element.offsetTop 	Returns the vertical offset position of an element
-		element.ownerDocument 	Returns the root element (document object) for an element
 		element.parentNode 	Returns the parent node of an element
 		element.previousSibling 	Returns the previous element at the same node tree level
 		element.removeAttribute() 	Removes a specified attribute from an element
@@ -498,23 +357,16 @@ insertBefore
 		element.setAttributeNode() 	Sets or changes the specified attribute node
 		element.setIdAttribute() 	
 		element.setIdAttributeNode() 	
-		element.setUserData() 	Associates an object to a key on an element
 		element.style 	Sets or returns the style attribute of an element
-		element.tabIndex 	Sets or returns the tab order of an element
 		element.tagName 	Returns the tag name of an element
 		element.textContent 	Sets or returns the textual content of a node and its descendants
 		element.title 	Sets or returns the title attribute of an element
-		element.toString() 	Converts an element to a string
-
-		nodelist.item() 	Returns the node at the specified index in a NodeList
 		nodelist.length 	Returns the number of nodes in a NodeList
 
 
 
 
-
 		Properties and Methods
-		Property / Method 	Description
 		attr.isId 	Returns true if the attribute is of type Id, otherwise it returns false
 		attr.name 	Returns the name of an attribute
 		attr.value 	Sets or returns the value of the attribute
@@ -527,45 +379,28 @@ insertBefore
 		nodemap.setNamedItem() 	Sets the specified attribute node (by name)
 
 
-
-
-
 		<a id="myAnchor" href="http://www.microsoft.com">Microsoft</a>
 		document.getElementById('myAnchor').innerHTML="W3Schools";
 		document.getElementById('myAnchor').href="http://www.w3schools.com";
 		document.getElementById('myAnchor').target="_blank";
 
 
-		 * document.getElementById()
-		 * innerHTML for <p>
-		 * document.title in <title>
-		 * 
 		 *     var x = document.getElementsByName("x");
 		 *		document.getElementById("demo").innerHTML = x.length;   => How many elements named x?
-
-
-	    document.getElementsByTagName
 
 	    document.anchors.length  => Number of anchors
 	    document.getElementById("demo").innerHTML =
 	    document.anchors[0].innerHTML;
-
-
 	    "Number of links: " + document.links.length
-
 	    "The href of the first link is " + document.links[0].href;
-
 	    "Number of forms: " + document.forms.length
-
 	    "The name of the first for is " + document.forms[0].name
-
 	    "Number of images: " + document.images.length
 
 	    document.getElementById("demo").innerHTML =
 		"The id of the first image is " + document.images[0].id
 
 		document.getElementById('p1').style.visibility='visible'"
-
 		 */
 	}
 
@@ -719,73 +554,9 @@ insertBefore
 		System.out.println("node.getType() : " + node.getType());
 		System.out.println("node.getAstRoot() : " + node.getAstRoot());
 		System.out.println("node.debugPrint() : \n" + node.debugPrint());
-		/*
-
-		node.shortName() : ExpressionStatement
-		a = document.getElementById("demo");
-		44	      EXPR_VOID 18 36
-		44	        ASSIGN 0 35
-		44	          NAME 0 1 a
-		48	          CALL 4 31
-		48	            GETPROP 0 23
-		48	              NAME 0 8 document
-		57	              NAME 9 14 getElementById
-		72	            STRING 24 6
-
-		node.shortName() : Assignment
-		node.depth() : 4
-		node.getLineno() : 3
-		node.toSource() : 
-		a = document.getElementById("demo")
-		node.getType() : 90
-
-		node.shortName() : ExpressionStatement
-		node.depth() : 3
-		node.getLineno() : 9
-		node.toSource() : 
-		var inner = f();
-
-		node.getType() : 133
-		node.getAstRoot() : 136
-		node.debugPrint() : 
-		236	      EXPR_VOID 18 16
-		236	        VAR 0 15
-		240	          VAR 4 11
-		240	            NAME 0 5 inner
-		248	            CALL 8 3
-		248	              NAME 0 1 f
-
-		node.shortName() : VariableDeclaration
-		node.depth() : 4
-		node.getLineno() : 9
-		node.toSource() : 
-		var inner = f()
-		node.getType() : 122
-		node.getAstRoot() : 136
-		node.debugPrint() : 
-		236	        VAR 0 15
-		240	          VAR 4 11
-		240	            NAME 0 5 inner
-		248	            CALL 8 3
-		248	              NAME 0 1 f
-
-		node.shortName() : VariableInitializer
-		node.depth() : 5
-		node.getLineno() : 9
-		node.toSource() : 
-		inner = f()	
-
 		 */
 
-
-
-
-		/*if (!shouldTrackFunctionCalls){
-		if (node instanceof FunctionNode)
-			if (!shouldVisitFunction((FunctionNode) node)){
-				return false;
-			}
-
+		/*
 		if (node instanceof SwitchCase) {
 			//Add block around all statements in the switch case
 			SwitchCase sc = (SwitchCase)node;
@@ -811,45 +582,6 @@ insertBefore
 			if (forloop.getIncrement().equals(node))
 				return false;
 		}
-
-		else if (node instanceof FunctionCall){
-
-			FunctionNode func=node.getEnclosingFunction();
-			List<AstNode> nodeForVarLog=((FunctionCall) node).getArguments();
-			String statementCategory="FunctionCallArgument";
-
-			for (int i=0;i<nodeForVarLog.size();i++){
-				if (!(nodeForVarLog.get(i) instanceof KeywordLiteral)){
-					AstNode newNode=createNode(func, nodeForVarLog.get(i), statementCategory);
-					appendNode(node, newNode);
-
-
-				}
-			}
-
-
-		}
-		else if (node instanceof Assignment){
-
-			FunctionNode func=node.getEnclosingFunction();
-			String statementCategory="AssignmentComputation";
-			AstNode nodeForVarLog=node;
-			AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
-
-			appendNode(node, newNode);
-
-		}
-
-		else if (node instanceof UnaryExpression){
-
-			FunctionNode func=node.getEnclosingFunction();
-			String statementCategory="UnaryExpression";
-			AstNode nodeForVarLog=node;
-			AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
-			appendNode(node, newNode);
-
-		}
-
 		if (node.getParent() instanceof ElementGet){
 			FunctionNode func=node.getEnclosingFunction();
 			String statementCategory="ElementGet";
@@ -858,70 +590,6 @@ insertBefore
 			appendElemGetNode(node, newNode);
 		}
 
-
-		else if (node instanceof ReturnStatement){
-
-			FunctionNode func=node.getEnclosingFunction();
-			String statementCategory="ReturnStatementArgument";
-			AstNode nodeForVarLog=((ReturnStatement)node).getReturnValue();
-			if (!(nodeForVarLog instanceof KeywordLiteral) && nodeForVarLog!=null){
-				AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
-
-				AstNode parent = makeSureBlockExistsAround(node);
-
-				// the parent is something we can prepend to
-				parent.addChildBefore(newNode, node);
-			}
-
-		}
-
-		else if (node instanceof IfStatement){
-
-			FunctionNode func=node.getEnclosingFunction();
-			String statementCategory="IfStatementCondition";
-			AstNode nodeForVarLog=((IfStatement) node).getCondition();
-			if (!(nodeForVarLog instanceof KeywordLiteral)){
-				AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
-
-				AstNode parent = makeSureBlockExistsAround(node);
-
-				// the parent is something we can prepend to
-				parent.addChildAfter(newNode, node);
-			}
-
-		}
-
-		else if (node instanceof ForLoop){
-
-			FunctionNode func=node.getEnclosingFunction();
-			String statementCategory="ForLoopCondition";
-			AstNode nodeForVarLog=((ForLoop) node).getCondition();
-			if (!(nodeForVarLog instanceof KeywordLiteral)){
-				AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
-
-				AstNode parent = makeSureBlockExistsAround(node);
-
-				// the parent is something we can prepend to
-				parent.addChildAfter(newNode, node);
-			}
-		}
-
-
-		else if (node instanceof WhileLoop){
-
-			FunctionNode func=node.getEnclosingFunction();
-			String statementCategory="WhileLoopCondition";
-			AstNode nodeForVarLog=((WhileLoop) node).getCondition();
-			if (!(nodeForVarLog instanceof KeywordLiteral)){
-				AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
-
-				AstNode parent = makeSureBlockExistsAround(node);
-
-				// the parent is something we can prepend to
-				parent.addChildAfter(newNode, node);
-			}
-
-		}
 		else if (node instanceof SwitchStatement){
 			FunctionNode func=node.getEnclosingFunction();
 			AstNode nodeForVarLog=((SwitchStatement) node).getExpression();
@@ -935,13 +603,9 @@ insertBefore
 				parent.addChildAfter(newNode, node);
 			}
 		}
-	}
-
-		 */
 
 
-		/* if shouldTrackFunctionCalls
-
+		// ...if shouldTrackFunctionCalls
 		if(node instanceof FunctionNode){
 			FunctionNode fNode=(FunctionNode) node;
 			String funcName=getFunctionName(fNode);
@@ -977,6 +641,9 @@ insertBefore
 			analyseAstRootNode(node);
 		else if (nodeName.equals("Name"))  // = if (node instanceof Name)
 			analyseNameNode(node);
+		else if (nodeName.equals("IfStatement")){	// if statements
+			analyseIfStatementNode(node);
+		}
 		else if (nodeName.equals("VariableDeclaration"))
 			analyseVariable();
 		else if (nodeName.equals("ObjectLiteral"))
@@ -1016,6 +683,52 @@ insertBefore
 			System.out.println("Operator: " + oprator);
 			System.out.println("Right: " + right);			
 
+			/*
+			 The following properties can be used on HTML documents:
+				document.anchors 	Returns a collection of all <a> with a value in the name attribute
+				document.applets 	Returns a collection of all <applet> elements (Deprecated in HTML5)
+				document.embeds 	Returns a collection of all <embed> elements 
+				document.forms 	Returns a collection of all the <form> elements 
+				document.head 	Returns the <head> element
+				document.images 	Returns a collection of all <image> elements 
+				document.links 	Returns a collection of all <area> and <a> elements value in href
+				document.title 	Sets or returns the <title> element
+
+			 */
+
+			if (right.equals("anchors")){
+				// serach the DOMElementVariable list to check if a corresponding DOMJSVariable exists
+				// e.g. a.innerHTML = document.anchors[0].innerHTML; -> document is a default DOMJSVariable in the DOMElementVariable list
+				boolean JSVarExist = false;
+				for (DOMConstraint dc: DOMConstraintList){
+					String JSVar = dc.getDOMElementTypeVariable().getDOMJSVariable();
+					if (left.equals(JSVar)){
+						JSVarExist = true;
+						System.out.println(JSVar + " is the parent of anchors");
+
+						DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+						DOMElement.setParentElementJSVariable(left);
+						// adding the child node to the list for the parent
+						String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); // to store the var in the JS code that a DOM element is assigned to
+						DOMElement.setDOMJSVariable(DOMJSVariable);
+
+						//System.out.println("Function " + enclosingFunctionName + " accesses DOM via .anchors");
+
+						DOMElement.setTag_attribute("a");
+						DOMElement.setName_attribute("ConfixGenName" + Integer.toString((new Random()).nextInt(100)));
+
+						DOMConstraint newDC = new DOMConstraint(DOMElement);
+						DOMConstraintList.add(newDC);
+						break;
+					}
+				}
+				if (JSVarExist == false){
+					// add the new DOMElementVariable
+				}
+			}
+
+
+
 			// serach the DOMElementVariable list to check if on the left or right a DOMJSVariable is used
 
 			for (DOMConstraint dc: DOMConstraintList){
@@ -1028,43 +741,11 @@ insertBefore
 					}
 			}
 
-			// a.innerHTML = document.anchors[0].innerHTML; -> a is a DOMJSVariable in the DOMElementVariable list
-
-			// Amin: I was here
-
-		}
-
-
-		if (node instanceof IfStatement){
-
-			FunctionNode func=node.getEnclosingFunction();
-			String statementCategory="IfStatementCondition";
-			AstNode nodeForVarLog=((IfStatement) node).getCondition();
-
-
-			System.out.println("nodeForVarLog.shortName() : " + nodeForVarLog.shortName());
-			System.out.println("nodeForVarLog.depth() : " + nodeForVarLog.depth());
-			System.out.println("nodeForVarLog.getLineno() : " + (nodeForVarLog.getLineno()+1));
-			System.out.println("nodeForVarLog.toSource() : \n" + nodeForVarLog.toSource());
-			System.out.println("nodeForVarLog.getType() : " + nodeForVarLog.getType());
-			System.out.println("nodeForVarLog.getAstRoot() : " + nodeForVarLog.getAstRoot());
-			System.out.println("nodeForVarLog.debugPrint() : \n" + nodeForVarLog.debugPrint());
-
-			IfStatement ie = (IfStatement) node;
-
-
-			/*if (!(nodeForVarLog instanceof KeywordLiteral)){
-				AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
-
-				AstNode parent = makeSureBlockExistsAround(node);
-
-				// the parent is something we can prepend to
-				parent.addChildAfter(newNode, node);
-			}*/
 		}
 
 
 
+		
 
 		FunctionNode f;
 
@@ -1229,11 +910,59 @@ insertBefore
 		}
 
 
-
 		//System.out.println(getJsDomList());
 
 		/* have a look at the children of this node */
 		return true;
+	}
+
+	private void analyseIfStatementNode(AstNode node) {
+		if (node instanceof IfStatement){
+
+			FunctionNode func=node.getEnclosingFunction();
+
+			IfStatement is = (IfStatement) node;
+			AstNode conditionNode = is.getCondition();
+
+			System.out.println("conditionNode.shortName() : " + conditionNode.shortName());
+			System.out.println("conditionNode.depth() : " + conditionNode.depth());
+			System.out.println("conditionNode.getLineno() : " + (conditionNode.getLineno()+1));
+			System.out.println("conditionNode.toSource() : \n" + conditionNode.toSource());
+			System.out.println("conditionNode.getType() : " + conditionNode.getType());
+			System.out.println("conditionNode.getAstRoot() : " + conditionNode.getAstRoot());
+			System.out.println("conditionNode.debugPrint() : \n" + conditionNode.debugPrint());
+
+			String conditionShortName = conditionNode.shortName();
+			if (conditionShortName.equals("InfixExpression")){	// e.g. if (x<5)
+				System.out.println("=== InfixExpression found in the condition===");
+				InfixExpression ie = (InfixExpression) conditionNode;
+				String left = ie.getLeft().toSource();
+				String oprator = ASTNodeUtility.operatorToString(ie.getOperator());
+				String right = ie.getRight().toSource();
+
+				System.out.println("Left: " + left);
+				System.out.println("Operator: " + oprator);
+				System.out.println("Right: " + right);	
+				System.out.println("ie.getLeft().getLineno() : " + (ie.getLeft().getLineno()+1));
+				System.out.println("ie.getRight().getLineno() : " + (ie.getRight().getLineno()+1));
+				
+				// considering multiple constraints
+				if (oprator.equals("&&")){
+
+				}
+
+			}else if (conditionShortName.equals("Name")){	// e.g. if (t)  -> variable should be true to go in
+				Name varName = (Name) conditionNode;
+				System.out.println("varName.toSource(): " + varName.toSource());
+			}else if (conditionShortName.equals("UnaryExpression")){	// e.g. if (!t)  -> variable should be false to go in
+				UnaryExpression ue = (UnaryExpression) conditionNode;
+				String oprator = ASTNodeUtility.operatorToString(ue.getOperator());
+				System.out.println("Oprator: " + oprator);
+				System.out.println("Operand: " + ue.getOperand().toSource());
+			}
+
+		}
+		
 	}
 
 	private void analyseAstRootNode(AstNode node) {
@@ -1444,8 +1173,7 @@ insertBefore
 
 		AstNode parentNode = ASTNode.getParent();
 
-		Random rand = new Random();
-		String DOMJSVariable = "anonym"+Integer.toString(rand.nextInt(100)); // to store the var in the JS code that a DOM element is assigned to
+		String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); // to store the var in the JS code that a DOM element is assigned to
 
 		System.out.println("parentNode.debugPrint(): ");
 		System.out.println(parentNode.shortName());
@@ -1487,69 +1215,82 @@ insertBefore
 			calledFunctionName = ((Name)fcall.getTarget()).getIdentifier();
 			//System.out.println("calledFunctionName is " + calledFunctionName);
 
-			if(calledFunctionName.equals("$")){ // or jQuery()?
+			if(calledFunctionName.equals("$") || calledFunctionName.equals("jQuery")){ // or jQuery()?
+				String argumentShortName = fcall.getArguments().get(0).shortName();
 				String argument = fcall.getArguments().get(0).toSource();
-				DomDependentFunctions.add(enclosingFunctionName);
+				System.out.println("argumentShortName: " + argumentShortName);
 
-				System.out.println("Function " + enclosingFunctionName + " accesses DOM via $(" + argument + ")");
+				if (argumentShortName.equals("StringLiteral")){   // e.g. $('id')
+					DomDependentFunctions.add(enclosingFunctionName);
+					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + calledFunctionName + "(" + argument + ")");
 
-				DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
-				System.out.println("parentNodeElement: document");
-				DOMElement.setParentElementJSVariable("document");
-				// adding the child node to the list for the parent
-				for (DOMConstraint d: DOMConstraintList){
-					if (d.getDOMElementTypeVariable().getDOMJSVariable().equals("document"))
-						System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
-				}
+					DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+					System.out.println("parentNodeElement: document");
+					DOMElement.setParentElementJSVariable("document");
+					// adding the child node to the list for the parent
+					for (DOMConstraint d: DOMConstraintList){
+						if (d.getDOMElementTypeVariable().getDOMJSVariable().equals("document"))
+							System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+					}
 
-				DOMElement.setDOMJSVariable(DOMJSVariable);
+					DOMElement.setDOMJSVariable(DOMJSVariable);
 
-				DOMElement.setId_attribute(argument);
-				DOMConstraint dc = new DOMConstraint(DOMElement);
-				DOMConstraintList.add(dc);
+					DOMElement.setId_attribute(argument);
+					DOMConstraint dc = new DOMConstraint(DOMElement);
+					DOMConstraintList.add(dc);
 
-				/*setJsDomMap(((Name)fcall.getTarget()), "jquery_r_dollar");
+					/*setJsDomMap(((Name)fcall.getTarget()), "jquery_r_dollar");
 				if(fcall.getArguments().size()==1
 						&& fcall.getArguments().get(0) instanceof StringLiteral
 						&& fcall.getArguments().get(0).toSource().startsWith(".")
 						|| fcall.getArguments().get(0).toSource().startsWith("#") ){
 					setJsDomMap(fcall.getArguments().get(0), "jquery_c_selSign");
 				}*/
+				}else if (argumentShortName.equals("Name")){   // e.g.  DIV = "<div />";  d = $(DIV);
+					//backward slicing to find the corresponding defined variable in the symbol table
+				}
 			}
 
 		}else if (targetNode instanceof PropertyGet){
 			PropertyGet pg = (PropertyGet)targetNode;
 			calledFunctionName = pg.getRight().toSource();
 			String argument = fcall.getArguments().get(0).toSource();
+			String argumentShortName = fcall.getArguments().get(0).shortName();
+			System.out.println("argumentShortName: " + argumentShortName);
 
-			if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || calledFunctionName.equals("getElementsByName") || calledFunctionName.equals("getElementsByClassName")){
+			if (argumentShortName.equals("StringLiteral")){   // e.g. getElementsByTagName("p")
 
-				DomDependentFunctions.add(enclosingFunctionName);
-				String parentNodeElement = pg.getLeft().toSource();
-				DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
-				DOMElement.setParentElementJSVariable(pg.getLeft().toSource());
-				// adding the child node to the list for the parent
-				for (DOMConstraint d: DOMConstraintList){
-					if (d.getDOMElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
-						System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+				if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || calledFunctionName.equals("getElementsByName") || calledFunctionName.equals("getElementsByClassName")){
+
+					DomDependentFunctions.add(enclosingFunctionName);
+					String parentNodeElement = pg.getLeft().toSource();
+					DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+					DOMElement.setParentElementJSVariable(pg.getLeft().toSource());
+					// adding the child node to the list for the parent
+					for (DOMConstraint d: DOMConstraintList){
+						if (d.getDOMElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
+							System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+					}
+
+					DOMElement.setDOMJSVariable(DOMJSVariable);
+
+					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
+
+					if (calledFunctionName.equals("getElementById")){
+						DOMElement.setId_attribute(argument);
+					}else if (calledFunctionName.equals("getElementsByTagName")){
+						DOMElement.setTag_attribute(argument);
+					}else if (calledFunctionName.equals("getElementsByName")){
+						DOMElement.setName_attribute(argument);
+					}else if (calledFunctionName.equals("getElementsByClassName")){
+						DOMElement.setClass_attribute(argument);
+					}	
+
+					DOMConstraint dc = new DOMConstraint(DOMElement);
+					DOMConstraintList.add(dc);
 				}
+			}else if (argumentShortName.equals("Name")){   // e.g.  DIV = "div";  d = getElementsByTagName(DIV);
 
-				DOMElement.setDOMJSVariable(DOMJSVariable);
-
-				System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
-
-				if (calledFunctionName.equals("getElementById")){
-					DOMElement.setId_attribute(argument);
-				}else if (calledFunctionName.equals("getElementsByTagName")){
-					DOMElement.setTag_attribute(argument);
-				}else if (calledFunctionName.equals("getElementsByName")){
-					DOMElement.setName_attribute(argument);
-				}else if (calledFunctionName.equals("getElementsByClassName")){
-					DOMElement.setClass_attribute(argument);
-				}	
-
-				DOMConstraint dc = new DOMConstraint(DOMElement);
-				DOMConstraintList.add(dc);
 			}
 		}
 

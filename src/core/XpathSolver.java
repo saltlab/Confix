@@ -66,6 +66,7 @@ public class XpathSolver {
 	public String getDOMFixture(){
 		// Calling  xpth solver from here!
 		// Should then read the XML from the generated output file and return it
+		System.out.println(DOMFixture);
         DOMFixture = StringUtils.substringBetween(DOMFixture, "<document solver:target=\"true\">", "</document>");
         DOMFixture = DOMFixture.replaceAll("_[0-9] ", " ").replaceAll("_[0-9]>", ">");
         DOMFixture = DOMFixture.replace("=\"_otherValue\"", "\"").replace("_", "=\"");
