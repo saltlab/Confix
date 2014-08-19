@@ -63,7 +63,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	private static List<String> functionNodes=new ArrayList<String>();
 
 	public static List<DOMConstraint> DOMConstraintList = new ArrayList<DOMConstraint>();
-	public static List<DOMElementTypeVariable> DOMElementTypeVariableList = new ArrayList<DOMElementTypeVariable>();
+	public static List<ArrayList<DOMConstraint>> pathConditions = new ArrayList<ArrayList<DOMConstraint>>();
 
 	public boolean shouldTrackFunctionCalls=true;
 	public boolean shouldTrackFunctionNodes=true;
@@ -745,7 +745,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 
 
-		
+
 
 		FunctionNode f;
 
@@ -917,51 +917,70 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	}
 
 	private void analyseIfStatementNode(AstNode node) {
-		if (node instanceof IfStatement){
 
-			FunctionNode func=node.getEnclosingFunction();
+		ArrayList<DOMConstraint> pathCondition = new ArrayList<DOMConstraint>(); 
 
-			IfStatement is = (IfStatement) node;
-			AstNode conditionNode = is.getCondition();
+		FunctionNode func=node.getEnclosingFunction();
 
-			System.out.println("conditionNode.shortName() : " + conditionNode.shortName());
-			System.out.println("conditionNode.depth() : " + conditionNode.depth());
-			System.out.println("conditionNode.getLineno() : " + (conditionNode.getLineno()+1));
-			System.out.println("conditionNode.toSource() : \n" + conditionNode.toSource());
-			System.out.println("conditionNode.getType() : " + conditionNode.getType());
-			System.out.println("conditionNode.getAstRoot() : " + conditionNode.getAstRoot());
-			System.out.println("conditionNode.debugPrint() : \n" + conditionNode.debugPrint());
+		IfStatement is = (IfStatement) node;
+		AstNode conditionNode = is.getCondition();
 
-			String conditionShortName = conditionNode.shortName();
-			if (conditionShortName.equals("InfixExpression")){	// e.g. if (x<5)
-				System.out.println("=== InfixExpression found in the condition===");
-				InfixExpression ie = (InfixExpression) conditionNode;
-				String left = ie.getLeft().toSource();
-				String oprator = ASTNodeUtility.operatorToString(ie.getOperator());
-				String right = ie.getRight().toSource();
+		System.out.println("conditionNode.shortName() : " + conditionNode.shortName());
+		System.out.println("conditionNode.depth() : " + conditionNode.depth());
+		System.out.println("conditionNode.getLineno() : " + (conditionNode.getLineno()+1));
+		System.out.println("conditionNode.toSource() : \n" + conditionNode.toSource());
+		System.out.println("conditionNode.getType() : " + conditionNode.getType());
+		System.out.println("conditionNode.getAstRoot() : " + conditionNode.getAstRoot());
+		System.out.println("conditionNode.debugPrint() : \n" + conditionNode.debugPrint());
 
-				System.out.println("Left: " + left);
-				System.out.println("Operator: " + oprator);
-				System.out.println("Right: " + right);	
-				System.out.println("ie.getLeft().getLineno() : " + (ie.getLeft().getLineno()+1));
-				System.out.println("ie.getRight().getLineno() : " + (ie.getRight().getLineno()+1));
-				
-				// considering multiple constraints
-				if (oprator.equals("&&")){
+		String conditionShortName = conditionNode.shortName();
+		if (conditionShortName.equals("InfixExpression")){	// e.g. if (x<5)
+			System.out.println("=== InfixExpression found in the condition===");
+			InfixExpression ie = (InfixExpression) conditionNode;
+			String left = ie.getLeft().toSource();
+			String oprator = ASTNodeUtility.operatorToString(ie.getOperator());
+			String right = ie.getRight().toSource();
 
-				}
+			System.out.println("Left: " + left);
+			System.out.println("Operator: " + oprator);
+			System.out.println("Right: " + right);	
+			System.out.println("ie.getLeft().getLineno() : " + (ie.getLeft().getLineno()+1));
+			System.out.println("ie.getRight().getLineno() : " + (ie.getRight().getLineno()+1));
 
-			}else if (conditionShortName.equals("Name")){	// e.g. if (t)  -> variable should be true to go in
-				Name varName = (Name) conditionNode;
-				System.out.println("varName.toSource(): " + varName.toSource());
-			}else if (conditionShortName.equals("UnaryExpression")){	// e.g. if (!t)  -> variable should be false to go in
-				UnaryExpression ue = (UnaryExpression) conditionNode;
-				String oprator = ASTNodeUtility.operatorToString(ue.getOperator());
-				System.out.println("Oprator: " + oprator);
-				System.out.println("Operand: " + ue.getOperand().toSource());
+			// check if the path condition is on a DOM element
+			
+			// adding the pathCondition to the 
+			DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+			System.out.println("parentNodeElement: document");
+			DOMElement.setParentElementJSVariable("document");
+			// adding the child node to the list for the parent
+			for (DOMConstraint d: DOMConstraintList){
+				if (d.getDOMElementTypeVariable().getDOMJSVariable().equals("document"))
+					System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
 			}
 
+			DOMElement.setDOMJSVariable(DOMJSVariable);
+
+			DOMElement.setId_attribute(argument);
+			DOMConstraint dc = new DOMConstraint(DOMElement);
+			
+			
+			// considering multiple constraints
+			if (oprator.equals("&&") || oprator.equals("||")){
+
+			}
+
+		}else if (conditionShortName.equals("Name")){	// e.g. if (t)  -> variable should be true to go in
+			Name varName = (Name) conditionNode;
+			System.out.println("varName.toSource(): " + varName.toSource());
+		}else if (conditionShortName.equals("UnaryExpression")){	// e.g. if (!t)  -> variable should be false to go in
+			UnaryExpression ue = (UnaryExpression) conditionNode;
+			String oprator = ASTNodeUtility.operatorToString(ue.getOperator());
+			System.out.println("Oprator: " + oprator);
+			System.out.println("Operand: " + ue.getOperand().toSource());
 		}
+
+		pathConditions.add(pathCondition);
 		
 	}
 
@@ -1220,6 +1239,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 				String argument = fcall.getArguments().get(0).toSource();
 				System.out.println("argumentShortName: " + argumentShortName);
 
+				
 				if (argumentShortName.equals("StringLiteral")){   // e.g. $('id')
 					DomDependentFunctions.add(enclosingFunctionName);
 					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + calledFunctionName + "(" + argument + ")");
@@ -1234,18 +1254,23 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					}
 
 					DOMElement.setDOMJSVariable(DOMJSVariable);
+	
+					if (argument.startsWith("#")){			//	e.g. $("#myElement"); // selects one HTML element with ID "myElement"  
+						DOMElement.setId_attribute(argument);
+					}else if (argument.startsWith(".")){	//	e.g. $(".myClass"); // selects HTML elements with class "myClass" 
+						DOMElement.setClass_attribute(argument);
+					}else {									//	e.g. $("div"); // selects all HTML div elements  
+						DOMElement.setTag_attribute(argument);
+					}
 
-					DOMElement.setId_attribute(argument);
+					//TODO:
+				    //	e.g. $("p#myElement"); // selects paragraph elements with ID "myElement"  
+				    //	e.g. $("ul li a.navigation"); // selects anchors with class "navigation" that are nested in list items  
+	
 					DOMConstraint dc = new DOMConstraint(DOMElement);
 					DOMConstraintList.add(dc);
 
-					/*setJsDomMap(((Name)fcall.getTarget()), "jquery_r_dollar");
-				if(fcall.getArguments().size()==1
-						&& fcall.getArguments().get(0) instanceof StringLiteral
-						&& fcall.getArguments().get(0).toSource().startsWith(".")
-						|| fcall.getArguments().get(0).toSource().startsWith("#") ){
-					setJsDomMap(fcall.getArguments().get(0), "jquery_c_selSign");
-				}*/
+
 				}else if (argumentShortName.equals("Name")){   // e.g.  DIV = "<div />";  d = $(DIV);
 					//backward slicing to find the corresponding defined variable in the symbol table
 				}
