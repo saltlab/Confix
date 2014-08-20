@@ -41,7 +41,9 @@ public class ConfixRunner {
 		}
 		driver = new FirefoxDriver(profile);
 		//url = "http://localhost:8888/claroline-1.11.7/index.php?logout=true";
-		url = "http://localhost:8888/test.htm";
+		
+		//url = "http://localhost:8888/test.htm";
+		url = "http://localhost:8888/phormer331/";
 		
 		//url = "/Users/aminmf/Documents/workspace/Confix/test.html";
 		

@@ -226,7 +226,12 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 	public String generateXpathConstraint() {
 		// e.g. select("html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/
 		//		descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]")
-		return xpathsToSolve.get(0);
+
+		// for other apps
+		// return xpathsToSolve.get(0);
+
+		// for phormer app
+		return xpathsToSolve.get(1);
 	}
 
 	

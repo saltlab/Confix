@@ -950,7 +950,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			// check if the path condition is on a DOM element
 			
 			// adding the pathCondition to the 
-			DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+			/*DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
 			System.out.println("parentNodeElement: document");
 			DOMElement.setParentElementJSVariable("document");
 			// adding the child node to the list for the parent
@@ -963,7 +963,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 			DOMElement.setId_attribute(argument);
 			DOMConstraint dc = new DOMConstraint(DOMElement);
-			
+			*/
 			
 			// considering multiple constraints
 			if (oprator.equals("&&") || oprator.equals("||")){
@@ -1285,7 +1285,10 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 			if (argumentShortName.equals("StringLiteral")){   // e.g. getElementsByTagName("p")
 
-				if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || calledFunctionName.equals("getElementsByName") || calledFunctionName.equals("getElementsByClassName")){
+				if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || calledFunctionName.equals("getElementsByName") || calledFunctionName.equals("getElementsByClassName")
+						|| calledFunctionName.equals("dg") // for phormer app
+						){
+					
 
 					DomDependentFunctions.add(enclosingFunctionName);
 					String parentNodeElement = pg.getLeft().toSource();
@@ -1301,7 +1304,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
 
-					if (calledFunctionName.equals("getElementById")){
+					if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("dg")){
 						DOMElement.setId_attribute(argument);
 					}else if (calledFunctionName.equals("getElementsByTagName")){
 						DOMElement.setTag_attribute(argument);
