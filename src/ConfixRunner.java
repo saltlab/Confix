@@ -1,3 +1,4 @@
+import core.JSAnalyzer;
 import core.XpathSolver;
 
 import instrumentor.JSASTInstrumenter;
@@ -6,6 +7,7 @@ import instrumentor.ProxyConfiguration;
 
 import testgenerator.TestSuiteGenerator;
 
+import org.apache.commons.io.IOUtils;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -16,7 +18,9 @@ import org.owasp.webscarab.plugin.proxy.Proxy;
 import org.owasp.webscarab.plugin.*;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -27,8 +31,9 @@ public class ConfixRunner {
 	private static WebDriver driver;
 	private static String url;
 	private String DOM = null;
-	
+
 	private static JSModifyProxyPlugin JSModifier;
+	private static JSAnalyzer codeAnalyzer;
 
 	public static void driverSetup(ProxyConfiguration prox) throws Exception {
 		FirefoxProfile profile = new FirefoxProfile();
@@ -41,12 +46,12 @@ public class ConfixRunner {
 		}
 		driver = new FirefoxDriver(profile);
 		//url = "http://localhost:8888/claroline-1.11.7/index.php?logout=true";
-		
+
 		//url = "http://localhost:8888/test.htm";
 		url = "http://localhost:8888/phormer331/";
-		
+
 		//url = "/Users/aminmf/Documents/workspace/Confix/test.html";
-		
+
 		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
 	}
 
@@ -77,28 +82,48 @@ public class ConfixRunner {
 	public static void main(String[] args) throws Exception {
 
 		// 1) Intercept and instrument the JavaScript code via a proxy
-		ProxyConfiguration prox = new ProxyConfiguration();
+		/*ProxyConfiguration prox = new ProxyConfiguration();
 		runProxy(prox);
 		driverSetup(prox);
 		load();
+		 */
+
+
+		// Directly analyzing the code
+		codeAnalyzer = new JSAnalyzer(new JSASTInstrumenter());
+		String jsCode = "";
+		String scopename = "phorm.js";
+		FileInputStream inputStream = new FileInputStream("output/phormer_tests/phorm.js");
+	    try {
+	    	jsCode = IOUtils.toString(inputStream);
+	    } finally {
+	        inputStream.close();
+	    }
+	    
+		codeAnalyzer.analyzeJavaScript(jsCode, scopename);
+		String xpathToSolve = codeAnalyzer.generateXpathConstraint();
+		HashSet<String> functionsList = codeAnalyzer.getDOMDependentFunctions();
+
+		if (xpathToSolve.equals("select(\"document[]\")"))
+			return;
 		
 		// 2) Transform the DOM constraints in the JavaScript code into xpath constraint (xpath rule)
 		// 3) solve xpath constraints and generate corresponding XML as DOMFixture
-		String xpathToSolve = JSModifier.generateXpathConstraint();
-		HashSet<String> functionsList = JSModifier.getDOMDependentFunctions();
+		//String xpathToSolve = JSModifier.generateXpathConstraint();
+		//HashSet<String> functionsList = JSModifier.getDOMDependentFunctions();
 		XpathSolver xpathsolver = new XpathSolver();
 		xpathsolver.setXpath(xpathToSolve);
 		xpathsolver.solve();
 		String DOMFixture = xpathsolver.getDOMFixture();
-		
+
 		System.out.println(DOMFixture);
-		
+
 		// 4) Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
 		String testSuiteNameToGenerate = "tests.js";
 		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixture, functionsList);
 		tsg.generateTestSuite();
-		
-		driverQuit();
+
+		//driverQuit();
 	}
 
 
