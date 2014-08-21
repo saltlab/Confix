@@ -187,7 +187,6 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 			astVisitor.start();
 
 			/* recurse through AST */
-			astVisitor.shouldTrackFunctionNodes=true;
 			ast.visit(astVisitor);
 
 			astVisitor.finish(ast);
@@ -196,9 +195,9 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 			Context.exit();
 
 			// setting the xpathToSolve
-			String xpathToSolve = astVisitor.generateXpathConstraint();
-			xpathsToSolve.add(xpathToSolve);
-			System.out.println("xpathToSolve: " + xpathToSolve);
+			//String xpathToSolve = astVisitor.generateXpathConstraint();
+			//xpathsToSolve.add(xpathToSolve);
+			//System.out.println("xpathToSolve: " + xpathToSolve);
 			
 			HashSet<String> fList = astVisitor.getDOMDependentFunctionsList();
 			DOMDependentFunctionsList.addAll(fList); 

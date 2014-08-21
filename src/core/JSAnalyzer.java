@@ -100,7 +100,6 @@ public class JSAnalyzer {
 			astVisitor.start();
 
 			/* recurse through AST */
-			astVisitor.shouldTrackFunctionNodes=true;
 			ast.visit(astVisitor);
 
 			astVisitor.finish(ast);

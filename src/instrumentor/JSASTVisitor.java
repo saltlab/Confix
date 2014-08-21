@@ -59,132 +59,24 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	protected static final Logger LOGGER = LoggerFactory.getLogger(JSASTVisitor.class.getName());
 
-	private static List<String> functionCallsNotToVisit=new ArrayList<String>();
-	private static List<String> functionNodes=new ArrayList<String>();
+	private static HashSet<String> DomDependentFunctions = new HashSet<String>();
+	private static HashSet<DOMConstraint> DOMConstraintList = new HashSet<DOMConstraint>();
+	private static List<ArrayList<DOMConstraint>> pathConditions = new ArrayList<ArrayList<DOMConstraint>>();
 
-	public static HashSet<DOMConstraint> DOMConstraintList = new HashSet<DOMConstraint>();
-	public static List<ArrayList<DOMConstraint>> pathConditions = new ArrayList<ArrayList<DOMConstraint>>();
-
-	public boolean shouldTrackFunctionCalls=true;
-	public boolean shouldTrackFunctionNodes=true;
+	private final ArrayList<String> jqueryList=new ArrayList<String>();
+	private final ArrayList<String> jsList=new ArrayList<String>();
 
 	private int m_rootCount = 0;
 
-	private boolean LHS = false;			// This is to decide if the ASTNode is at the left hand-side of an assignment 
-	private int assignmentNodeDepth = 0;	// This is to store ASTNode depth of assignment to be used for detecting LHS value 
-	private boolean assignmentLHSVisited = false; 
-
-	private static HashSet<String> DomDependentFunctions = new HashSet<String>();
-
-
-	/*
-	Changing HTML Elements
-	element.innerHTML= 	Change the inner HTML of an element
-	element.attribute= 	Change the attribute of an HTML element
-	element.setAttribute(attribute,value) 	Change the attribute of an HTML element
-	element.style.property= 	Change the style of an HTML element
-
-	Adding and Deleting Elements
-	document.createElement() 	Create an HTML element
-	document.removeChild() 	Remove an HTML element
-	document.appendChild() 	Add an HTML element
-	document.replaceChild() 	Replace an HTML element
-	document.write(text) 	Write into the HTML output stream
-	 */
-
 	private String xpath="";
 	private int numOfDOMElementsInFixture = 0;
-	
-	public void resetXpath(){
-		 numOfDOMElementsInFixture = 0;
-	}
 
-	public String generateXpathConstraint(String enclosingFunctionName) {
-		xpath = "select(\"document[";
-		List<String> JSDOMVars = new ArrayList<String>();
-		// TODO Generate xpath from the list of DOMConstraints in the DOMConstraintList
-		// Transform constraints to xpath using string/int solver
-		for (DOMConstraint dc : DOMConstraintList){
-			if (dc.isAddedToTheXpath())
-				continue;
-			//dc.setAddedToTheXpath(true); // this is to consider each constraint only once
-
-			if (dc.getDOMElementTypeVariable().getDOMJSVariable().equals("document")) // ignore the first node
-				continue;
-
-			// for each node consider all its children nodes
-			if (dc.getEnclosingFunctionName().equals(enclosingFunctionName))
-				generateSubXpath(dc, enclosingFunctionName);
-		}
-
-		xpath += "]\")";
-
-		return xpath;
-	}
-
-	private void generateSubXpath(DOMConstraint currentConstraint, String enclosingFunctionName){
-		// generate xpath for currentConstraint first (id+attributes) and then add its children
-		String id = currentConstraint.getDOMElementTypeVariable().getId_attribute();
-		String tag = currentConstraint.getDOMElementTypeVariable().getTag_attribute();
-		String type = currentConstraint.getDOMElementTypeVariable().getType_attribute();
-		String name = currentConstraint.getDOMElementTypeVariable().getName_attribute();
-		String Class = currentConstraint.getDOMElementTypeVariable().getClass_attribute();
-		String value = currentConstraint.getDOMElementTypeVariable().getValue_attribute();
-		String src = currentConstraint.getDOMElementTypeVariable().getSrc_attribute();
-		if (numOfDOMElementsInFixture>0)
-			xpath += " and child::";
-		xpath += (tag + "_" + Integer.toString(numOfDOMElementsInFixture++) + "[");  // e.g. div_0[, p_1[, img_2[, ...
-		if(id!=null)
-			xpath += "@id_" + id;
-		if(type!=null)
-			xpath += " and @type_" + type;
-		if(name!=null)
-			xpath += " and @name_" + name;
-		if(Class!=null)
-			xpath += " and @class_" + Class;
-		if(value!=null)
-			xpath += " and @value_" + value;
-		if(src!=null)
-			xpath += " and @scr_" + src;
-
-		currentConstraint.setAddedToTheXpath(true); // this is to consider each constraint only once
-		for (DOMConstraint dc : DOMConstraintList){
-			if (dc.getDOMElementTypeVariable().getDOMJSVariable().equals("document")) // ignore the first node
-				continue;
-			if(dc.getDOMElementTypeVariable().getParentElementJSVariable().equals(currentConstraint.getDOMElementTypeVariable().getDOMJSVariable())){
-				//xpath += " and child::";
-				if (dc.getEnclosingFunctionName().equals(enclosingFunctionName))
-					generateSubXpath(dc, enclosingFunctionName);
-			}
-		}
-		xpath += "]";
-	}
-
-
-
-
-
-	/**
-	 * This is used by the JavaScript node creation functions that follow.
-	 */
 	private CompilerEnvirons compilerEnvirons = new CompilerEnvirons();
+	private String scopeName = null;	// Contains the scopename of the AST we are visiting. Generally this will be the filename
+	protected String jsName = null;		//To store js corresponding name
 
-	/**
-	 * Contains the scopename of the AST we are visiting. Generally this will be the filename
-	 */
-	private String scopeName = null;
-
-	//To store js corresponding name
-	protected String jsName = null;
-
-	/* forexample for variable x we have: typeOfCode -> <sourceCode>*/ 
-	private HashMap<String,ArrayList<AstNode>> jsDomMap;
-	private final ArrayList<String> jqueryList=new ArrayList<String>();
-	private final ArrayList<String> jsList=new ArrayList<String>();
-	private ArrayList<ArrayList<Object>> jsDomList=new ArrayList<ArrayList<Object>>();
 
 	public JSASTVisitor(){
-
 
 		// adding the initial "document" node to be used for xpath generation
 		DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
@@ -192,21 +84,18 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		DOMConstraint dc = new DOMConstraint(DOMElement);
 		DOMConstraintList.add(dc);
 
-
-
-		jsDomMap=new HashMap<String,ArrayList<AstNode>>();
 		jqueryList.add("addClass");
 		jqueryList.add("removeClass");
 		jqueryList.add("removeAttr");
 		jqueryList.add("css");
 		jqueryList.add("attr");
 		jqueryList.add("prop");
-		//jqueryList.add("append");
-		//jqueryList.add("appendTo");
-		//jqueryList.add("prepend");
-		//jqueryList.add("prependTo");
-		//jqueryList.add("insertBefore");
-		//jqueryList.add("insertAfter");
+		jqueryList.add("append");
+		jqueryList.add("appendTo");
+		jqueryList.add("prepend");
+		jqueryList.add("prependTo");
+		jqueryList.add("insertBefore");
+		jqueryList.add("insertAfter");
 		jqueryList.add("detach");
 		jqueryList.add("remove");
 
@@ -216,27 +105,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		jsList.add("getAttribute");
 		jsList.add("removeAttribute");
 
-		// Function calls that we do not need to visit
-		functionCallsNotToVisit.add("parseInt");
-		functionCallsNotToVisit.add("jQuery");
-		functionCallsNotToVisit.add("setTimeout");
-		functionCallsNotToVisit.add("$");
-		functionCallsNotToVisit.add(".css");
-		functionCallsNotToVisit.add(".addClass");
-		functionCallsNotToVisit.add(".click");
-		functionCallsNotToVisit.add(".unbind");
-		functionCallsNotToVisit.add("Math.");
-		functionCallsNotToVisit.add(".append");
-		functionCallsNotToVisit.add(".attr");
-		functionCallsNotToVisit.add(".random");
-		functionCallsNotToVisit.add("push");
-		functionCallsNotToVisit.add(".split");
-		functionCallsNotToVisit.add("v");
-		functionCallsNotToVisit.add("send(new Array(");
-		functionCallsNotToVisit.add("new Array(");
-		functionCallsNotToVisit.add("btoa");
-		functionCallsNotToVisit.add("atob");
-		functionCallsNotToVisit.add("atob");
 
 
 		/*
@@ -315,9 +183,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 
 
-
-
-
 		The following properties and methods can be used on all HTML elements:
 		element.appendChild() 	Adds a new child node, to an element, as the last child node
 		element.attributes 	Returns a NamedNodeMap of an element's attributes
@@ -371,7 +236,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 
 
-
 		Properties and Methods
 		attr.isId 	Returns true if the attribute is of type Id, otherwise it returns false
 		attr.name 	Returns the name of an attribute
@@ -408,6 +272,73 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 		document.getElementById('p1').style.visibility='visible'"
 		 */
+	}
+
+
+
+	public void resetXpath(){
+		numOfDOMElementsInFixture = 0;
+	}
+
+	public String generateXpathConstraint(String enclosingFunctionName) {
+		xpath = "select(\"document[";
+		List<String> JSDOMVars = new ArrayList<String>();
+		// Transform constraints to xpath
+		for (DOMConstraint dc : DOMConstraintList){
+			if (dc.isAddedToTheXpath())
+				continue;
+			//dc.setAddedToTheXpath(true); // this is to consider each constraint only once -> this is done in the recursive function generateSubXpath
+
+			if (dc.getDOMElementTypeVariable().getDOMJSVariable().equals("document")) // ignore the first node
+				continue;
+
+			// for each node consider all its children nodes
+			if (dc.getEnclosingFunctionName().equals(enclosingFunctionName))
+				generateSubXpath(dc, enclosingFunctionName);
+		}
+
+		xpath += "]\")";
+
+		return xpath;
+	}
+
+	private void generateSubXpath(DOMConstraint currentConstraint, String enclosingFunctionName){
+		// generate xpath for currentConstraint first (id+attributes) and then add its children
+		String id = currentConstraint.getDOMElementTypeVariable().getId_attribute();
+		String tag = currentConstraint.getDOMElementTypeVariable().getTag_attribute();
+		String type = currentConstraint.getDOMElementTypeVariable().getType_attribute();
+		String name = currentConstraint.getDOMElementTypeVariable().getName_attribute();
+		String Class = currentConstraint.getDOMElementTypeVariable().getClass_attribute();
+		String value = currentConstraint.getDOMElementTypeVariable().getValue_attribute();
+		String src = currentConstraint.getDOMElementTypeVariable().getSrc_attribute();
+		if (numOfDOMElementsInFixture>0)
+			xpath += " and child::";
+		xpath += (tag + "_" + Integer.toString(numOfDOMElementsInFixture++) + "[");  // e.g. div_0[, p_1[, img_2[, ...
+		if(id!=null)
+			xpath += "@id_" + id;
+		if(type!=null)
+			xpath += " and @type_" + type;
+		if(name!=null)
+			xpath += " and @name_" + name;
+		if(Class!=null)
+			xpath += " and @class_" + Class;
+		if(value!=null)
+			xpath += " and @value_" + value;
+		if(src!=null)
+			xpath += " and @scr_" + src;
+
+		currentConstraint.setAddedToTheXpath(true); // this is to consider each constraint only once
+
+		for (DOMConstraint dc : DOMConstraintList){
+			if (dc.getDOMElementTypeVariable().getDOMJSVariable().equals("document")) // ignore the first node
+				continue;
+			if(dc.getDOMElementTypeVariable().getParentElementJSVariable().equals(currentConstraint.getDOMElementTypeVariable().getDOMJSVariable())){
+				//xpath += " and child::";
+				if (dc.getEnclosingFunctionName().equals(enclosingFunctionName))
+					generateSubXpath(dc, enclosingFunctionName);
+			}
+		}
+		xpath += "]";
 	}
 
 
@@ -449,8 +380,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 
 	/**
-	 * Find out the function name of a certain node and return "anonymous" if it's an anonymous
-	 * function.
+	 * Find out the function name of a certain node and return "anonymous" if it's an anonymous function.
 	 * 
 	 * @param f
 	 *            The function node.
@@ -524,19 +454,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	}
 
 
-	private boolean shouldVisitFunctionCall(FunctionCall function){
-		if (functionCallsNotToVisit.size()==0)
-			return true;
-		for (String funcName:functionCallsNotToVisit){
-
-			if (function.getTarget().toSource().contains(funcName)){
-				return false;
-			}
-		}
-		return true;
-	}
-
-
 	/**
 	 * Actual visiting method.
 	 * 
@@ -558,98 +475,15 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		System.out.println("node.getLineno() : " + (node.getLineno()+1));
 		System.out.println("node.toSource() : \n" + node.toSource());
 		System.out.println("node.getType() : " + node.getType());
-		System.out.println("node.getAstRoot() : " + node.getAstRoot());
 		System.out.println("node.debugPrint() : \n" + node.debugPrint());
 		 */
 
-		/*
-		if (node instanceof SwitchCase) {
-			//Add block around all statements in the switch case
-			SwitchCase sc = (SwitchCase)node;
-			List<AstNode> statements = sc.getStatements();
-			List<AstNode> blockStatement = new ArrayList<AstNode>();
-			Block b = new Block();
-
-			if (statements != null) {
-				Iterator<AstNode> it = statements.iterator();
-				while (it.hasNext()) {
-					AstNode stmnt = it.next();
-					b.addChild(stmnt);
-				}
-
-				blockStatement.add(b);
-				sc.setStatements(blockStatement);
-			}
-
-		}
-		// we will not log the incremental part of the for loops
-		if (node.getParent() instanceof ForLoop){
-			ForLoop forloop=(ForLoop)node.getParent();
-			if (forloop.getIncrement().equals(node))
-				return false;
-		}
-		if (node.getParent() instanceof ElementGet){
-			FunctionNode func=node.getEnclosingFunction();
-			String statementCategory="ElementGet";
-			AstNode nodeForVarLog=node;
-			AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
-			appendElemGetNode(node, newNode);
-		}
-
-		else if (node instanceof SwitchStatement){
-			FunctionNode func=node.getEnclosingFunction();
-			AstNode nodeForVarLog=((SwitchStatement) node).getExpression();
-			String statementCategory="SwitchStatementCondition";
-			if (!(nodeForVarLog instanceof KeywordLiteral)){
-				AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
-
-				AstNode parent = makeSureBlockExistsAround(node);
-
-				// the parent is something we can prepend to
-				parent.addChildAfter(newNode, node);
-			}
-		}
-
-
-		// ...if shouldTrackFunctionCalls
-		if(node instanceof FunctionNode){
-			FunctionNode fNode=(FunctionNode) node;
-			String funcName=getFunctionName(fNode);
-			if(shouldTrackFunctionNodes){
-				//System.out.println(fNode.debugPrint());
-				System.out.println("Function name is: " + funcName);
-				functionNodes.add(funcName);
-			}
-			else{
-				String code="var me = arguments.callee;";
-				code+="me.funcName = " + "'" + funcName + "'" +";";
-				code+="var callerName = arguments.callee.caller.funcName;";
-				AstNode funcNameNode=parse(code);
-				fNode.getBody().addChildToFront(funcNameNode);
-				AstNode newNode=createFunctionTrackingNode(fNode, "callerName");
-				//	appendNodeAfterFunctionCall(node, newNode);
-				fNode.getBody().addChildAfter(newNode,funcNameNode);
-			}
-		}
-
-		 */
-
-		// check if we are in LHS of the current assignment, used to check if a property is defined and not just used
-		if (nodeDepth==assignmentNodeDepth+1){
-			if (assignmentLHSVisited == false){
-				assignmentLHSVisited = true;
-			}else
-				LHS = false;
-		}
-
-
-		if (nodeName.equals("AstRoot"))  // = if (node instanceof AstRoot)
+		if (nodeName.equals("AstRoot"))		// = if (node instanceof AstRoot)
 			analyseAstRootNode(node);
-		else if (nodeName.equals("Name"))  // = if (node instanceof Name)
+		else if (nodeName.equals("Name"))	// = if (node instanceof Name)
 			analyseNameNode(node);
-		else if (nodeName.equals("IfStatement")){	// if statements
+		else if (nodeName.equals("IfStatement"))	// if statements
 			analyseIfStatementNode(node);
-		}
 		else if (nodeName.equals("VariableDeclaration"))
 			analyseVariable();
 		else if (nodeName.equals("ObjectLiteral"))
@@ -666,18 +500,9 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			analyseAssignmentNode(node);
 		else if (nodeType == Token.SWITCH)
 			analyseSwitch();
-		/*else {
-			System.out.println("node.shortName() : " + nodeName);
-			System.out.println("node.depth() : " + nodeDepth);
-			System.out.println("node.getLineno() : " + (node.getLineno()+1));
-			System.out.println("node.toSource() : \n" + node.toSource());
-			System.out.println("node.getType() : " + node.getType());
-			System.out.println("node.getAstRoot() : " + node.getAstRoot());
-			System.out.println("node.debugPrint() : \n" + node.debugPrint());
-
-		}*/
 
 		if (node instanceof InfixExpression){
+			System.out.println("nodeName: " + nodeName);
 			System.out.println("=== InfixExpression ===");
 			InfixExpression ie = (InfixExpression) node;
 
@@ -701,6 +526,24 @@ public abstract class JSASTVisitor implements NodeVisitor{
 				document.title 	Sets or returns the <title> element
 
 			 */
+
+			/*
+			Changing HTML Elements
+			element.innerHTML = 	Change the inner HTML of an element
+			element.attribute = 	Change the attribute of an HTML element
+			element.setAttribute(attribute,value) 	Change the attribute of an HTML element
+			element.style.property = 	Change the style of an HTML element
+
+			Adding and Deleting Elements
+			document.createElement() 	Create an HTML element
+			document.removeChild() 	Remove an HTML element
+			document.appendChild() 	Add an HTML element
+			document.replaceChild() 	Replace an HTML element
+			document.write(text) 	Write into the HTML output stream
+			 */
+
+			if (right.equals("innerHTML")){
+			}
 
 			if (right.equals("anchors")){
 				// serach the DOMElementVariable list to check if a corresponding DOMJSVariable exists
@@ -751,154 +594,9 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 		}
 
-
-
-
-
-		FunctionNode f;
-
-		if (!((node instanceof FunctionNode || node instanceof ReturnStatement || node instanceof SwitchCase || node instanceof AstRoot || node instanceof ExpressionStatement || node instanceof BreakStatement || node instanceof ContinueStatement || node instanceof ThrowStatement || node instanceof VariableDeclaration))) {// || node instanceof ExpressionStatement || node instanceof BreakStatement || node instanceof ContinueStatement || node instanceof ThrowStatement || node instanceof VariableDeclaration || node instanceof ReturnStatement || node instanceof SwitchCase)) {
-			return true;
-		}
-
-
-		// if (node instanceof BreakStatement || node instanceof ConditionalExpression || node instanceof ContinueStatement || node instanceof ExpressionStatement || node instanceof FunctionCall || node instanceof Assignment || node instanceof InfixExpression || node instanceof ThrowStatement || node instanceof UnaryExpression || node instanceof VariableDeclaration || node instanceof VariableInitializer || node instanceof XmlDotQuery || node instanceof XmlMemberGet || node instanceof XmlPropRef || node instanceof Yield) {
-		if (node instanceof ExpressionStatement || node instanceof BreakStatement || node instanceof ContinueStatement || node instanceof ThrowStatement || node instanceof VariableDeclaration) {
-			if (node instanceof VariableDeclaration) {
-				//Make sure this variable declaration is not part of a for loop
-				if (node.getParent() instanceof ForLoop) {
-					return true;
-				}
-			}
-
-			//Make sure additional try statement is not instrumented
-			if (node instanceof TryStatement) {
-				return true; //no need to add instrumentation before try statement anyway since we only instrument what's inside the blocks
-			}
-
-			f = node.getEnclosingFunction();
-
-			if (f != null) {
-				AstNode firstLine_node = (AstNode) f.getBody().getFirstChild();
-				if (f instanceof FunctionNode && firstLine_node instanceof IfStatement) { //Perform extra check due to addition if statement
-					firstLine_node = (AstNode) firstLine_node.getNext();
-				}
-				if (f instanceof FunctionNode && firstLine_node instanceof TryStatement) {
-					TryStatement firstLine_node_try = (TryStatement) firstLine_node;
-					firstLine_node = (AstNode) firstLine_node_try.getTryBlock().getFirstChild();
-				}
-				firstLine_node = (AstNode) firstLine_node.getNext();
-				int firstLine = 0;
-				if (firstLine_node != null) {
-					//If first child is an ExpressionStatement or VariableDeclaration, then there might be multiple instances of the instrumented node at the beginning of the FunctionNode's list of children
-					while (firstLine_node != null) {
-						firstLine = firstLine_node.getLineno();
-						if (firstLine > 0) {
-							break;
-						}
-						else {
-							firstLine_node = (AstNode) firstLine_node.getNext();
-						}
-					}
-				}
-
-				if (node.getLineno() >= firstLine) {
-					AstNode newNode = createNode(f, ":::INTERMEDIATE", node.getLineno()-firstLine+1);
-					//AstNode parent = node.getParent();
-
-					AstNode parent = makeSureBlockExistsAround(node);
-
-					//parent.addChildAfter(newNode, node);
-					try {
-						parent.addChildBefore(newNode, node);
-					}
-					catch (NullPointerException npe) {
-						//System.out.println("Could not addChildBefore!");
-						//System.out.println(npe.getMessage());
-					}
-				}
-			}
-			else { //The expression must be outside a function
-				AstRoot rt = node.getAstRoot();
-				if (rt == null || rt.getSourceName() == null) {
-					return true;
-				}
-				AstNode firstLine_node = (AstNode) rt.getFirstChild();
-				//if (firstLine_node instanceof IfStatement) { //Perform extra check due to addition if statement
-				//	firstLine_node = (AstNode) firstLine_node.getNext();
-				//}
-				if (firstLine_node instanceof Block) {
-					firstLine_node = (AstNode)firstLine_node.getFirstChild(); //Try statement
-				}
-				if (firstLine_node instanceof TryStatement) {
-					TryStatement firstLine_node_try = (TryStatement) firstLine_node;
-					firstLine_node = (AstNode) firstLine_node_try.getTryBlock().getFirstChild();
-				}
-				firstLine_node = (AstNode) firstLine_node.getNext();
-				int firstLine = 0;
-				if (firstLine_node != null) {
-					//If first child is an ExpressionStatement or VariableDeclaration, then there might be multiple instances of the instrumented node at the beginning of the FunctionNode's list of children
-					while (firstLine_node != null) {
-						firstLine = firstLine_node.getLineno();
-						if (firstLine > 0) {
-							break;
-						}
-						else {
-							firstLine_node = (AstNode) firstLine_node.getNext();
-						}
-					}
-				}
-
-				if (node.getLineno() >= firstLine) {
-					AstNode newNode = createNode(rt, ":::INTERMEDIATE", node.getLineno()-firstLine+1, m_rootCount);
-					//AstNode parent = node.getParent();
-
-					AstNode parent = makeSureBlockExistsAround(node);
-
-					//parent.addChildAfter(newNode, node);
-					try {
-						parent.addChildBefore(newNode, node);
-					}
-					catch (NullPointerException npe) {
-						System.out.println(npe.getMessage());
-					}
-				}
-			}
-		}
-		else if (node instanceof ReturnStatement) {
-			f = node.getEnclosingFunction();
-			AstNode firstLine_node = (AstNode) f.getBody().getFirstChild();
-			if (f instanceof FunctionNode && firstLine_node instanceof IfStatement) { //Perform extra check due to addition if statement
-				firstLine_node = (AstNode) firstLine_node.getNext();
-			}
-			if (f instanceof FunctionNode && firstLine_node instanceof TryStatement) {
-				TryStatement firstLine_node_try = (TryStatement) firstLine_node;
-				firstLine_node = (AstNode) firstLine_node_try.getTryBlock().getFirstChild();
-			}
-			firstLine_node = (AstNode) firstLine_node.getNext();
-			int firstLine = 0;
-			if (firstLine_node != null) {
-				//If first child is an ExpressionStatement or VariableDeclaration, then there might be multiple instances of the instrumented node at the beginning of the FunctionNode's list of children
-				while (firstLine_node != null) {
-					firstLine = firstLine_node.getLineno();
-					if (firstLine > 0) {
-						break;
-					}
-					else {
-						firstLine_node = (AstNode) firstLine_node.getNext();
-					}
-				}
-			}
-
-			AstNode parent = makeSureBlockExistsAround(node);
-
-			AstNode newNode = createNode(f, ProgramPoint.EXITPOSTFIX, node.getLineno()-firstLine+1);
-
-			/* the parent is something we can prepend to */
-			parent.addChildBefore(newNode, node);
-
-		}
-		else if (node instanceof SwitchCase) {
+		
+		/*
+		if (node instanceof SwitchCase) {
 			//Add block around all statements in the switch case
 			SwitchCase sc = (SwitchCase)node;
 			List<AstNode> statements = sc.getStatements();
@@ -915,10 +613,38 @@ public abstract class JSASTVisitor implements NodeVisitor{
 				blockStatement.add(b);
 				sc.setStatements(blockStatement);
 			}
+
+		}
+		// we will not log the incremental part of the for loops
+		if (node.getParent() instanceof ForLoop){
+			ForLoop forloop=(ForLoop)node.getParent();
+			if (forloop.getIncrement().equals(node))
+				return false;
+		}
+		if (node.getParent() instanceof ElementGet){
+			FunctionNode func=node.getEnclosingFunction();
+			String statementCategory="ElementGet";
+			AstNode nodeForVarLog=node;
+			AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
+			appendElemGetNode(node, newNode);
 		}
 
+		else if (node instanceof SwitchStatement){
+			FunctionNode func=node.getEnclosingFunction();
+			AstNode nodeForVarLog=((SwitchStatement) node).getExpression();
+			String statementCategory="SwitchStatementCondition";
+			if (!(nodeForVarLog instanceof KeywordLiteral)){
+				AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
 
-		//System.out.println(getJsDomList());
+				AstNode parent = makeSureBlockExistsAround(node);
+
+				// the parent is something we can prepend to
+				parent.addChildAfter(newNode, node);
+			}
+		}
+
+		 */
+
 
 		/* have a look at the children of this node */
 		return true;
@@ -952,6 +678,9 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			System.out.println("Left: " + left);
 			System.out.println("Operator: " + oprator);
 			System.out.println("Right: " + right);	
+
+
+
 			System.out.println("ie.getLeft().getLineno() : " + (ie.getLeft().getLineno()+1));
 			System.out.println("ie.getRight().getLineno() : " + (ie.getRight().getLineno()+1));
 
@@ -986,6 +715,12 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			String oprator = ASTNodeUtility.operatorToString(ue.getOperator());
 			System.out.println("Oprator: " + oprator);
 			System.out.println("Operand: " + ue.getOperand().toSource());
+		}else if (conditionShortName.equals("PropertyGet")){  // e.g. if (a.innerHTML)
+			PropertyGet pg = (PropertyGet)conditionNode;
+			String property = pg.getRight().toSource();
+			if (property.equals("innerHTML")){
+				System.out.println("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
+			}
 		}
 
 		pathConditions.add(pathCondition);
@@ -1032,15 +767,11 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	/**
 	 * Deciding if an expression is a LHS
-	 * Used to distinguish ownProperties and usedProperties
 	 */
 	private void analyseAssignmentNode(AstNode node) {
 
 		System.out.println("===Assignment===");
 		System.out.println(node.debugPrint());
-		assignmentNodeDepth = node.depth();
-		assignmentLHSVisited = false;
-		LHS = true;
 	}
 
 
@@ -1176,7 +907,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		else if(node.getParent() instanceof PropertyGet){
 			if(node.toSource().equals("innerHTML")
 					|| node.toSource().equals("innerText")){
-				//setJsDomMap(node, "js_innerHTML_innerText");
+				System.out.println(".............. innerHTML found!");
 			}
 		}
 

@@ -34,6 +34,7 @@ function DarkenIt(cur, t) {
 }
 
 function toggleInfo(wut) {
+	if (dg('hin').innerHTML)
 	if ((!wut) || (wut == ''))
 		wut = dg('hin').innerHTML;
 	if (wut == 'Show') {
