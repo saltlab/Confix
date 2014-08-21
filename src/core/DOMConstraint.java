@@ -13,7 +13,8 @@ public class DOMConstraint {
 		System.out.println("DOMElementVariable: " + DOMElementVariable);
 		this.DOMElementVariable = DOMElementVariable;
 	}
-	
+
+
 	// conditions : e.g. if (x < 10) 
 	private String left;	// x
 	private String operator;	// <

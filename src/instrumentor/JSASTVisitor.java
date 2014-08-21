@@ -204,37 +204,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		element.setIdAttributeNode() 	
 
 
-		The following properties can be used on all HTML elements:
-		element.attributes 	Returns a NamedNodeMap of an element's attributes
-		element.childNodes 	Returns a NodeList of child nodes for an element
-		element.className 	Sets or returns the class attribute of an element
-		element.clientHeight 	Returns the viewable height of an element
-		element.clientWidth 	Returns the viewable width of an element
-		element.contentEditable 	Sets or returns whether the content of an element is editable or not
-		element.firstChild 	Returns the first child of an element
-		element.id 	Sets or returns the id of an element
-		element.innerHTML 	Sets or returns the content of an element
-		element.isContentEditable 	Returns true if the content of an element is editable, otherwise false
-		element.lastChild 	Returns the last child of an element
-		element.nextSibling 	Returns the next node at the same node tree level
-		element.nodeName 	Returns the name of an element
-		element.nodeType 	Returns the node type of an element
-		element.nodeValue 	Sets or returns the value of an element
-		element.offsetHeight 	Returns the height of an element
-		element.offsetWidth 	Returns the width of an element
-		element.offsetLeft 	Returns the horizontal offset position of an element
-		element.offsetParent 	Returns the offset container of an element
-		element.offsetTop 	Returns the vertical offset position of an element
-		element.parentNode 	Returns the parent node of an element
-		element.previousSibling 	Returns the previous element at the same node tree level
-		element.scrollHeight 	Returns the entire height of an element
-		element.scrollLeft 	Returns the distance between the left edge of an element and the view
-		element.scrollTop 	Returns the distance between the top edge of an element and the view
-		element.scrollWidth 	Returns the entire width of an element
-		element.style 	Sets or returns the style attribute of an element
-		element.tagName 	Returns the tag name of an element
-		element.textContent 	Sets or returns the textual content of a node and its descendants
-		element.title 	Sets or returns the title attribute of an element
 
 		nodelist.length 	Returns the number of nodes in a NodeList
 
@@ -508,11 +477,45 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		System.out.println("Right: " + right);			
 
 		/*
-		Changing HTML Elements
-		element.innerHTML = 	Change the inner HTML of an element
+
+		The following properties can be used on all HTML elements:
+
 		element.attribute = 	Change the attribute of an HTML element
 		element.setAttribute(attribute,value) 	Change the attribute of an HTML element
+		element.style 	Sets or returns the style attribute of an element
 		element.style.property = 	Change the style of an HTML element
+
+		element.attributes 	Returns a NamedNodeMap of an element's attributes
+		element.childNodes 	Returns a NodeList of child nodes for an element
+		element.className 	Sets or returns the class attribute of an element
+		element.clientHeight 	Returns the viewable height of an element
+		element.clientWidth 	Returns the viewable width of an element
+		element.contentEditable 	Sets or returns whether the content of an element is editable or not
+		element.firstChild 	Returns the first child of an element
+		element.id 	Sets or returns the id of an element
+		element.innerHTML 	Sets or returns the content of an element
+		element.isContentEditable 	Returns true if the content of an element is editable, otherwise false
+		element.lastChild 	Returns the last child of an element
+		element.nextSibling 	Returns the next node at the same node tree level
+		element.nodeName 	Returns the name of an element
+		element.nodeType 	Returns the node type of an element
+		element.nodeValue 	Sets or returns the value of an element
+		element.offsetHeight 	Returns the height of an element
+		element.offsetWidth 	Returns the width of an element
+		element.offsetLeft 	Returns the horizontal offset position of an element
+		element.offsetParent 	Returns the offset container of an element
+		element.offsetTop 	Returns the vertical offset position of an element
+		element.parentNode 	Returns the parent node of an element
+		element.previousSibling 	Returns the previous element at the same node tree level
+		element.scrollHeight 	Returns the entire height of an element
+		element.scrollLeft 	Returns the distance between the left edge of an element and the view
+		element.scrollTop 	Returns the distance between the top edge of an element and the view
+		element.scrollWidth 	Returns the entire width of an element
+		element.tagName 	Returns the tag name of an element
+		element.textContent 	Sets or returns the textual content of a node and its descendants
+		element.title 	Sets or returns the title attribute of an element
+
+
 		 */
 		if (oprator.equals("GETPROP")){  // -> nodeName: PropertyGet, e.g. Left: $("p").innerHTML
 			if (right.equals("innerHTML")){
@@ -568,9 +571,9 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					// style of an element value was used or set -> e.g. a.style = x / y = a.style 
 					Assignment asmt = (Assignment)parentNode;
 					if (asmt.getLeft().equals(node)){ // innerHTML is set
-						System.out.println("style property for " + left + " is assigned by " + asmt.getRight().toSource());
+						System.out.println("style property for " + left + " is set to " + asmt.getRight().toSource());
 					}else{
-						System.out.println("style property for " + left + " is used to assign " + asmt.getLeft().toSource() );
+						System.out.println(asmt.getLeft().toSource() + " is set to style property for " + left);
 					}
 				}else if (parentNode instanceof VariableInitializer){
 					// style of an element used to initialize a variable -> e.g. v = dg('indicator').style
@@ -620,22 +623,15 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 
 		/*
-			 The following properties can be used on HTML documents:
-				document.anchors 	Returns a collection of all <a> with a value in the name attribute
-				document.applets 	Returns a collection of all <applet> elements (Deprecated in HTML5)
-				document.embeds 	Returns a collection of all <embed> elements 
-				document.forms 	Returns a collection of all the <form> elements 
-				document.head 	Returns the <head> element
-				document.images 	Returns a collection of all <image> elements 
-				document.links 	Returns a collection of all <area> and <a> elements value in href
-				document.title 	Sets or returns the <title> element
-
-
-			Changing HTML Elements
-			element.innerHTML = 	Change the inner HTML of an element
-			element.attribute = 	Change the attribute of an HTML element
-			element.setAttribute(attribute,value) 	Change the attribute of an HTML element
-			element.style.property = 	Change the style of an HTML element
+			The following properties can be used on HTML documents:
+			document.anchors 	Returns a collection of all <a> with a value in the name attribute
+			document.applets 	Returns a collection of all <applet> elements (Deprecated in HTML5)
+			document.embeds 	Returns a collection of all <embed> elements 
+			document.forms 	Returns a collection of all the <form> elements 
+			document.head 	Returns the <head> element
+			document.images 	Returns a collection of all <image> elements 
+			document.links 	Returns a collection of all <area> and <a> elements value in href
+			document.title 	Sets or returns the <title> element
 
 			Adding and Deleting Elements
 			document.createElement() 	Create an HTML element
@@ -730,7 +726,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			PropertyGet pg = (PropertyGet)conditionNode;
 			String property = pg.getRight().toSource();
 			if (property.equals("innerHTML")){
-				System.out.println("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
+				System.out.println("innerHTML found");
 			}
 		}
 

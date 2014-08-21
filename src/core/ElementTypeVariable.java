@@ -30,6 +30,17 @@ public class ElementTypeVariable {
 	private String src_attribute = null; // e.g. scr="/image.jpg"
 	private String innerHTML_attribute = null; // e.g. innerHTML="text"
 	
+	// variables set by attribute values
+	private String id_attributeVariable = null; // e.g. id="demo"  -> the "ConfixGeneratedID" id is to make sure all elements has at least one attribute for the sake of xpath generation step
+	private String type_attributeVariable = null; // e.g. type="button"
+	private String name_attributeVariable = null; // e.g. name="subject"
+	private String tag_attributeVariable = null; // using tag="div" as a default value for the element as long as we have no more information about it
+	private String class_attributeVariable = null; // e.g. class="main"
+	private String value_attributeVariable = null; // e.g. value="test"
+	private String src_attributeVariable = null; // e.g. scr="/image.jpg"
+	private String innerHTML_attributeVariable = null; // e.g. a = document.getElementById("demo").innerHTML; then a is an innerHTML_attributeVariable
+
+	
 	
 	@Override
 	public String toString() {
