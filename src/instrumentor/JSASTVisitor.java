@@ -462,13 +462,10 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	 * @return Whether to visit the children.
 	 */
 	public boolean visit(AstNode node) {	
-
 		//System.out.println("visit");
-
 		String nodeName = node.shortName();
 		int nodeType = node.getType();
 		int nodeDepth = node.depth();
-
 		/*
 		System.out.println("node.shortName() : " + nodeName);
 		System.out.println("node.depth() : " + nodeDepth);
@@ -477,44 +474,36 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		System.out.println("node.getType() : " + node.getType());
 		System.out.println("node.debugPrint() : \n" + node.debugPrint());
 		 */
-
-		if (nodeName.equals("AstRoot"))		// = if (node instanceof AstRoot)
-			analyseAstRootNode(node);
-		else if (nodeName.equals("Name"))	// = if (node instanceof Name)
+		if (node instanceof Name)
 			analyseNameNode(node);
-		else if (nodeName.equals("IfStatement"))	// if statements
+		else if (node instanceof IfStatement)
 			analyseIfStatementNode(node);
-		else if (nodeName.equals("VariableDeclaration"))
-			analyseVariable();
-		else if (nodeName.equals("ObjectLiteral"))
-			analyseObjectLiteralNode(node);
-		else if (nodeName.equals("FunctionNode")) // = if (node instanceof FunctionNode)
+		else if (node instanceof FunctionNode)
 			analyseFunctionNode(node);
-		else if (nodeName.equals("PropertyGet"))  // this is for inner function defined properties such as this.name = ...
-			analysePropertyGetNode();
-		else if (nodeName.equals("NewExpression"))
-			analyseNewExpressionNode();
-		else if (nodeName.equals("FunctionCall"))
+		else if (node instanceof FunctionCall)
 			analyseFunctionCallNode(node);
-		else if (nodeName.equals("Assignment"))
-			analyseAssignmentNode(node);
-		else if (nodeType == Token.SWITCH)
-			analyseSwitch();
+		else if (node instanceof SwitchCase)
+			analyseSwitchCaseNode(node);
+		else if (node instanceof InfixExpression)
+			analyseInfixExpressionNode(node);
 
-		if (node instanceof InfixExpression){
-			System.out.println("nodeName: " + nodeName);
-			System.out.println("=== InfixExpression ===");
-			InfixExpression ie = (InfixExpression) node;
+		/* have a look at the children of this node */
+		return true;
+	}
 
-			String left = ie.getLeft().toSource();
-			String oprator = ASTNodeUtility.operatorToString(ie.getOperator());
-			String right = ie.getRight().toSource();
+	private void analyseInfixExpressionNode(AstNode node) {
+		System.out.println("=== InfixExpression ===");
+		InfixExpression ie = (InfixExpression) node;
 
-			System.out.println("Left: " + left);
-			System.out.println("Operator: " + oprator);
-			System.out.println("Right: " + right);			
+		String left = ie.getLeft().toSource();
+		String oprator = ASTNodeUtility.operatorToString(ie.getOperator());
+		String right = ie.getRight().toSource();
 
-			/*
+		System.out.println("Left: " + left);
+		System.out.println("Operator: " + oprator);
+		System.out.println("Right: " + right);			
+
+		/*
 			 The following properties can be used on HTML documents:
 				document.anchors 	Returns a collection of all <a> with a value in the name attribute
 				document.applets 	Returns a collection of all <applet> elements (Deprecated in HTML5)
@@ -525,9 +514,9 @@ public abstract class JSASTVisitor implements NodeVisitor{
 				document.links 	Returns a collection of all <area> and <a> elements value in href
 				document.title 	Sets or returns the <title> element
 
-			 */
+		 */
 
-			/*
+		/*
 			Changing HTML Elements
 			element.innerHTML = 	Change the inner HTML of an element
 			element.attribute = 	Change the attribute of an HTML element
@@ -540,115 +529,61 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			document.appendChild() 	Add an HTML element
 			document.replaceChild() 	Replace an HTML element
 			document.write(text) 	Write into the HTML output stream
-			 */
-
-			if (right.equals("innerHTML")){
-			}
-
-			if (right.equals("anchors")){
-				// serach the DOMElementVariable list to check if a corresponding DOMJSVariable exists
-				// e.g. a.innerHTML = document.anchors[0].innerHTML; -> document is a default DOMJSVariable in the DOMElementVariable list
-				boolean JSVarExist = false;
-				for (DOMConstraint dc: DOMConstraintList){
-					String JSVar = dc.getDOMElementTypeVariable().getDOMJSVariable();
-					if (left.equals(JSVar)){
-						JSVarExist = true;
-						System.out.println(JSVar + " is the parent of anchors");
-
-						DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
-						DOMElement.setParentElementJSVariable(left);
-						// adding the child node to the list for the parent
-						//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); // to store the var in the JS code that a DOM element is assigned to
-						String DOMJSVariable = "";
-						DOMElement.setDOMJSVariable(DOMJSVariable);
-
-						//System.out.println("Function " + enclosingFunctionName + " accesses DOM via .anchors");
-
-						DOMElement.setTag_attribute("a");
-						DOMElement.setName_attribute("ConfixGenName" + Integer.toString((new Random()).nextInt(100)));
-
-						// TODO...
-						DOMConstraint newDC = new DOMConstraint(DOMElement);
-						DOMConstraintList.add(newDC);
-						break;
-					}
-				}
-				if (JSVarExist == false){
-					// add the new DOMElementVariable
-				}
-			}
-
-
-
-			// serach the DOMElementVariable list to check if on the left or right a DOMJSVariable is used
-
-			for (DOMConstraint dc: DOMConstraintList){
-				String JSVar = dc.getDOMElementTypeVariable().getDOMJSVariable();
-				if (JSVar!=null)
-					if (JSVar.equals(left)){
-						System.out.println("********* A property of JSVAr: " + JSVar + " is being set");
-					}else if (JSVar.equals(right)){
-						System.out.println("********* A property of JSVAr: " + JSVar + " is being used");
-					}
-			}
-
-		}
-
-		
-		/*
-		if (node instanceof SwitchCase) {
-			//Add block around all statements in the switch case
-			SwitchCase sc = (SwitchCase)node;
-			List<AstNode> statements = sc.getStatements();
-			List<AstNode> blockStatement = new ArrayList<AstNode>();
-			Block b = new Block();
-
-			if (statements != null) {
-				Iterator<AstNode> it = statements.iterator();
-				while (it.hasNext()) {
-					AstNode stmnt = it.next();
-					b.addChild(stmnt);
-				}
-
-				blockStatement.add(b);
-				sc.setStatements(blockStatement);
-			}
-
-		}
-		// we will not log the incremental part of the for loops
-		if (node.getParent() instanceof ForLoop){
-			ForLoop forloop=(ForLoop)node.getParent();
-			if (forloop.getIncrement().equals(node))
-				return false;
-		}
-		if (node.getParent() instanceof ElementGet){
-			FunctionNode func=node.getEnclosingFunction();
-			String statementCategory="ElementGet";
-			AstNode nodeForVarLog=node;
-			AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
-			appendElemGetNode(node, newNode);
-		}
-
-		else if (node instanceof SwitchStatement){
-			FunctionNode func=node.getEnclosingFunction();
-			AstNode nodeForVarLog=((SwitchStatement) node).getExpression();
-			String statementCategory="SwitchStatementCondition";
-			if (!(nodeForVarLog instanceof KeywordLiteral)){
-				AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
-
-				AstNode parent = makeSureBlockExistsAround(node);
-
-				// the parent is something we can prepend to
-				parent.addChildAfter(newNode, node);
-			}
-		}
-
 		 */
 
+		if (right.equals("innerHTML")){
+		}
 
-		/* have a look at the children of this node */
-		return true;
+		if (right.equals("anchors")){
+			// serach the DOMElementVariable list to check if a corresponding DOMJSVariable exists
+			// e.g. a.innerHTML = document.anchors[0].innerHTML; -> document is a default DOMJSVariable in the DOMElementVariable list
+			boolean JSVarExist = false;
+			for (DOMConstraint dc: DOMConstraintList){
+				String JSVar = dc.getDOMElementTypeVariable().getDOMJSVariable();
+				if (left.equals(JSVar)){
+					JSVarExist = true;
+					System.out.println(JSVar + " is the parent of anchors");
+
+					DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+					DOMElement.setParentElementJSVariable(left);
+					// adding the child node to the list for the parent
+					//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); // to store the var in the JS code that a DOM element is assigned to
+					String DOMJSVariable = "";
+					DOMElement.setDOMJSVariable(DOMJSVariable);
+
+					//System.out.println("Function " + enclosingFunctionName + " accesses DOM via .anchors");
+
+					DOMElement.setTag_attribute("a");
+					DOMElement.setName_attribute("ConfixGenName" + Integer.toString((new Random()).nextInt(100)));
+
+					// TODO...
+					DOMConstraint newDC = new DOMConstraint(DOMElement);
+					DOMConstraintList.add(newDC);
+					break;
+				}
+			}
+			if (JSVarExist == false){
+				// add the new DOMElementVariable
+			}
+		}
+
+
+		// serach the DOMElementVariable list to check if on the left or right a DOMJSVariable is used
+
+		for (DOMConstraint dc: DOMConstraintList){
+			String JSVar = dc.getDOMElementTypeVariable().getDOMJSVariable();
+			if (JSVar!=null)
+				if (JSVar.equals(left)){
+					System.out.println("********* A property of JSVAr: " + JSVar + " is being set");
+				}else if (JSVar.equals(right)){
+					System.out.println("********* A property of JSVAr: " + JSVar + " is being used");
+				}
+		}
+
 	}
+
+
+
 
 	private void analyseIfStatementNode(AstNode node) {
 
@@ -727,166 +662,87 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	}
 
-	private void analyseAstRootNode(AstNode node) {
-		AstRoot rt = (AstRoot) node;
 
-		if (rt.getSourceName() == null) //make sure this is an actual AstRoot, not one we created
-			return;
+	private void analyseSwitchCaseNode(AstNode node) {
+		/*
+		if (node instanceof SwitchCase) {
+			//Add block around all statements in the switch case
+			SwitchCase sc = (SwitchCase)node;
+			List<AstNode> statements = sc.getStatements();
+			List<AstNode> blockStatement = new ArrayList<AstNode>();
+			Block b = new Block();
 
-		//this is the entry point of the AST root
-		m_rootCount++;
-		AstNode newNode = createNode(rt, ProgramPoint.ENTERPOSTFIX, rt.getLineno(), m_rootCount);
+			if (statements != null) {
+				Iterator<AstNode> it = statements.iterator();
+				while (it.hasNext()) {
+					AstNode stmnt = it.next();
+					b.addChild(stmnt);
+				}
 
-		rt.addChildToFront(newNode);
+				blockStatement.add(b);
+				sc.setStatements(blockStatement);
+			}
 
-		node = (AstNode) rt.getFirstChild();
-		node = (AstNode) node.getNext(); //The first node is the node just added in front, so get next node
-		int firstLine = 0;
-		if (node != null) {
-			firstLine = node.getLineno();
+		}
+		// we will not log the incremental part of the for loops
+		if (node.getParent() instanceof ForLoop){
+			ForLoop forloop=(ForLoop)node.getParent();
+			if (forloop.getIncrement().equals(node))
+				return false;
+		}
+		if (node.getParent() instanceof ElementGet){
+			FunctionNode func=node.getEnclosingFunction();
+			String statementCategory="ElementGet";
+			AstNode nodeForVarLog=node;
+			AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
+			appendElemGetNode(node, newNode);
 		}
 
-		// get last line of the function
-		node = (AstNode) rt.getLastChild();
-		//if this is not a return statement, we need to add logging here also
-		if (!(node instanceof ReturnStatement)) {
-			AstNode newNode_end = createNode(rt, ProgramPoint.EXITPOSTFIX, node.getLineno()-firstLine+1, m_rootCount);
-			//add as last statement
-			rt.addChildToBack(newNode_end);
-		}	
-	}
+		else if (node instanceof SwitchStatement){
+			FunctionNode func=node.getEnclosingFunction();
+			AstNode nodeForVarLog=((SwitchStatement) node).getExpression();
+			String statementCategory="SwitchStatementCondition";
+			if (!(nodeForVarLog instanceof KeywordLiteral)){
+				AstNode newNode=createNode(func, nodeForVarLog, statementCategory);
 
+				AstNode parent = makeSureBlockExistsAround(node);
 
+				// the parent is something we can prepend to
+				parent.addChildAfter(newNode, node);
+			}
+		}
 
-	private void analyseSwitch() {
-		// TODO Auto-generated method stub
-
-	}
-
-
-
-	/**
-	 * Deciding if an expression is a LHS
-	 */
-	private void analyseAssignmentNode(AstNode node) {
-
-		System.out.println("===Assignment===");
-		System.out.println(node.debugPrint());
-	}
-
-
-
-	private void analyseNewExpressionNode() {
-		// TODO Auto-generated method stub
-
-	}
-
-
-
-	private void analysePropertyGetNode() {
-		// TODO Auto-generated method stub
-
-	}
+		 */	}
 
 
 	private void analyseFunctionNode(AstNode node) {
 		FunctionNode f = (FunctionNode) node;
-
+		int numOfParam = f.getParams().size();
+		int lineNumber = node.getLineno()+1;
+		int fLength = f.getEndLineno() - f.getLineno();
+		int fDepth = node.depth();
+		//System.out.println(f.debugPrint());
 		/*for (Symbol s: f.getSymbols()){
 			int sType = s.getDeclType();
 			if (sType == Token.LP || sType == Token.VAR || sType == Token.LET || sType == Token.CONST){
 				System.out.println("s.getName() : " + s.getName());
 			}
 		}*/
-
 		//System.out.println(f.getSymbolTable());
 		//System.out.println(f.getSymbols());
 
+		System.out.println("=== analyseFunctionNode ===");
 		String fName = "";
 		if (f.getFunctionName()!=null){
 			fName = f.getFunctionName().getIdentifier();
 			System.out.println("fName = " + fName);
 		}
 
-
-		int numOfParam = f.getParams().size();
-		int lineNumber = node.getLineno()+1;
-		int fLength = f.getEndLineno() - f.getLineno();
-		int fDepth = node.depth();
-
-		//System.out.println(f.debugPrint());
-
-		// TODO: Add the function to the list of DOM dependent jsFunctions if does not already exist
-		//FunctionInfo newFunction = new FunctionInfo(fName, numOfParam, fLength, lineNumber);
-
-
-
-		/* this is function enter */
-		AstNode newNode = createNode(f, ProgramPoint.ENTERPOSTFIX, f.getLineno());
-		f.getBody().addChildToFront(newNode);
-		node = (AstNode) f.getBody().getFirstChild();
-		node = (AstNode) node.getNext(); //The first node is the node just added in front, so get next node
-		int firstLine = 0;
-		if (node != null) {
-			firstLine = node.getLineno();
-		}
-		/* get last line of the function */
-		node = (AstNode) f.getBody().getLastChild();
-		/* if this is not a return statement, we need to add logging here also */
-		if (!(node instanceof ReturnStatement)) {
-			AstNode newNode_end = createNode(f, ProgramPoint.EXITPOSTFIX, node.getLineno()-firstLine+1);
-			/* add as last statement */
-			f.getBody().addChildToBack(newNode_end);
-		}			
-		//System.out.println(func.toSource());
-
 	}
-
-
-
-
-	private void analyseObjectLiteralNode(AstNode node) {		
-		ObjectLiteral o = ( ObjectLiteral) node;
-		//System.out.println("Found object literal: " + candidateObjectName);
-		List<ObjectProperty> prop =  o.getElements();
-		for (ObjectProperty op : prop){
-			if (op.getLeft().shortName().equals("Name")){
-				//System.out.println("op.getString(): " + ((Name)(op.getLeft())).getIdentifier()  );
-				//newJSObj.addOwnProperty(((Name)(op.getLeft())).getIdentifier());
-			}
-			else if (op.getLeft().shortName().equals("StringLiteral")){
-				//System.out.println("op.getString(): " + ((StringLiteral)(op.getLeft())).getValue()  );
-				//newJSObj.addOwnProperty(((StringLiteral)(op.getLeft())).getValue());
-			}
-			else{
-				System.out.println("UNKNOWN!!");
-			}
-		}
-
-	}
-
-
-
-	private void analyseVariable() {
-		// TODO Auto-generated method stub
-
-	}
-
 
 
 	private void analyseNameNode(AstNode node) {
-
 		/*System.out.println(node.debugPrint());
-
-		for (Symbol s: node.getAstRoot().getSymbols()){
-			int sType = s.getDeclType();
-			if (sType == Token.LP || sType == Token.VAR || sType == Token.LET || sType == Token.CONST){
-				System.out.println("global detected: " + s.getName());
-			}
-		}*/
-
-
-
 
 		/* function calls like .addClass, .css, .attr ... */
 		if (node.getParent() instanceof PropertyGet
@@ -898,15 +754,13 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			else if(jsList.contains(node.toSource())){
 				//setJsDomMap(node.getParent().getParent(), "js_c_id_tag");
 			}
-			else if(node.toSource().equals("insertBefore")
-					|| node.toSource().equals("replaceChild")){
+			else if(node.toSource().equals("insertBefore") || node.toSource().equals("replaceChild")){
 				//				setJsDomMap(node.getParent().getParent(), "js_s_arg");
 			}
 
 		}
 		else if(node.getParent() instanceof PropertyGet){
-			if(node.toSource().equals("innerHTML")
-					|| node.toSource().equals("innerText")){
+			if(node.toSource().equals("innerHTML") || node.toSource().equals("innerText")){
 				System.out.println(".............. innerHTML found!");
 			}
 		}
