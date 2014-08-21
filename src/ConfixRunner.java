@@ -111,8 +111,13 @@ public class ConfixRunner {
 		for (String DDF: functionsList){
 			System.out.println("****** Listing DOM constraints in DDF: " + DDF);
 			for (DOMConstraint dc: codeAnalyzer.getDOMConstraintList()){
-				if (dc.getEnclosingFunctionName().equals(DDF))
+				
+				if (dc.getEnclosingFunctionName().equals(DDF)){
 					System.out.println(dc.getCorrespondingXpath());
+					if (dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable()!="")
+						System.out.println("***************************************************** InnerHTML_attributeVariable():" + dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable());
+
+				}
 			}
 		}
 

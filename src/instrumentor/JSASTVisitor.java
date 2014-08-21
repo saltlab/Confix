@@ -524,14 +524,56 @@ public abstract class JSASTVisitor implements NodeVisitor{
 				//System.out.println("shortName: " + parentNode.shortName());
 				if (parentNode instanceof IfStatement){
 					// innerHTML of an element was used as an if condition -> e.g. if (a.innerHTML)
-					System.out.println("innerHTML property for " + left + " is used as an if condition");
+					System.out.println(left + ".innerHTML is used as an if condition");
 				}else if (parentNode instanceof Assignment){
 					// innerHTML of an element value was used or set -> e.g. a.innerHTML = x / y = a.innerHTML 
 					Assignment asmt = (Assignment)parentNode;
 					if (asmt.getLeft().equals(node)){ // innerHTML is set
-						System.out.println("innerHTML property for " + left + " is set to " + asmt.getRight().toSource());
+						System.out.println(left + ".innerHTML is set to " + asmt.getRight().toSource());
 					}else{
-						System.out.println(asmt.getLeft().toSource() + " is set to innerHTML property for " + left);
+						System.out.println(asmt.getLeft().toSource() + " is set to " + left + ".innerHTML");
+						// adding the variable storing this attribute
+						if (ie.getLeft() instanceof FunctionCall){
+							System.out.println("analyseFunctionCallNode");
+							// this is to make sure ie.getLeft() will be added if not already exist
+							analyseFunctionCallNode(ie.getLeft());
+							for (DOMConstraint dc: DOMConstraintList)
+								if (dc.getDOMElementTypeVariable().getSource().equals(left))
+									dc.getDOMElementTypeVariable().setInnerHTML_attributeVariable(asmt.getLeft().toSource());
+						}
+
+						/*
+						DomDependentFunctions.add(node.getEnclosingFunction().getName());
+						String parentNodeElement = pg.getLeft().toSource();
+						ElementTypeVariable DOMElement = new ElementTypeVariable();
+						DOMElement.setParentElementJSVariable(pg.getLeft().toSource());
+						// adding the child node to the list for the parent
+						for (DOMConstraint d: DOMConstraintList){
+							if (d.getDOMElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
+								System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+						}
+
+						DOMElement.setDOMJSVariable(DOMJSVariable);
+
+						System.out.println("Function " + node.getEnclosingFunction().getName() + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
+
+						if (calledFunctionName.equals("getElementById")){
+							DOMElement.setId_attribute(argument);
+						}else if (calledFunctionName.equals("getElementsByTagName")){
+							DOMElement.setTag_attribute(argument);
+						}else if (calledFunctionName.equals("getElementsByName")){
+							DOMElement.setName_attribute(argument);
+						}else if (calledFunctionName.equals("getElementsByClassName")){
+							DOMElement.setClass_attribute(argument);
+						}	
+
+						DOMConstraint dc = new DOMConstraint(DOMElement);
+						dc.setEnclosingFunctionName(node.getEnclosingFunction().getName());
+						DOMConstraintList.add(dc);
+
+						 */
+
+
 					}
 				}else if (parentNode instanceof VariableInitializer){
 					// innerHTML of an element used to initialize a variable -> e.g. v = dg('indicator').innerHTML
@@ -688,9 +730,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			System.out.println("Right: " + right);	
 
 
-			System.out.println("ie.getLeft().getLineno() : " + (ie.getLeft().getLineno()+1));
-			System.out.println("ie.getRight().getLineno() : " + (ie.getRight().getLineno()+1));
-
 			// check if the path condition is on a DOM element
 
 			// adding the pathCondition to the 
@@ -712,6 +751,66 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			// considering multiple constraints
 			if (oprator.equals("&&") || oprator.equals("||")){
 
+			}if (oprator.equals("==")){  
+				if (ie.getLeft() instanceof Name){  // e.g. if we have a = $('id') or a = $('id').html()  and then if (a == X)
+					// search among JSVariables
+					for (DOMConstraint dc: DOMConstraintList){
+						if (dc.getDOMElementTypeVariable().getDOMJSVariable().equals(ie.getLeft().toSource())){
+							System.out.println(dc.getDOMElementTypeVariable().getDOMJSVariable() + " variable which refers to a DOM element is used in a condition");
+							break;
+						}else if (dc.getDOMElementTypeVariable().getId_attributeVariable().equals(ie.getLeft().toSource())){
+							System.out.println(dc.getDOMElementTypeVariable().getId_attributeVariable() + " variable which refers to an id attribute of a DOM element is used in a condition");
+							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+							String condition = conditionNode.toSource();
+							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".id");
+							//System.out.println("condition after replacement: " + condition);
+							dc.addConstraint(condition);
+							break;
+						}else if (dc.getDOMElementTypeVariable().getType_attributeVariable().equals(ie.getLeft().toSource())){
+							System.out.println(dc.getDOMElementTypeVariable().getType_attributeVariable() + " variable which refers to a type attribute of a DOM element is used in a condition");
+							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+							String condition = conditionNode.toSource();
+							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".type");
+							//System.out.println("condition after replacement: " + condition);
+							dc.addConstraint(condition);
+							break;
+						}else if (dc.getDOMElementTypeVariable().getName_attributeVariable().equals(ie.getLeft().toSource())){
+							System.out.println(dc.getDOMElementTypeVariable().getName_attributeVariable() + " variable which refers to a name attribute of a DOM element is used in a condition");
+							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+							String condition = conditionNode.toSource();
+							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".name");
+							//System.out.println("condition after replacement: " + condition);
+							dc.addConstraint(condition);
+							break;
+						}else if (dc.getDOMElementTypeVariable().getClass_attributeVariable().equals(ie.getLeft().toSource())){
+							System.out.println(dc.getDOMElementTypeVariable().getClass_attributeVariable() + " variable which refers to a class attribute of a DOM element is used in a condition");
+							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+							String condition = conditionNode.toSource();
+							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".class");
+							//System.out.println("condition after replacement: " + condition);
+							dc.addConstraint(condition);
+							break;
+						}else if (dc.getDOMElementTypeVariable().getValue_attributeVariable().equals(ie.getLeft().toSource())){
+							System.out.println(dc.getDOMElementTypeVariable().getValue_attributeVariable() + " variable which refers to a value attribute of a DOM element is used in a condition");
+							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+							String condition = conditionNode.toSource();
+							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".value");
+							//System.out.println("condition after replacement: " + condition);
+							dc.addConstraint(condition);
+							break;
+						}else if (dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable().equals(ie.getLeft().toSource())){
+							System.out.println(dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable() + " variable which refers to an innerHTML attribute of a DOM element is used in a condition");
+							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+							String condition = conditionNode.toSource();
+							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".innerHTML");
+							//System.out.println("condition after replacement: " + condition);
+							dc.addConstraint(condition);
+							break;
+						}
+						
+					}
+				}
+				
 			}
 
 		}else if (conditionShortName.equals("Name")){	// e.g. if (t)  -> variable should be true to go in
@@ -848,16 +947,13 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 		System.out.println("=== analyseFunctionCallNode ===");
 
-		/*  Detecting DOM acessing function calls
-
+		/*  Detecting DOM accessing function calls
 		The following methods can be used on HTML documents:
 		document.getElementById() 			Returns the element that has the ID attribute with the specified value
 		document.getElementsByClassName() 	Returns a NodeList containing all elements with the specified class name
 		document.getElementsByName() 		Accesses all elements with a specified name
 		document.getElementsByTagName() 	Returns a NodeList containing all elements with the specified tagname
-
 		$()									(jQuery) : Find an element by element id
-
 		 */
 		FunctionCall fcall = (FunctionCall) node;
 		AstNode targetNode = fcall.getTarget(); // node evaluating to the function to call
@@ -940,6 +1036,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					}
 
 					DOMElement.setDOMJSVariable(DOMJSVariable);
+					DOMElement.setOriginalAccessCode(calledFunctionName + "('" + argument + "')");
 
 					if (argument.startsWith("#")  || calledFunctionName.equals("dg")){			//	e.g. $("#myElement"); // selects one HTML element with ID "myElement"  
 						DOMElement.setId_attribute(argument);
@@ -953,10 +1050,10 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					//	e.g. $("p#myElement"); // selects paragraph elements with ID "myElement"  
 					//	e.g. $("ul li a.navigation"); // selects anchors with class "navigation" that are nested in list items  
 
+					DOMElement.setSource(node.toSource());
 					DOMConstraint dc = new DOMConstraint(DOMElement);
 					dc.setEnclosingFunctionName(enclosingFunctionName);
 					DOMConstraintList.add(dc);
-
 
 				}else if (argumentShortName.equals("Name")){   // e.g.  DIV = "<div />";  d = $(DIV);
 					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + calledFunctionName + "(" + argument + ")");
@@ -988,9 +1085,9 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					}
 
 					DOMElement.setDOMJSVariable(DOMJSVariable);
-
+					DOMElement.setOriginalAccessCode(parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
 					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
-
+					
 					if (calledFunctionName.equals("getElementById")){
 						DOMElement.setId_attribute(argument);
 					}else if (calledFunctionName.equals("getElementsByTagName")){
@@ -1011,7 +1108,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 				// set the id_attributeVariable to argument
 				// if argument is an input of a function then assign id to "TheIDShouldBeSetFromFunctionInput"
 
-			
+
 				DomDependentFunctions.add(enclosingFunctionName);
 				String parentNodeElement = pg.getLeft().toSource();
 				ElementTypeVariable DOMElement = new ElementTypeVariable();
@@ -1023,7 +1120,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 				}
 
 				DOMElement.setDOMJSVariable(DOMJSVariable);
-
+				DOMElement.setOriginalAccessCode(parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
 				System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
 
 				if (calledFunctionName.equals("getElementById")){
@@ -1040,8 +1137,8 @@ public abstract class JSASTVisitor implements NodeVisitor{
 				dc.setEnclosingFunctionName(enclosingFunctionName);
 				DOMConstraintList.add(dc);
 
-			
-			
+
+
 			}
 		}
 
@@ -1111,96 +1208,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	 * This method is called before the AST is going to be traversed.
 	 */
 	public abstract void start();
-
-
-
-	public void appendNode(AstNode node, AstNode newNode){
-		AstNode parent = node;
-
-		while (parent!=null && ! (parent instanceof ReturnStatement) && ! (parent instanceof ExpressionStatement)){
-			parent=parent.getParent();
-		}
-
-		if (parent instanceof ReturnStatement){
-			AstNode attachBefore=parent;
-			AstNode parentToAttach=makeSureBlockExistsAround(parent);
-			parentToAttach.addChildBefore(newNode, attachBefore);
-		}
-
-		else if (parent!=null){
-			AstNode attachAfter=parent;
-			AstNode parentToAttach=makeSureBlockExistsAround(parent);
-			parentToAttach.addChildAfter(newNode, attachAfter);
-		}
-	}
-
-
-	public void appendElemGetNode(AstNode node, AstNode newNode){
-		AstNode parent = node;
-
-		while (parent!=null && ! (parent instanceof ReturnStatement) 
-				&& ! (parent instanceof ExpressionStatement) && ! (parent instanceof InfixExpression)){
-			parent=parent.getParent();
-		}
-
-		if (parent instanceof ReturnStatement){
-			AstNode attachBefore=parent;
-			AstNode parentToAttach=makeSureBlockExistsAround(parent);
-			parentToAttach.addChildBefore(newNode, attachBefore);
-			return;
-		}
-
-		if (parent instanceof InfixExpression){
-			while(parent instanceof InfixExpression || parent instanceof ParenthesizedExpression){
-				parent=parent.getParent();
-			}
-		}
-		if (parent!=null){
-			AstNode attachAfter=parent;
-			AstNode parentToAttach=makeSureBlockExistsAround(parent);
-			parentToAttach.addChildAfter(newNode, attachAfter);
-		}
-	}
-
-
-	public void appendNodeAfterFunctionCall(AstNode node, AstNode newNode){
-		AstNode parent = node;
-
-		while (parent!=null && ! (parent instanceof ReturnStatement) && ! (parent instanceof ExpressionStatement)){
-
-			if(parent instanceof IfStatement){
-				AstNode parentToAttach=makeSureBlockExistsAround(parent);
-				parentToAttach.addChildAfter(newNode, parent);
-				return;
-			}
-			if(parent.getParent() instanceof WhileLoop){
-				WhileLoop whileLoop=(WhileLoop) parent.getParent();
-				AstNode parentToAttach=makeSureBlockExistsAround(whileLoop.getBody());
-				parentToAttach.addChildrenToFront(newNode);
-				return;
-			}
-
-			if(parent.getParent() instanceof ForLoop){
-				ForLoop forLoop=(ForLoop) parent.getParent();
-				AstNode parentToAttach=makeSureBlockExistsAround(forLoop.getBody());
-				parentToAttach.addChildrenToFront(newNode);
-				return;
-			}
-			parent=parent.getParent();
-		}
-
-		if (parent instanceof ReturnStatement){
-			AstNode attachBefore=parent;
-			AstNode parentToAttach=makeSureBlockExistsAround(parent);
-			parentToAttach.addChildBefore(newNode, attachBefore);
-		}
-
-		else if (parent!=null){
-			AstNode attachAfter=parent;
-			AstNode parentToAttach=makeSureBlockExistsAround(parent);
-			parentToAttach.addChildAfter(newNode, attachAfter);
-		}
-	}
 
 	public HashSet<String> getDOMDependentFunctionsList() {
 		return DomDependentFunctions;

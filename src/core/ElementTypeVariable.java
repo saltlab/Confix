@@ -14,6 +14,10 @@ public class ElementTypeVariable {
 
 	private String DOMJSVariable;	// e.g. a = document.getElementById("demo"); then a is a DOMJSVariable
 
+	private String originalAccessCode = ""; // e.g.  document.getElementById("demo")  or $('id')
+	
+	private String source = "";
+	
 	private String parentElementJSVariable;	// e.g. a = document.getElementById("demo"); then document is a DOMJSVariable / a.getElementByTag('p') -> a
 	private List<String> childrenElementJSVariables = new ArrayList<String>();	// e.g. b = a.getElementByTag("p"); then b is a child of a
 
@@ -30,14 +34,13 @@ public class ElementTypeVariable {
 	private String innerHTML_attribute = null; // e.g. innerHTML="text"
 	
 	// variables set by attribute values: e.g. a = document.getElementById("demo").innerHTML; then a is an innerHTML_attributeVariable
-	private String id_attributeVariable = null; 
-	private String type_attributeVariable = null;
-	private String name_attributeVariable = null;
-	private String tag_attributeVariable = null; 
-	private String class_attributeVariable = null;
-	private String value_attributeVariable = null;
-	private String src_attributeVariable = null; 
-	private String innerHTML_attributeVariable = null; 
+	private String id_attributeVariable = ""; 
+	private String type_attributeVariable = "";
+	private String name_attributeVariable = "";
+	private String class_attributeVariable = "";
+	private String value_attributeVariable = "";
+	private String src_attributeVariable = ""; 
+	private String innerHTML_attributeVariable = ""; 
 
 	
 	
@@ -304,14 +307,6 @@ public class ElementTypeVariable {
 		this.name_attributeVariable = name_attributeVariable;
 	}
 
-	public String getTag_attributeVariable() {
-		return tag_attributeVariable;
-	}
-
-	public void setTag_attributeVariable(String tag_attributeVariable) {
-		this.tag_attributeVariable = tag_attributeVariable;
-	}
-
 	public String getClass_attributeVariable() {
 		return class_attributeVariable;
 	}
@@ -342,6 +337,22 @@ public class ElementTypeVariable {
 
 	public void setInnerHTML_attributeVariable(String innerHTML_attributeVariable) {
 		this.innerHTML_attributeVariable = innerHTML_attributeVariable;
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+
+	public String getOriginalAccessCode() {
+		return originalAccessCode;
+	}
+
+	public void setOriginalAccessCode(String originalAccessCode) {
+		this.originalAccessCode = originalAccessCode;
 	}
 
 	

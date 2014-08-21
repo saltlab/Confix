@@ -1,5 +1,8 @@
 package core;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DOMConstraint {
 
 	// Example: a = document.getElementById("demo"); -> attribute constraint is: id = "demo"
@@ -13,44 +16,31 @@ public class DOMConstraint {
 		System.out.println("DOMElementVariable: " + DOMElementVariable);
 		this.DOMElementVariable = DOMElementVariable;
 	}
-
-
-	// conditions : e.g. if (x < 10) 
-	private String left;	// x
-	private String operator;	// <
-	private String right;	// 10
 	
+	private List<String> constraints = new ArrayList<String>();	// e.g. if (document.anchors[0].innerHTML === "text")
 	
-	
-	
-	private String stringValueConstraint;	// document.anchors[0].innerHTML === "text"
-	private int intValueConstraint;			// x.size === 4
-	private boolean booleanValueConstraint; // radio button selected/not selected {true, false}
-	private String comparisonNotation;  // {"!=","==","<",">"}
+	/*
+	    statementToSatisfyConstraint and statementToNotSatisfyConstraint will be generated as JavaScript statements to be added to the test functions
+		that dynamically at run-time add to the attributes to satisfy the given constraint.
+	 */
+	private List<String> statementToSatisfyConstraint = new ArrayList<String>();
+	private List<String> statementToNotSatisfyConstraint = new ArrayList<String>();
 	
 	//TODO: what about dependency to anoter DOM element such as being a child node of another node?
 	
 	private String xpath;
-	
-	
+		
 	public ElementTypeVariable getDOMElementTypeVariable(){
 		return DOMElementVariable;
 	}
 		
-	public void addStringConstraint(String comparisonNotation, String stringValueConstraint){
-		this.comparisonNotation = comparisonNotation;
-		this.stringValueConstraint = stringValueConstraint;
+	public void addConstraint(String constraint){
+		this.constraints.add(constraint);
+		//TODO: generate statements
+		//addStatementToSatisfyConstraint(X);
+		//addStatementToNotSatisfyConstraint(Y);
 	}
 
-	public void addIntConstraint(String comparisonNotation, int intValueConstraint){
-		this.comparisonNotation = comparisonNotation;
-		this.intValueConstraint = intValueConstraint;
-	}
-	
-	public void addBoolConstraint(String comparisonNotation, String booleanValueConstraint){
-		this.comparisonNotation = comparisonNotation;
-		this.stringValueConstraint = booleanValueConstraint;
-	}
 	
 	// TODO:  Transform constraints to xpath using string/int solver
 	/*public String getCorrespondingXpath(){
@@ -142,30 +132,6 @@ public class DOMConstraint {
 		this.addedToTheXpath = addedToTheXpath;
 	}
 
-	public String getLeft() {
-		return left;
-	}
-
-	public void setLeft(String left) {
-		this.left = left;
-	}
-
-	public String getOperator() {
-		return operator;
-	}
-
-	public void setOperator(String operator) {
-		this.operator = operator;
-	}
-
-	public String getRight() {
-		return right;
-	}
-
-	public void setRight(String right) {
-		this.right = right;
-	}
-
 	public String getEnclosingFunctionName() {
 		return enclosingFunctionName;
 	}
@@ -183,23 +149,9 @@ public class DOMConstraint {
 				+ ((DOMElementVariable == null) ? 0 : DOMElementVariable
 						.hashCode());
 		result = prime * result + (addedToTheXpath ? 1231 : 1237);
-		result = prime * result + (booleanValueConstraint ? 1231 : 1237);
-		result = prime
-				* result
-				+ ((comparisonNotation == null) ? 0 : comparisonNotation
-						.hashCode());
 		result = prime
 				* result
 				+ ((enclosingFunctionName == null) ? 0 : enclosingFunctionName
-						.hashCode());
-		result = prime * result + intValueConstraint;
-		result = prime * result + ((left == null) ? 0 : left.hashCode());
-		result = prime * result
-				+ ((operator == null) ? 0 : operator.hashCode());
-		result = prime * result + ((right == null) ? 0 : right.hashCode());
-		result = prime
-				* result
-				+ ((stringValueConstraint == null) ? 0 : stringValueConstraint
 						.hashCode());
 		result = prime * result + ((xpath == null) ? 0 : xpath.hashCode());
 		return result;
@@ -221,39 +173,10 @@ public class DOMConstraint {
 			return false;
 		if (addedToTheXpath != other.addedToTheXpath)
 			return false;
-		if (booleanValueConstraint != other.booleanValueConstraint)
-			return false;
-		if (comparisonNotation == null) {
-			if (other.comparisonNotation != null)
-				return false;
-		} else if (!comparisonNotation.equals(other.comparisonNotation))
-			return false;
 		if (enclosingFunctionName == null) {
 			if (other.enclosingFunctionName != null)
 				return false;
 		} else if (!enclosingFunctionName.equals(other.enclosingFunctionName))
-			return false;
-		if (intValueConstraint != other.intValueConstraint)
-			return false;
-		if (left == null) {
-			if (other.left != null)
-				return false;
-		} else if (!left.equals(other.left))
-			return false;
-		if (operator == null) {
-			if (other.operator != null)
-				return false;
-		} else if (!operator.equals(other.operator))
-			return false;
-		if (right == null) {
-			if (other.right != null)
-				return false;
-		} else if (!right.equals(other.right))
-			return false;
-		if (stringValueConstraint == null) {
-			if (other.stringValueConstraint != null)
-				return false;
-		} else if (!stringValueConstraint.equals(other.stringValueConstraint))
 			return false;
 		if (xpath == null) {
 			if (other.xpath != null)
@@ -261,6 +184,29 @@ public class DOMConstraint {
 		} else if (!xpath.equals(other.xpath))
 			return false;
 		return true;
+	}
+
+	public List<String> getConstraints() {
+		return constraints;
+	}
+
+
+	public List<String> getStatementToSatisfyConstraint() {
+		return statementToSatisfyConstraint;
+	}
+
+	public void addStatementToSatisfyConstraint(
+			String statementToSatisfyConstraint) {
+		this.statementToSatisfyConstraint.add(statementToSatisfyConstraint);
+	}
+
+	public List<String> getStatementToNotSatisfyConstraint() {
+		return statementToNotSatisfyConstraint;
+	}
+
+	public void addStatementToNotSatisfyConstraint(
+			String statementToNotSatisfyConstraint) {
+		this.statementToNotSatisfyConstraint.add(statementToNotSatisfyConstraint);
 	}
 	
 }
