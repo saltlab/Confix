@@ -1,3 +1,4 @@
+import core.DOMConstraint;
 import core.JSAnalyzer;
 import core.XpathSolver;
 
@@ -101,22 +102,37 @@ public class ConfixRunner {
 	    }
 	    
 		codeAnalyzer.analyzeJavaScript(jsCode, scopename);
-		String xpathToSolve = codeAnalyzer.generateXpathConstraint();
-		HashSet<String> functionsList = codeAnalyzer.getDOMDependentFunctions();
+		List<String> functionsList = codeAnalyzer.getDOMDependentFunctions();
 
-		if (xpathToSolve.equals("select(\"document[]\")"))
+		for (String DDF: functionsList){
+			System.out.println("****** Listing DOM constraints in DDF: " + DDF);
+			for (DOMConstraint dc: codeAnalyzer.getDOMConstraintList()){
+				if (dc.getEnclosingFunctionName().equals(DDF))
+					System.out.println(dc.getCorrespondingXpath());
+			}
+		}
+
+		XpathSolver xpathsolver = new XpathSolver();
+		String DOMFixture = "";
+		
+		int i = 0;
+		for (String xpathToSolve : codeAnalyzer.generateXpathConstraints()){
+			System.out.println("DOM fixture for function: " + functionsList.get(i++));
+			xpathsolver.setXpath(xpathToSolve);
+			xpathsolver.solve();
+			DOMFixture = xpathsolver.getDOMFixture();
+			System.out.println(DOMFixture);
+		}
+
+		
+		if (true)
 			return;
 		
 		// 2) Transform the DOM constraints in the JavaScript code into xpath constraint (xpath rule)
 		// 3) solve xpath constraints and generate corresponding XML as DOMFixture
 		//String xpathToSolve = JSModifier.generateXpathConstraint();
 		//HashSet<String> functionsList = JSModifier.getDOMDependentFunctions();
-		XpathSolver xpathsolver = new XpathSolver();
-		xpathsolver.setXpath(xpathToSolve);
-		xpathsolver.solve();
-		String DOMFixture = xpathsolver.getDOMFixture();
 
-		System.out.println(DOMFixture);
 
 		// 4) Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
 		String testSuiteNameToGenerate = "tests.js";

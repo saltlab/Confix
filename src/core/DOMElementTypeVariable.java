@@ -12,6 +12,7 @@ import java.util.Random;
 
 public class DOMElementTypeVariable {
 
+
 	private String DOMJSVariable;	// e.g. a = document.getElementById("demo"); then a is a DOMJSVariable
 
 	private String parentElementJSVariable;	// e.g. a = document.getElementById("demo"); then document is a DOMJSVariable / a.getElementByTag('p') -> a
@@ -156,5 +157,116 @@ public class DOMElementTypeVariable {
 	public void setParentElementJSVariable(String parentElementJSVariable) {
 		this.parentElementJSVariable = parentElementJSVariable;
 	}
-	
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((DOMJSVariable == null) ? 0 : DOMJSVariable.hashCode());
+		result = prime * result
+				+ ((attribues == null) ? 0 : attribues.hashCode());
+		result = prime
+				* result
+				+ ((childrenElementJSVariables == null) ? 0
+						: childrenElementJSVariables.hashCode());
+		result = prime * result
+				+ ((class_attribute == null) ? 0 : class_attribute.hashCode());
+		result = prime * result
+				+ ((id_attribute == null) ? 0 : id_attribute.hashCode());
+		result = prime
+				* result
+				+ ((innerHTML_attribute == null) ? 0 : innerHTML_attribute
+						.hashCode());
+		result = prime * result
+				+ ((name_attribute == null) ? 0 : name_attribute.hashCode());
+		result = prime
+				* result
+				+ ((parentElementJSVariable == null) ? 0
+						: parentElementJSVariable.hashCode());
+		result = prime * result
+				+ ((src_attribute == null) ? 0 : src_attribute.hashCode());
+		result = prime * result
+				+ ((tag_attribute == null) ? 0 : tag_attribute.hashCode());
+		result = prime * result
+				+ ((type_attribute == null) ? 0 : type_attribute.hashCode());
+		result = prime * result
+				+ ((value_attribute == null) ? 0 : value_attribute.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		DOMElementTypeVariable other = (DOMElementTypeVariable) obj;
+		if (DOMJSVariable == null) {
+			if (other.DOMJSVariable != null)
+				return false;
+		} else if (!DOMJSVariable.equals(other.DOMJSVariable))
+			return false;
+		if (attribues == null) {
+			if (other.attribues != null)
+				return false;
+		} else if (!attribues.equals(other.attribues))
+			return false;
+		if (childrenElementJSVariables == null) {
+			if (other.childrenElementJSVariables != null)
+				return false;
+		} else if (!childrenElementJSVariables
+				.equals(other.childrenElementJSVariables))
+			return false;
+		if (class_attribute == null) {
+			if (other.class_attribute != null)
+				return false;
+		} else if (!class_attribute.equals(other.class_attribute))
+			return false;
+		if (id_attribute == null) {
+			if (other.id_attribute != null)
+				return false;
+		} else if (!id_attribute.equals(other.id_attribute))
+			return false;
+		if (innerHTML_attribute == null) {
+			if (other.innerHTML_attribute != null)
+				return false;
+		} else if (!innerHTML_attribute.equals(other.innerHTML_attribute))
+			return false;
+		if (name_attribute == null) {
+			if (other.name_attribute != null)
+				return false;
+		} else if (!name_attribute.equals(other.name_attribute))
+			return false;
+		if (parentElementJSVariable == null) {
+			if (other.parentElementJSVariable != null)
+				return false;
+		} else if (!parentElementJSVariable
+				.equals(other.parentElementJSVariable))
+			return false;
+		if (src_attribute == null) {
+			if (other.src_attribute != null)
+				return false;
+		} else if (!src_attribute.equals(other.src_attribute))
+			return false;
+		if (tag_attribute == null) {
+			if (other.tag_attribute != null)
+				return false;
+		} else if (!tag_attribute.equals(other.tag_attribute))
+			return false;
+		if (type_attribute == null) {
+			if (other.type_attribute != null)
+				return false;
+		} else if (!type_attribute.equals(other.type_attribute))
+			return false;
+		if (value_attribute == null) {
+			if (other.value_attribute != null)
+				return false;
+		} else if (!value_attribute.equals(other.value_attribute))
+			return false;
+		return true;
+	}
+
 }

@@ -42,9 +42,9 @@ public class TestSuiteGenerator {
 
 	private String testSuiteNameToGenerate;
 	private String DOMFixture;
-	private HashSet<String> functionsList;
+	private List<String> functionsList;
 
-	public TestSuiteGenerator(String testSuiteNameToGenerate, String DOMFixture, HashSet<String> functionsList){
+	public TestSuiteGenerator(String testSuiteNameToGenerate, String DOMFixture, List<String> functionsList){
 		this.testSuiteNameToGenerate = testSuiteNameToGenerate;
 		this.DOMFixture = DOMFixture;
 		this.functionsList = functionsList;

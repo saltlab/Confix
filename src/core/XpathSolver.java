@@ -31,6 +31,7 @@ public class XpathSolver {
 
 	public void setXpath(String xpath){
 		this.xpathToSolve = xpath;
+		//System.out.println(" writing the xpathToSolve: " + xpath + " in the constraints.txt file");
 		// writing the xpathToSolve in the constraints.txt file to be used by the solver
 		try {
 			FileWriter fw = new FileWriter("auxiliary/constraints.txt", false); //clearing the old data
@@ -52,7 +53,7 @@ public class XpathSolver {
 		//System.out.println(mainClassName);
 		//String[] formula = {constraintFileName};
 		//fr.inrialpes.wam.treelogic.BottomUpSolver.CommandLineSolver.main(formula);		
-		System.out.println("SOLVING");
+		//System.out.println("SOLVING");
 		Process ps = Runtime.getRuntime().exec("java -jar lib/solver.jar auxiliary/constraints.txt -attributes");
 		ps.waitFor();
 		java.io.InputStream is=ps.getInputStream();
@@ -66,11 +67,14 @@ public class XpathSolver {
 	public String getDOMFixture(){
 		// Calling  xpth solver from here!
 		// Should then read the XML from the generated output file and return it
-		System.out.println(DOMFixture);
+		//System.out.println(DOMFixture);
         DOMFixture = StringUtils.substringBetween(DOMFixture, "<document solver:target=\"true\">", "</document>");
         DOMFixture = DOMFixture.replaceAll("_[0-9] ", " ").replaceAll("_[0-9]>", ">");
-        DOMFixture = DOMFixture.replace("=\"_otherValue\"", "\"").replace("_", "=\"");
-        DOMFixture = DOMFixture.replaceAll("[\n\r]", "");
+        DOMFixture = DOMFixture.replace("=\"_otherValue\"", "\"").replace("id_", "id=\"")
+        		.replace("type_", "type=\"").replace("name_", "name=\"").replace("class_", "class=\"")
+        		.replace("value_", "value=\"").replace("src_", "src=\"");
+        
+        DOMFixture = DOMFixture.replaceAll("[\n\r]", "").replace("    ", "");
         
 		return DOMFixture;
 	}

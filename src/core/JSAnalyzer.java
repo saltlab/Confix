@@ -39,7 +39,8 @@ public class JSAnalyzer {
 	private JSASTVisitor astVisitor;
 	private String outputfolder;
 	private List<String> xpathsToSolve = new ArrayList<String>();
-	private HashSet<String> DOMDependentFunctionsList = new HashSet<String>();
+	private List<String> DOMDependentFunctionsList = new ArrayList<String>();
+	private List<DOMConstraint> DOMConstraintList = new ArrayList<DOMConstraint>();
 
 	/**
 	 * Construct without patterns.
@@ -92,7 +93,7 @@ public class JSAnalyzer {
 			ast = rhinoParser.parse(new String(input), scopename, 0);
 
 			//System.out.println("AST BEFORE INSTRUMENTATION: ");
-			System.out.println(ast.toSource());
+			//System.out.println(ast.toSource());
 			//System.out.println(ast.debugPrint());
 
 			astVisitor.setScopeName(scopename);
@@ -103,19 +104,25 @@ public class JSAnalyzer {
 			ast.visit(astVisitor);
 
 			astVisitor.finish(ast);
-			
+
 			/* clean up */
 			Context.exit();
 
-			// setting the xpathToSolve
-			String xpathToSolve = astVisitor.generateXpathConstraint();
-			xpathsToSolve.add(xpathToSolve);
-			System.out.println("xpathToSolve: " + xpathToSolve);
-			
+			// setting the xpathToSolve for each function
 			HashSet<String> fList = astVisitor.getDOMDependentFunctionsList();
 			DOMDependentFunctionsList.addAll(fList); 
+			HashSet<DOMConstraint> dList = astVisitor.getDOMConstraintList();
+			DOMConstraintList.addAll(dList); 
 
-			
+			for (String DDF: DOMDependentFunctionsList){
+				System.out.println("****** Generating xpath for DOM constraints in DDF: " + DDF);
+				String xpathToSolve = astVisitor.generateXpathConstraint(DDF);
+				astVisitor.resetXpath();
+				xpathsToSolve.add(xpathToSolve);
+				System.out.println("xpathToSolve: " + xpathToSolve);
+			}
+
+
 			//System.out.println("AST AFTER INSTRUMENTATION: ");
 			//System.out.println(ast.toSource());
 			//System.out.println(ast.debugPrint());
@@ -134,19 +141,22 @@ public class JSAnalyzer {
 		return input;
 	}
 
-	
-	public String generateXpathConstraint() {
+
+	public List<String> generateXpathConstraints() {
 		// e.g. select("html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/
 		//		descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]")
 
-		return xpathsToSolve.get(0);
+		// System.out.println(xpathsToSolve);
+		return xpathsToSolve;
 	}
 
-	
-	public HashSet<String> getDOMDependentFunctions() {
+
+	public List<String> getDOMDependentFunctions() {
 		return DOMDependentFunctionsList;
 	}
 
-
+	public List<DOMConstraint> getDOMConstraintList() {
+		return DOMConstraintList;
+	}
 
 }

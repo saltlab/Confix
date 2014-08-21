@@ -4,6 +4,7 @@ public class DOMConstraint {
 
 	// Example: a = document.getElementById("demo"); -> attribute constraint is: id = "demo"
 	private DOMElementTypeVariable DOMElementVariable;
+	private String enclosingFunctionName = "";
 	
 	private boolean addedToTheXpath = false;  // this is to know if the constarint is added to the final xpath or not
 	
@@ -136,6 +137,7 @@ public class DOMConstraint {
 	}
 
 	public void setAddedToTheXpath(boolean addedToTheXpath) {
+		System.out.println("setAddedToTheXpath for xpath: " + getCorrespondingXpath());
 		this.addedToTheXpath = addedToTheXpath;
 	}
 
@@ -163,5 +165,101 @@ public class DOMConstraint {
 		this.right = right;
 	}
 
+	public String getEnclosingFunctionName() {
+		return enclosingFunctionName;
+	}
+
+	public void setEnclosingFunctionName(String enclosingFunctionName) {
+		this.enclosingFunctionName = enclosingFunctionName;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime
+				* result
+				+ ((DOMElementVariable == null) ? 0 : DOMElementVariable
+						.hashCode());
+		result = prime * result + (addedToTheXpath ? 1231 : 1237);
+		result = prime * result + (booleanValueConstraint ? 1231 : 1237);
+		result = prime
+				* result
+				+ ((comparisonNotation == null) ? 0 : comparisonNotation
+						.hashCode());
+		result = prime
+				* result
+				+ ((enclosingFunctionName == null) ? 0 : enclosingFunctionName
+						.hashCode());
+		result = prime * result + intValueConstraint;
+		result = prime * result + ((left == null) ? 0 : left.hashCode());
+		result = prime * result
+				+ ((operator == null) ? 0 : operator.hashCode());
+		result = prime * result + ((right == null) ? 0 : right.hashCode());
+		result = prime
+				* result
+				+ ((stringValueConstraint == null) ? 0 : stringValueConstraint
+						.hashCode());
+		result = prime * result + ((xpath == null) ? 0 : xpath.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		DOMConstraint other = (DOMConstraint) obj;
+		if (DOMElementVariable == null) {
+			if (other.DOMElementVariable != null)
+				return false;
+		} else if (!DOMElementVariable.equals(other.DOMElementVariable))
+			return false;
+		if (addedToTheXpath != other.addedToTheXpath)
+			return false;
+		if (booleanValueConstraint != other.booleanValueConstraint)
+			return false;
+		if (comparisonNotation == null) {
+			if (other.comparisonNotation != null)
+				return false;
+		} else if (!comparisonNotation.equals(other.comparisonNotation))
+			return false;
+		if (enclosingFunctionName == null) {
+			if (other.enclosingFunctionName != null)
+				return false;
+		} else if (!enclosingFunctionName.equals(other.enclosingFunctionName))
+			return false;
+		if (intValueConstraint != other.intValueConstraint)
+			return false;
+		if (left == null) {
+			if (other.left != null)
+				return false;
+		} else if (!left.equals(other.left))
+			return false;
+		if (operator == null) {
+			if (other.operator != null)
+				return false;
+		} else if (!operator.equals(other.operator))
+			return false;
+		if (right == null) {
+			if (other.right != null)
+				return false;
+		} else if (!right.equals(other.right))
+			return false;
+		if (stringValueConstraint == null) {
+			if (other.stringValueConstraint != null)
+				return false;
+		} else if (!stringValueConstraint.equals(other.stringValueConstraint))
+			return false;
+		if (xpath == null) {
+			if (other.xpath != null)
+				return false;
+		} else if (!xpath.equals(other.xpath))
+			return false;
+		return true;
+	}
 	
 }

@@ -62,7 +62,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	private static List<String> functionCallsNotToVisit=new ArrayList<String>();
 	private static List<String> functionNodes=new ArrayList<String>();
 
-	public static List<DOMConstraint> DOMConstraintList = new ArrayList<DOMConstraint>();
+	public static HashSet<DOMConstraint> DOMConstraintList = new HashSet<DOMConstraint>();
 	public static List<ArrayList<DOMConstraint>> pathConditions = new ArrayList<ArrayList<DOMConstraint>>();
 
 	public boolean shouldTrackFunctionCalls=true;
@@ -94,8 +94,12 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	private String xpath="";
 	private int numOfDOMElementsInFixture = 0;
+	
+	public void resetXpath(){
+		 numOfDOMElementsInFixture = 0;
+	}
 
-	public String generateXpathConstraint() {
+	public String generateXpathConstraint(String enclosingFunctionName) {
 		xpath = "select(\"document[";
 		List<String> JSDOMVars = new ArrayList<String>();
 		// TODO Generate xpath from the list of DOMConstraints in the DOMConstraintList
@@ -103,13 +107,14 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		for (DOMConstraint dc : DOMConstraintList){
 			if (dc.isAddedToTheXpath())
 				continue;
-			dc.setAddedToTheXpath(true); // this is to consider each constraint only once
+			//dc.setAddedToTheXpath(true); // this is to consider each constraint only once
 
 			if (dc.getDOMElementTypeVariable().getDOMJSVariable().equals("document")) // ignore the first node
 				continue;
 
 			// for each node consider all its children nodes
-			generateSubXpath(dc);
+			if (dc.getEnclosingFunctionName().equals(enclosingFunctionName))
+				generateSubXpath(dc, enclosingFunctionName);
 		}
 
 		xpath += "]\")";
@@ -117,7 +122,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		return xpath;
 	}
 
-	private void generateSubXpath(DOMConstraint currentConstraint){
+	private void generateSubXpath(DOMConstraint currentConstraint, String enclosingFunctionName){
 		// generate xpath for currentConstraint first (id+attributes) and then add its children
 		String id = currentConstraint.getDOMElementTypeVariable().getId_attribute();
 		String tag = currentConstraint.getDOMElementTypeVariable().getTag_attribute();
@@ -148,7 +153,8 @@ public abstract class JSASTVisitor implements NodeVisitor{
 				continue;
 			if(dc.getDOMElementTypeVariable().getParentElementJSVariable().equals(currentConstraint.getDOMElementTypeVariable().getDOMJSVariable())){
 				//xpath += " and child::";
-				generateSubXpath(dc);
+				if (dc.getEnclosingFunctionName().equals(enclosingFunctionName))
+					generateSubXpath(dc, enclosingFunctionName);
 			}
 		}
 		xpath += "]";
@@ -709,7 +715,8 @@ public abstract class JSASTVisitor implements NodeVisitor{
 						DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
 						DOMElement.setParentElementJSVariable(left);
 						// adding the child node to the list for the parent
-						String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); // to store the var in the JS code that a DOM element is assigned to
+						//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); // to store the var in the JS code that a DOM element is assigned to
+						String DOMJSVariable = "";
 						DOMElement.setDOMJSVariable(DOMJSVariable);
 
 						//System.out.println("Function " + enclosingFunctionName + " accesses DOM via .anchors");
@@ -717,6 +724,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 						DOMElement.setTag_attribute("a");
 						DOMElement.setName_attribute("ConfixGenName" + Integer.toString((new Random()).nextInt(100)));
 
+						// TODO...
 						DOMConstraint newDC = new DOMConstraint(DOMElement);
 						DOMConstraintList.add(newDC);
 						break;
@@ -948,7 +956,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			System.out.println("ie.getRight().getLineno() : " + (ie.getRight().getLineno()+1));
 
 			// check if the path condition is on a DOM element
-			
+
 			// adding the pathCondition to the 
 			/*DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
 			System.out.println("parentNodeElement: document");
@@ -963,8 +971,8 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 			DOMElement.setId_attribute(argument);
 			DOMConstraint dc = new DOMConstraint(DOMElement);
-			*/
-			
+			 */
+
 			// considering multiple constraints
 			if (oprator.equals("&&") || oprator.equals("||")){
 
@@ -981,7 +989,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		}
 
 		pathConditions.add(pathCondition);
-		
+
 	}
 
 	private void analyseAstRootNode(AstNode node) {
@@ -1069,6 +1077,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			System.out.println("fName = " + fName);
 		}
 
+
 		int numOfParam = f.getParams().size();
 		int lineNumber = node.getLineno()+1;
 		int fLength = f.getEndLineno() - f.getLineno();
@@ -1146,15 +1155,17 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		}*/
 
 
+
+
 		/* function calls like .addClass, .css, .attr ... */
 		if (node.getParent() instanceof PropertyGet
 				&& node.getParent().getParent() instanceof FunctionCall
 				&& !node.getParent().toSource().contains("function")){
 			if(jqueryList.contains(node.toSource())){
-				setJsDomMap(node.getParent().getParent(), "jquery_c_arg");
+				//setJsDomMap(node.getParent().getParent(), "jquery_c_arg");
 			}
 			else if(jsList.contains(node.toSource())){
-				setJsDomMap(node.getParent().getParent(), "js_c_id_tag");
+				//setJsDomMap(node.getParent().getParent(), "js_c_id_tag");
 			}
 			else if(node.toSource().equals("insertBefore")
 					|| node.toSource().equals("replaceChild")){
@@ -1165,7 +1176,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		else if(node.getParent() instanceof PropertyGet){
 			if(node.toSource().equals("innerHTML")
 					|| node.toSource().equals("innerText")){
-				setJsDomMap(node, "js_innerHTML_innerText");
+				//setJsDomMap(node, "js_innerHTML_innerText");
 			}
 		}
 
@@ -1192,7 +1203,8 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 		AstNode parentNode = ASTNode.getParent();
 
-		String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); // to store the var in the JS code that a DOM element is assigned to
+		//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); // to store the var in the JS code that a DOM element is assigned to
+		String DOMJSVariable = "";
 
 		System.out.println("parentNode.debugPrint(): ");
 		System.out.println(parentNode.shortName());
@@ -1219,7 +1231,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		}
 
 
-
 		String calledFunctionName = "";
 		String enclosingFunctionName = "";
 
@@ -1229,17 +1240,30 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			//System.out.println("enclosingFunctionName = " + enclosingFunctionName);
 		}
 
+
+		if (fcall.getArguments().size()==0){
+			System.out.println("NO ARGUMENT!");
+			System.out.println("ASTNode.toSource(): " + ASTNode.toSource());
+			System.out.println("targetNode.toSource(): " + targetNode.toSource());
+			return;
+		}
+
+		String argument = fcall.getArguments().get(0).toSource();
+		String argumentShortName = fcall.getArguments().get(0).shortName();
+		argument = argument.replace("'", "");
+
 		if(targetNode instanceof Name){
 
 			calledFunctionName = ((Name)fcall.getTarget()).getIdentifier();
 			//System.out.println("calledFunctionName is " + calledFunctionName);
 
-			if(calledFunctionName.equals("$") || calledFunctionName.equals("jQuery")){ // or jQuery()?
-				String argumentShortName = fcall.getArguments().get(0).shortName();
-				String argument = fcall.getArguments().get(0).toSource();
+			if(calledFunctionName.equals("$") || calledFunctionName.equals("jQuery")
+					|| calledFunctionName.equals("dg") // for phormer app
+					){
+
 				System.out.println("argumentShortName: " + argumentShortName);
 
-				
+
 				if (argumentShortName.equals("StringLiteral")){   // e.g. $('id')
 					DomDependentFunctions.add(enclosingFunctionName);
 					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + calledFunctionName + "(" + argument + ")");
@@ -1254,8 +1278,8 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					}
 
 					DOMElement.setDOMJSVariable(DOMJSVariable);
-	
-					if (argument.startsWith("#")){			//	e.g. $("#myElement"); // selects one HTML element with ID "myElement"  
+
+					if (argument.startsWith("#")  || calledFunctionName.equals("dg")){			//	e.g. $("#myElement"); // selects one HTML element with ID "myElement"  
 						DOMElement.setId_attribute(argument);
 					}else if (argument.startsWith(".")){	//	e.g. $(".myClass"); // selects HTML elements with class "myClass" 
 						DOMElement.setClass_attribute(argument);
@@ -1264,14 +1288,16 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					}
 
 					//TODO:
-				    //	e.g. $("p#myElement"); // selects paragraph elements with ID "myElement"  
-				    //	e.g. $("ul li a.navigation"); // selects anchors with class "navigation" that are nested in list items  
-	
+					//	e.g. $("p#myElement"); // selects paragraph elements with ID "myElement"  
+					//	e.g. $("ul li a.navigation"); // selects anchors with class "navigation" that are nested in list items  
+
 					DOMConstraint dc = new DOMConstraint(DOMElement);
+					dc.setEnclosingFunctionName(enclosingFunctionName);
 					DOMConstraintList.add(dc);
 
 
 				}else if (argumentShortName.equals("Name")){   // e.g.  DIV = "<div />";  d = $(DIV);
+					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + calledFunctionName + "(" + argument + ")");
 					//backward slicing to find the corresponding defined variable in the symbol table
 				}
 			}
@@ -1279,16 +1305,13 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		}else if (targetNode instanceof PropertyGet){
 			PropertyGet pg = (PropertyGet)targetNode;
 			calledFunctionName = pg.getRight().toSource();
-			String argument = fcall.getArguments().get(0).toSource();
-			String argumentShortName = fcall.getArguments().get(0).shortName();
+
 			System.out.println("argumentShortName: " + argumentShortName);
 
 			if (argumentShortName.equals("StringLiteral")){   // e.g. getElementsByTagName("p")
 
-				if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || calledFunctionName.equals("getElementsByName") || calledFunctionName.equals("getElementsByClassName")
-						|| calledFunctionName.equals("dg") // for phormer app
-						){
-					
+				if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || calledFunctionName.equals("getElementsByName") || calledFunctionName.equals("getElementsByClassName")){
+
 
 					DomDependentFunctions.add(enclosingFunctionName);
 					String parentNodeElement = pg.getLeft().toSource();
@@ -1304,7 +1327,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
 
-					if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("dg")){
+					if (calledFunctionName.equals("getElementById")){
 						DOMElement.setId_attribute(argument);
 					}else if (calledFunctionName.equals("getElementsByTagName")){
 						DOMElement.setTag_attribute(argument);
@@ -1315,6 +1338,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					}	
 
 					DOMConstraint dc = new DOMConstraint(DOMElement);
+					dc.setEnclosingFunctionName(enclosingFunctionName);
 					DOMConstraintList.add(dc);
 				}
 			}else if (argumentShortName.equals("Name")){   // e.g.  DIV = "div";  d = getElementsByTagName(DIV);
@@ -1332,61 +1356,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	}
 
-
-
-	private void setJsDomMap(AstNode node,String codeType){
-
-		ArrayList<AstNode> list=new ArrayList<AstNode>();
-		if(jsDomMap.get(codeType)!=null){
-
-			list=jsDomMap.get(codeType);
-
-		}				
-		list.add(node);
-		jsDomMap.put(codeType, list);					
-
-	}
-
-	public  HashMap<String,ArrayList<AstNode>> getJsDomList(){
-		return jsDomMap;
-
-	}
-	public void setJsDomList(){
-
-		System.out.println("****** jsDomList ******");
-
-
-		if(jsDomList.size()>0 || jsDomMap.size()==0)
-			return;
-		Set<String> keys=jsDomMap.keySet();
-		Iterator<String> it=keys.iterator();
-		while(it.hasNext()){
-			String codeType=it.next();
-			ArrayList<AstNode> nodes=jsDomMap.get(codeType);
-			for(AstNode node:nodes){
-				ArrayList<Object> list=new ArrayList<Object>();
-				list.add(codeType);
-				list.add(node);
-
-				System.out.println(node.toSource());
-
-				//NodeMutator nm=new NodeMutator("All",scopeName);
-				//nm.mutateDomJsCodeLevel(list);
-
-
-				jsDomList.add(list);
-
-			}
-		}
-
-		//System.out.println(jsDomList);
-
-	}
-
-	public ArrayList<Object> getElementfromJsDomList(int index){
-		if(jsDomList.size()==0 || index>=jsDomList.size()) return null;
-		return jsDomList.get(index);
-	}
 
 
 	/**
@@ -1536,6 +1505,10 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	public HashSet<String> getDOMDependentFunctionsList() {
 		return DomDependentFunctions;
+	}
+
+	public HashSet<DOMConstraint> getDOMConstraintList() {
+		return DOMConstraintList;
 	}
 
 }
