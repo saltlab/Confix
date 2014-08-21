@@ -81,7 +81,7 @@ public class TestSuiteGenerator {
 
 		String TEST_SUITE_PATH = "output/" + testSuiteNameToGenerate;
 
-		String FILE_NAME_TEMPLATE = "TestCase.vm";
+		String FILE_NAME_TEMPLATE = "TestCaseTemplate.vm";
 
 		try {
 			String fileName = null;
