@@ -90,6 +90,10 @@ public class ConfixRunner {
 		 */
 
 
+		// 2) Transform the DOM constraints in the JavaScript code into xpath constraint (xpath rule)
+		// 3) solve xpath constraints and generate corresponding XML as DOMFixture
+		//String xpathToSolve = JSModifier.generateXpathConstraint();
+		//HashSet<String> functionsList = JSModifier.getDOMDependentFunctions();
 		// Directly analyzing the code
 		codeAnalyzer = new JSAnalyzer(new JSASTInstrumenter());
 		String jsCode = "";
@@ -116,27 +120,20 @@ public class ConfixRunner {
 		String DOMFixture = "";
 		
 		int i = 0;
+		List<String> DOMFixtureList = new ArrayList<String>();
 		for (String xpathToSolve : codeAnalyzer.generateXpathConstraints()){
 			System.out.println("DOM fixture for function: " + functionsList.get(i++));
 			xpathsolver.setXpath(xpathToSolve);
 			xpathsolver.solve();
 			DOMFixture = xpathsolver.getDOMFixture();
+			DOMFixtureList.add(DOMFixture);
 			System.out.println(DOMFixture);
 		}
 
 		
-		if (true)
-			return;
-		
-		// 2) Transform the DOM constraints in the JavaScript code into xpath constraint (xpath rule)
-		// 3) solve xpath constraints and generate corresponding XML as DOMFixture
-		//String xpathToSolve = JSModifier.generateXpathConstraint();
-		//HashSet<String> functionsList = JSModifier.getDOMDependentFunctions();
-
-
 		// 4) Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
-		String testSuiteNameToGenerate = "tests.js";
-		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixture, functionsList);
+		String testSuiteNameToGenerate = "tests_phormer.js";
+		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixtureList, functionsList);
 		tsg.generateTestSuite();
 
 		//driverQuit();

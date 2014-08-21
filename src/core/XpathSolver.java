@@ -74,7 +74,7 @@ public class XpathSolver {
         		.replace("type_", "type=\"").replace("name_", "name=\"").replace("class_", "class=\"")
         		.replace("value_", "value=\"").replace("src_", "src=\"");
         
-        DOMFixture = DOMFixture.replaceAll("[\n\r]", "").replace("    ", "");
+        DOMFixture = DOMFixture.replaceAll("[\n\r]", "").replace("    ", " ").replace("  ", " ");
         
 		return DOMFixture;
 	}

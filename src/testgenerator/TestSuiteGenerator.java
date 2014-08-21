@@ -41,13 +41,13 @@ test("${function.functionName}", function() {
 public class TestSuiteGenerator {
 
 	private String testSuiteNameToGenerate;
-	private String DOMFixture;
-	private List<String> functionsList;
+	private List<String> functionsNameList;
+	private List<String> DOMFixtureList;
 
-	public TestSuiteGenerator(String testSuiteNameToGenerate, String DOMFixture, List<String> functionsList){
+	public TestSuiteGenerator(String testSuiteNameToGenerate, List<String> DOMFixture, List<String> functionsNameList){
 		this.testSuiteNameToGenerate = testSuiteNameToGenerate;
-		this.DOMFixture = DOMFixture;
-		this.functionsList = functionsList;
+		this.DOMFixtureList = DOMFixture;
+		this.functionsNameList = functionsNameList;
 	}
 
 	/**
@@ -58,11 +58,12 @@ public class TestSuiteGenerator {
 		ArrayList<TestFunction> testFunctions = new ArrayList<TestFunction>();
 		int counter = 0;
 
-		for (String fName: functionsList) {
+		for (int i=0; i<functionsNameList.size(); i++) {
 			//For each path to the sink node
-			TestFunction testFunction = new TestFunction("Testing function " + fName);
+			TestFunction testFunction = new TestFunction("Testing function " + functionsNameList.get(i));
 			int pathCount = 0;
-			testFunction.addStatement(fName + "();");
+			testFunction.setFixture(DOMFixtureList.get(i));
+			testFunction.addStatement(functionsNameList.get(i) + "();");
 
 			/*for (int j=0;j<10;j++) {
 				//For each path ...
@@ -75,7 +76,7 @@ public class TestSuiteGenerator {
 			// adding the test method to the file
 			testFunctions.add(testFunction);
 		}
-
+		
 		String moduleName = testSuiteNameToGenerate;
 
 		String TEST_SUITE_PATH = "output/" + testSuiteNameToGenerate;
@@ -85,7 +86,7 @@ public class TestSuiteGenerator {
 		try {
 			String fileName = null;
 
-			QUnitTestGenerator generator = new QUnitTestGenerator(moduleName, testFunctions, DOMFixture);
+			QUnitTestGenerator generator = new QUnitTestGenerator(moduleName, testFunctions);
 
 			fileName = generator.generate(TEST_SUITE_PATH, FILE_NAME_TEMPLATE);
 

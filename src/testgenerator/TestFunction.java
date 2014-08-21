@@ -8,6 +8,7 @@ import java.util.List;
  */
 public class TestFunction {
 	private String FunctionName;
+	private String fixture = "TEMP";
 	private ArrayList<String> statements = new ArrayList<String>();
 
 	public TestFunction(String FunctionName) {
@@ -32,6 +33,14 @@ public class TestFunction {
 
 	public void addStatement(String statement) {
 		statements.add(statement);
+	}
+
+	public String getFixture() {
+		return fixture;
+	}
+
+	public void setFixture(String fixture) {
+		this.fixture = fixture;
 	}
 
 }

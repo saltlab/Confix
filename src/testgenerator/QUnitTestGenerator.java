@@ -18,7 +18,7 @@ public class QUnitTestGenerator {
 	private final VelocityContext context;
 	private final String moduleName;
 
-	public QUnitTestGenerator(String moduleName, ArrayList<TestFunction> testFunctions, String DOMfixture) throws Exception {
+	public QUnitTestGenerator(String moduleName, ArrayList<TestFunction> testFunctions) throws Exception {
 
 		engine = new VelocityEngine();
 		engine.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM_CLASS, "org.apache.velocity.runtime.log.NullLogChute");
@@ -28,9 +28,7 @@ public class QUnitTestGenerator {
 		this.moduleName = moduleName;
 		context.put("date", new Date().toString());
 		context.put("moduleName", moduleName);
-		context.put("testFunctions", testFunctions);
-		context.put("fixture", DOMfixture);		
-		
+		context.put("testFunctions", testFunctions);		
 	}
 
 	/**
