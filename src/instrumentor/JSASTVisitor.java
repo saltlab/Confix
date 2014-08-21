@@ -235,7 +235,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		element.tagName 	Returns the tag name of an element
 		element.textContent 	Sets or returns the textual content of a node and its descendants
 		element.title 	Sets or returns the title attribute of an element
-		
+
 		nodelist.length 	Returns the number of nodes in a NodeList
 
 
@@ -507,8 +507,14 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		System.out.println("Operator: " + oprator);
 		System.out.println("Right: " + right);			
 
+		/*
+		Changing HTML Elements
+		element.innerHTML = 	Change the inner HTML of an element
+		element.attribute = 	Change the attribute of an HTML element
+		element.setAttribute(attribute,value) 	Change the attribute of an HTML element
+		element.style.property = 	Change the style of an HTML element
+		 */
 		if (oprator.equals("GETPROP")){  // -> nodeName: PropertyGet, e.g. Left: $("p").innerHTML
-
 			if (right.equals("innerHTML")){
 				AstNode parentNode = node.getParent();
 				//System.out.println("parentNode: " + parentNode.toSource());
@@ -520,14 +526,56 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					// innerHTML of an element value was used or set -> e.g. a.innerHTML = x / y = a.innerHTML 
 					Assignment asmt = (Assignment)parentNode;
 					if (asmt.getLeft().equals(node)){ // innerHTML is set
-						System.out.println("innerHTML property for " + left + " is assigned by " + asmt.getRight().toSource());
+						System.out.println("innerHTML property for " + left + " is set to " + asmt.getRight().toSource());
 					}else{
-						System.out.println("innerHTML property for " + left + " is used to assign " + asmt.getLeft().toSource() );
+						System.out.println(asmt.getLeft().toSource() + " is set to innerHTML property for " + left);
 					}
 				}else if (parentNode instanceof VariableInitializer){
 					// innerHTML of an element used to initialize a variable -> e.g. v = dg('indicator').innerHTML
 					VariableInitializer vi = (VariableInitializer)parentNode;
 					System.out.println("innerHTML property for " + left + " is used to initialize " + vi.getTarget().toSource());
+				}
+			}else if (right.equals("style")){  	//  element.style.property  : Change the style of an HTML element
+				AstNode parentNode = node.getParent();
+				//System.out.println("parentNode: " + parentNode.toSource());
+				//System.out.println("shortName: " + parentNode.shortName());
+				if (parentNode instanceof InfixExpression){  // e.g. e.style.
+					InfixExpression pie = (InfixExpression) parentNode;
+					String pLeft = pie.getLeft().toSource();
+					String pOprator = ASTNodeUtility.operatorToString(pie.getOperator());
+					String pRight = pie.getRight().toSource();
+					//System.out.println(pRight + " property of style attribute for element " + left);
+					if (parentNode.getParent() instanceof IfStatement){
+						// property of style attribute of an element was used as an if condition -> e.g. if (cur.style.MozOpacity)
+						System.out.println(parentNode.toSource() + " is used as an if condition");
+					}else if (parentNode.getParent() instanceof Assignment){
+						// style of an element value was used or set -> e.g. a.style.display = x / y = a.style.display
+						Assignment asmt = (Assignment) parentNode.getParent();
+						if (asmt.getLeft().equals(parentNode)){ // innerHTML is set
+							System.out.println(parentNode.toSource() + " is set to " + asmt.getRight().toSource());
+						}else{
+							System.out.println(asmt.getLeft().toSource() + " is set to " + parentNode.toSource());
+						}
+					}else if (parentNode instanceof VariableInitializer){
+						// style of an element used to initialize a variable -> e.g. v = dg('indicator').style
+						VariableInitializer vi = (VariableInitializer)parentNode;
+						System.out.println(parentNode + " is used to initialize " + vi.getTarget().toSource());
+					}
+				}else if (parentNode instanceof IfStatement){
+					// style of an element was used as an if condition -> e.g. if (a.style)
+					System.out.println("style property for " + left + " is used as an if condition");
+				}else if (parentNode instanceof Assignment){
+					// style of an element value was used or set -> e.g. a.style = x / y = a.style 
+					Assignment asmt = (Assignment)parentNode;
+					if (asmt.getLeft().equals(node)){ // innerHTML is set
+						System.out.println("style property for " + left + " is assigned by " + asmt.getRight().toSource());
+					}else{
+						System.out.println("style property for " + left + " is used to assign " + asmt.getLeft().toSource() );
+					}
+				}else if (parentNode instanceof VariableInitializer){
+					// style of an element used to initialize a variable -> e.g. v = dg('indicator').style
+					VariableInitializer vi = (VariableInitializer)parentNode;
+					System.out.println("style property for " + left + " is used to initialize " + vi.getTarget().toSource());
 				}
 			}else if (right.equals("anchors")){
 				// serach the DOMElementVariable list to check if a corresponding DOMJSVariable exists
@@ -582,9 +630,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 				document.links 	Returns a collection of all <area> and <a> elements value in href
 				document.title 	Sets or returns the <title> element
 
-		 */
 
-		/*
 			Changing HTML Elements
 			element.innerHTML = 	Change the inner HTML of an element
 			element.attribute = 	Change the attribute of an HTML element
@@ -800,12 +846,12 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 
 	private void analyseFunctionCallNode(AstNode node) {
-		
-		 if (node.shortName().equals("NewExpression"))
-			 return;
-		
+
+		if (node.shortName().equals("NewExpression"))
+			return;
+
 		System.out.println("=== analyseFunctionCallNode ===");
-		 
+
 		/*  Detecting DOM acessing function calls
 
 		The following methods can be used on HTML documents:
