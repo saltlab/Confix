@@ -12,7 +12,6 @@ import java.util.Random;
 
 public class ElementTypeVariable {
 
-
 	private String DOMJSVariable;	// e.g. a = document.getElementById("demo"); then a is a DOMJSVariable
 
 	private String parentElementJSVariable;	// e.g. a = document.getElementById("demo"); then document is a DOMJSVariable / a.getElementByTag('p') -> a
@@ -30,15 +29,15 @@ public class ElementTypeVariable {
 	private String src_attribute = null; // e.g. scr="/image.jpg"
 	private String innerHTML_attribute = null; // e.g. innerHTML="text"
 	
-	// variables set by attribute values
-	private String id_attributeVariable = null; // e.g. id="demo"  -> the "ConfixGeneratedID" id is to make sure all elements has at least one attribute for the sake of xpath generation step
-	private String type_attributeVariable = null; // e.g. type="button"
-	private String name_attributeVariable = null; // e.g. name="subject"
-	private String tag_attributeVariable = null; // using tag="div" as a default value for the element as long as we have no more information about it
-	private String class_attributeVariable = null; // e.g. class="main"
-	private String value_attributeVariable = null; // e.g. value="test"
-	private String src_attributeVariable = null; // e.g. scr="/image.jpg"
-	private String innerHTML_attributeVariable = null; // e.g. a = document.getElementById("demo").innerHTML; then a is an innerHTML_attributeVariable
+	// variables set by attribute values: e.g. a = document.getElementById("demo").innerHTML; then a is an innerHTML_attributeVariable
+	private String id_attributeVariable = null; 
+	private String type_attributeVariable = null;
+	private String name_attributeVariable = null;
+	private String tag_attributeVariable = null; 
+	private String class_attributeVariable = null;
+	private String value_attributeVariable = null;
+	private String src_attributeVariable = null; 
+	private String innerHTML_attributeVariable = null; 
 
 	
 	
@@ -280,4 +279,70 @@ public class ElementTypeVariable {
 		return true;
 	}
 
+	
+	public String getId_attributeVariable() {
+		return id_attributeVariable;
+	}
+
+	public void setId_attributeVariable(String id_attributeVariable) {
+		this.id_attributeVariable = id_attributeVariable;
+	}
+
+	public String getType_attributeVariable() {
+		return type_attributeVariable;
+	}
+
+	public void setType_attributeVariable(String type_attributeVariable) {
+		this.type_attributeVariable = type_attributeVariable;
+	}
+
+	public String getName_attributeVariable() {
+		return name_attributeVariable;
+	}
+
+	public void setName_attributeVariable(String name_attributeVariable) {
+		this.name_attributeVariable = name_attributeVariable;
+	}
+
+	public String getTag_attributeVariable() {
+		return tag_attributeVariable;
+	}
+
+	public void setTag_attributeVariable(String tag_attributeVariable) {
+		this.tag_attributeVariable = tag_attributeVariable;
+	}
+
+	public String getClass_attributeVariable() {
+		return class_attributeVariable;
+	}
+
+	public void setClass_attributeVariable(String class_attributeVariable) {
+		this.class_attributeVariable = class_attributeVariable;
+	}
+
+	public String getValue_attributeVariable() {
+		return value_attributeVariable;
+	}
+
+	public void setValue_attributeVariable(String value_attributeVariable) {
+		this.value_attributeVariable = value_attributeVariable;
+	}
+
+	public String getSrc_attributeVariable() {
+		return src_attributeVariable;
+	}
+
+	public void setSrc_attributeVariable(String src_attributeVariable) {
+		this.src_attributeVariable = src_attributeVariable;
+	}
+
+	public String getInnerHTML_attributeVariable() {
+		return innerHTML_attributeVariable;
+	}
+
+	public void setInnerHTML_attributeVariable(String innerHTML_attributeVariable) {
+		this.innerHTML_attributeVariable = innerHTML_attributeVariable;
+	}
+
+	
 }

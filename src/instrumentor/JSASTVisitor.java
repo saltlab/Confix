@@ -961,6 +961,8 @@ public abstract class JSASTVisitor implements NodeVisitor{
 				}else if (argumentShortName.equals("Name")){   // e.g.  DIV = "<div />";  d = $(DIV);
 					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + calledFunctionName + "(" + argument + ")");
 					//backward slicing to find the corresponding defined variable in the symbol table
+					// set the id_attributeVariable to argument
+					// if argument is an input of a function then assign id to "TheIDShouldBeSetFromFunctionInput"
 				}
 			}
 
@@ -1006,6 +1008,40 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			}else if (argumentShortName.equals("Name")){   // e.g.  DIV = "div";  d = getElementsByTagName(DIV);
 				System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + calledFunctionName + "(" + argument + ")");
 				//backward slicing to find the corresponding defined variable in the symbol table
+				// set the id_attributeVariable to argument
+				// if argument is an input of a function then assign id to "TheIDShouldBeSetFromFunctionInput"
+
+			
+				DomDependentFunctions.add(enclosingFunctionName);
+				String parentNodeElement = pg.getLeft().toSource();
+				ElementTypeVariable DOMElement = new ElementTypeVariable();
+				DOMElement.setParentElementJSVariable(pg.getLeft().toSource());
+				// adding the child node to the list for the parent
+				for (DOMConstraint d: DOMConstraintList){
+					if (d.getDOMElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
+						System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+				}
+
+				DOMElement.setDOMJSVariable(DOMJSVariable);
+
+				System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
+
+				if (calledFunctionName.equals("getElementById")){
+					DOMElement.setId_attribute("TheIDShouldBeSetFromFunctionInput");
+				}else if (calledFunctionName.equals("getElementsByTagName")){
+					DOMElement.setTag_attribute("TheTagShouldBeSetFromFunctionInput");
+				}else if (calledFunctionName.equals("getElementsByName")){
+					DOMElement.setName_attribute("TheNameShouldBeSetFromFunctionInput");
+				}else if (calledFunctionName.equals("getElementsByClassName")){
+					DOMElement.setClass_attribute("TheCalssNameShouldBeSetFromFunctionInput");
+				}	
+
+				DOMConstraint dc = new DOMConstraint(DOMElement);
+				dc.setEnclosingFunctionName(enclosingFunctionName);
+				DOMConstraintList.add(dc);
+
+			
+			
 			}
 		}
 
