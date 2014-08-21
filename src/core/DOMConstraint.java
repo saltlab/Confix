@@ -3,13 +3,13 @@ package core;
 public class DOMConstraint {
 
 	// Example: a = document.getElementById("demo"); -> attribute constraint is: id = "demo"
-	private DOMElementTypeVariable DOMElementVariable;
+	private ElementTypeVariable DOMElementVariable;
 	private String enclosingFunctionName = "";
 	
 	private boolean addedToTheXpath = false;  // this is to know if the constarint is added to the final xpath or not
 	
 
-	public DOMConstraint(DOMElementTypeVariable DOMElementVariable) {
+	public DOMConstraint(ElementTypeVariable DOMElementVariable) {
 		System.out.println("DOMElementVariable: " + DOMElementVariable);
 		this.DOMElementVariable = DOMElementVariable;
 	}
@@ -32,7 +32,7 @@ public class DOMConstraint {
 	private String xpath;
 	
 	
-	public DOMElementTypeVariable getDOMElementTypeVariable(){
+	public ElementTypeVariable getDOMElementTypeVariable(){
 		return DOMElementVariable;
 	}
 		

@@ -10,7 +10,7 @@ import java.util.Random;
  * @author aminmf
  */
 
-public class DOMElementTypeVariable {
+public class ElementTypeVariable {
 
 
 	private String DOMJSVariable;	// e.g. a = document.getElementById("demo"); then a is a DOMJSVariable
@@ -203,7 +203,7 @@ public class DOMElementTypeVariable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		DOMElementTypeVariable other = (DOMElementTypeVariable) obj;
+		ElementTypeVariable other = (ElementTypeVariable) obj;
 		if (DOMJSVariable == null) {
 			if (other.DOMJSVariable != null)
 				return false;

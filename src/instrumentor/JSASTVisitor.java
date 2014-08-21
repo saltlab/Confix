@@ -45,7 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import core.DOMConstraint;
-import core.DOMElementTypeVariable;
+import core.ElementTypeVariable;
 
 
 /*
@@ -79,7 +79,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	public JSASTVisitor(){
 
 		// adding the initial "document" node to be used for xpath generation
-		DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+		ElementTypeVariable DOMElement = new ElementTypeVariable();
 		DOMElement.setDOMJSVariable("document");
 		DOMConstraint dc = new DOMConstraint(DOMElement);
 		DOMConstraintList.add(dc);
@@ -587,7 +587,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 						JSVarExist = true;
 						System.out.println(JSVar + " is the parent of anchors");
 
-						DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+						ElementTypeVariable DOMElement = new ElementTypeVariable();
 						DOMElement.setParentElementJSVariable(left);
 						// adding the child node to the list for the parent
 						//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); // to store the var in the JS code that a DOM element is assigned to
@@ -934,7 +934,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					DomDependentFunctions.add(enclosingFunctionName);
 					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + calledFunctionName + "(" + argument + ")");
 
-					DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+					ElementTypeVariable DOMElement = new ElementTypeVariable();
 					System.out.println("parentNodeElement: document");
 					DOMElement.setParentElementJSVariable("document");
 					// adding the child node to the list for the parent
@@ -981,7 +981,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 					DomDependentFunctions.add(enclosingFunctionName);
 					String parentNodeElement = pg.getLeft().toSource();
-					DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+					ElementTypeVariable DOMElement = new ElementTypeVariable();
 					DOMElement.setParentElementJSVariable(pg.getLeft().toSource());
 					// adding the child node to the list for the parent
 					for (DOMConstraint d: DOMConstraintList){
