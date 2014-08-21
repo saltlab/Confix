@@ -183,15 +183,8 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 
 
-		The following properties and methods can be used on all HTML elements:
+		The following methods can be used on all HTML elements:
 		element.appendChild() 	Adds a new child node, to an element, as the last child node
-		element.attributes 	Returns a NamedNodeMap of an element's attributes
-		element.childNodes 	Returns a NodeList of child nodes for an element
-		element.className 	Sets or returns the class attribute of an element
-		element.clientHeight 	Returns the viewable height of an element
-		element.clientWidth 	Returns the viewable width of an element
-		element.contentEditable 	Sets or returns whether the content of an element is editable or not
-		element.firstChild 	Returns the first child of an element
 		element.getAttribute() 	Returns the specified attribute value of an element node
 		element.getAttributeNode() 	Returns the specified attribute node
 		element.getElementsByClassName() 	Returns a collection of all child elements with the specified class name
@@ -199,9 +192,28 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		element.hasAttribute() 	Returns true if an element has the specified attribute, otherwise false
 		element.hasAttributes() 	Returns true if an element has any attributes, otherwise false
 		element.hasChildNodes() 	Returns true if an element has any child nodes, otherwise false
+		element.insertBefore() 	Inserts a new child node before a specified, existing, child node
+		element.removeAttribute() 	Removes a specified attribute from an element
+		element.removeAttributeNode() 	Removes a specified attribute node, and returns the removed node
+		element.removeChild() 	Removes a child node from an element
+		element.replaceChild() 	Replaces a child node in an element
+		element.removeEventListener() 	Removes an event handler that has been attached with the addEventListener() method
+		element.setAttribute() 	Sets or changes the specified attribute, to the specified value
+		element.setAttributeNode() 	Sets or changes the specified attribute node
+		element.setIdAttribute() 	
+		element.setIdAttributeNode() 	
+
+
+		The following properties can be used on all HTML elements:
+		element.attributes 	Returns a NamedNodeMap of an element's attributes
+		element.childNodes 	Returns a NodeList of child nodes for an element
+		element.className 	Sets or returns the class attribute of an element
+		element.clientHeight 	Returns the viewable height of an element
+		element.clientWidth 	Returns the viewable width of an element
+		element.contentEditable 	Sets or returns whether the content of an element is editable or not
+		element.firstChild 	Returns the first child of an element
 		element.id 	Sets or returns the id of an element
 		element.innerHTML 	Sets or returns the content of an element
-		element.insertBefore() 	Inserts a new child node before a specified, existing, child node
 		element.isContentEditable 	Returns true if the content of an element is editable, otherwise false
 		element.lastChild 	Returns the last child of an element
 		element.nextSibling 	Returns the next node at the same node tree level
@@ -215,23 +227,15 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		element.offsetTop 	Returns the vertical offset position of an element
 		element.parentNode 	Returns the parent node of an element
 		element.previousSibling 	Returns the previous element at the same node tree level
-		element.removeAttribute() 	Removes a specified attribute from an element
-		element.removeAttributeNode() 	Removes a specified attribute node, and returns the removed node
-		element.removeChild() 	Removes a child node from an element
-		element.replaceChild() 	Replaces a child node in an element
-		element.removeEventListener() 	Removes an event handler that has been attached with the addEventListener() method
 		element.scrollHeight 	Returns the entire height of an element
 		element.scrollLeft 	Returns the distance between the left edge of an element and the view
 		element.scrollTop 	Returns the distance between the top edge of an element and the view
 		element.scrollWidth 	Returns the entire width of an element
-		element.setAttribute() 	Sets or changes the specified attribute, to the specified value
-		element.setAttributeNode() 	Sets or changes the specified attribute node
-		element.setIdAttribute() 	
-		element.setIdAttributeNode() 	
 		element.style 	Sets or returns the style attribute of an element
 		element.tagName 	Returns the tag name of an element
 		element.textContent 	Sets or returns the textual content of a node and its descendants
 		element.title 	Sets or returns the title attribute of an element
+		
 		nodelist.length 	Returns the number of nodes in a NodeList
 
 
@@ -492,7 +496,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	}
 
 	private void analyseInfixExpressionNode(AstNode node) {
-		System.out.println("=== InfixExpression ===");
+		System.out.println("=== analyseInfixExpressionNode ===");
 		InfixExpression ie = (InfixExpression) node;
 
 		String left = ie.getLeft().toSource();
@@ -502,6 +506,70 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		System.out.println("Left: " + left);
 		System.out.println("Operator: " + oprator);
 		System.out.println("Right: " + right);			
+
+		if (oprator.equals("GETPROP")){  // -> nodeName: PropertyGet, e.g. Left: $("p").innerHTML
+
+			if (right.equals("innerHTML")){
+				AstNode parentNode = node.getParent();
+				//System.out.println("parentNode: " + parentNode.toSource());
+				//System.out.println("shortName: " + parentNode.shortName());
+				if (parentNode instanceof IfStatement){
+					// innerHTML of an element was used as an if condition -> e.g. if (a.innerHTML)
+					System.out.println("innerHTML property for " + left + " is used as an if condition");
+				}else if (parentNode instanceof Assignment){
+					// innerHTML of an element value was used or set -> e.g. a.innerHTML = x / y = a.innerHTML 
+					Assignment asmt = (Assignment)parentNode;
+					if (asmt.getLeft().equals(node)){ // innerHTML is set
+						System.out.println("innerHTML property for " + left + " is assigned by " + asmt.getRight().toSource());
+					}else{
+						System.out.println("innerHTML property for " + left + " is used to assign " + asmt.getLeft().toSource() );
+					}
+				}else if (parentNode instanceof VariableInitializer){
+					// innerHTML of an element used to initialize a variable -> e.g. v = dg('indicator').innerHTML
+					VariableInitializer vi = (VariableInitializer)parentNode;
+					System.out.println("innerHTML property for " + left + " is used to initialize " + vi.getTarget().toSource());
+				}
+			}else if (right.equals("anchors")){
+				// serach the DOMElementVariable list to check if a corresponding DOMJSVariable exists
+				// e.g. a.innerHTML = document.anchors[0].innerHTML; -> document is a default DOMJSVariable in the DOMElementVariable list
+				boolean JSVarExist = false;
+				for (DOMConstraint dc: DOMConstraintList){
+					String JSVar = dc.getDOMElementTypeVariable().getDOMJSVariable();
+					if (left.equals(JSVar)){
+						JSVarExist = true;
+						System.out.println(JSVar + " is the parent of anchors");
+
+						DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+						DOMElement.setParentElementJSVariable(left);
+						// adding the child node to the list for the parent
+						//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); // to store the var in the JS code that a DOM element is assigned to
+						String DOMJSVariable = "";
+						DOMElement.setDOMJSVariable(DOMJSVariable);
+
+						//System.out.println("Function " + enclosingFunctionName + " accesses DOM via .anchors");
+
+						DOMElement.setTag_attribute("a");
+						DOMElement.setName_attribute("ConfixGenName" + Integer.toString((new Random()).nextInt(100)));
+
+						// TODO...
+						DOMConstraint newDC = new DOMConstraint(DOMElement);
+						DOMConstraintList.add(newDC);
+						break;
+					}
+				}
+				if (JSVarExist == false){
+					// add the new DOMElementVariable
+				}
+			}
+
+
+		}else if (oprator.equals("=")){  // -> nodeName: Assignment
+
+		}else if (oprator.equals("==")){  // -> nodeName: InfixExpression
+
+		}
+		//TODO: considering other comparison operators
+
 
 		/*
 			 The following properties can be used on HTML documents:
@@ -531,45 +599,8 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			document.write(text) 	Write into the HTML output stream
 		 */
 
-		if (right.equals("innerHTML")){
-		}
-
-		if (right.equals("anchors")){
-			// serach the DOMElementVariable list to check if a corresponding DOMJSVariable exists
-			// e.g. a.innerHTML = document.anchors[0].innerHTML; -> document is a default DOMJSVariable in the DOMElementVariable list
-			boolean JSVarExist = false;
-			for (DOMConstraint dc: DOMConstraintList){
-				String JSVar = dc.getDOMElementTypeVariable().getDOMJSVariable();
-				if (left.equals(JSVar)){
-					JSVarExist = true;
-					System.out.println(JSVar + " is the parent of anchors");
-
-					DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
-					DOMElement.setParentElementJSVariable(left);
-					// adding the child node to the list for the parent
-					//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); // to store the var in the JS code that a DOM element is assigned to
-					String DOMJSVariable = "";
-					DOMElement.setDOMJSVariable(DOMJSVariable);
-
-					//System.out.println("Function " + enclosingFunctionName + " accesses DOM via .anchors");
-
-					DOMElement.setTag_attribute("a");
-					DOMElement.setName_attribute("ConfixGenName" + Integer.toString((new Random()).nextInt(100)));
-
-					// TODO...
-					DOMConstraint newDC = new DOMConstraint(DOMElement);
-					DOMConstraintList.add(newDC);
-					break;
-				}
-			}
-			if (JSVarExist == false){
-				// add the new DOMElementVariable
-			}
-		}
-
 
 		// serach the DOMElementVariable list to check if on the left or right a DOMJSVariable is used
-
 		for (DOMConstraint dc: DOMConstraintList){
 			String JSVar = dc.getDOMElementTypeVariable().getDOMJSVariable();
 			if (JSVar!=null)
@@ -583,9 +614,9 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	}
 
 
-
-
 	private void analyseIfStatementNode(AstNode node) {
+
+		System.out.println("=== analyseIfStatementNode ===");
 
 		ArrayList<DOMConstraint> pathCondition = new ArrayList<DOMConstraint>(); 
 
@@ -604,7 +635,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 		String conditionShortName = conditionNode.shortName();
 		if (conditionShortName.equals("InfixExpression")){	// e.g. if (x<5)
-			System.out.println("=== InfixExpression found in the condition===");
+			System.out.println("*** InfixExpression found in the condition ***");
 			InfixExpression ie = (InfixExpression) conditionNode;
 			String left = ie.getLeft().toSource();
 			String oprator = ASTNodeUtility.operatorToString(ie.getOperator());
@@ -613,7 +644,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			System.out.println("Left: " + left);
 			System.out.println("Operator: " + oprator);
 			System.out.println("Right: " + right);	
-
 
 
 			System.out.println("ie.getLeft().getLineno() : " + (ie.getLeft().getLineno()+1));
@@ -742,7 +772,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 
 	private void analyseNameNode(AstNode node) {
-		/*System.out.println(node.debugPrint());
+		System.out.println("=== analyseNameNode ===");
 
 		/* function calls like .addClass, .css, .attr ... */
 		if (node.getParent() instanceof PropertyGet
@@ -769,7 +799,13 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 
 
-	private void analyseFunctionCallNode(AstNode ASTNode) {
+	private void analyseFunctionCallNode(AstNode node) {
+		
+		 if (node.shortName().equals("NewExpression"))
+			 return;
+		
+		System.out.println("=== analyseFunctionCallNode ===");
+		 
 		/*  Detecting DOM acessing function calls
 
 		The following methods can be used on HTML documents:
@@ -781,19 +817,18 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		$()									(jQuery) : Find an element by element id
 
 		 */
-		System.out.println("===analyseFunctionCallNode===");
-		FunctionCall fcall = (FunctionCall) ASTNode;
+		FunctionCall fcall = (FunctionCall) node;
 		AstNode targetNode = fcall.getTarget(); // node evaluating to the function to call
-		System.out.println(ASTNode.debugPrint());
+		//System.out.println(node.debugPrint());
 
-		AstNode parentNode = ASTNode.getParent();
+		AstNode parentNode = node.getParent();
 
 		//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); // to store the var in the JS code that a DOM element is assigned to
 		String DOMJSVariable = "";
 
-		System.out.println("parentNode.debugPrint(): ");
-		System.out.println(parentNode.shortName());
-		System.out.println(parentNode.debugPrint());
+		//System.out.println("parentNode.debugPrint(): ");
+		//System.out.println(parentNode.shortName());
+		//System.out.println(parentNode.debugPrint());
 
 		if (parentNode.shortName().equals("VariableInitializer")){
 			VariableInitializer vi = (VariableInitializer)parentNode;
@@ -819,7 +854,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		String calledFunctionName = "";
 		String enclosingFunctionName = "";
 
-		FunctionNode func=ASTNode.getEnclosingFunction();
+		FunctionNode func=node.getEnclosingFunction();
 		if (func.getFunctionName()!=null){
 			enclosingFunctionName = func.getFunctionName().getIdentifier();
 			//System.out.println("enclosingFunctionName = " + enclosingFunctionName);
@@ -828,7 +863,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 		if (fcall.getArguments().size()==0){
 			System.out.println("NO ARGUMENT!");
-			System.out.println("ASTNode.toSource(): " + ASTNode.toSource());
+			System.out.println("ASTNode.toSource(): " + node.toSource());
 			System.out.println("targetNode.toSource(): " + targetNode.toSource());
 			return;
 		}
@@ -927,16 +962,17 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					DOMConstraintList.add(dc);
 				}
 			}else if (argumentShortName.equals("Name")){   // e.g.  DIV = "div";  d = getElementsByTagName(DIV);
-
+				System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + calledFunctionName + "(" + argument + ")");
+				//backward slicing to find the corresponding defined variable in the symbol table
 			}
 		}
 
 
 		// check for callback
 		boolean detected = false;
-		for (AstNode node : fcall.getArguments())
-			if (node.shortName().equals("FunctionNode")){
-				System.out.println("callback found at line : " + ( ASTNode.getLineno()+1));
+		for (AstNode n : fcall.getArguments())
+			if (n.shortName().equals("FunctionNode")){
+				System.out.println("callback found at line : " + ( node.getLineno()+1));
 			}
 
 	}
