@@ -3,6 +3,8 @@ package core;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
+
 public class DOMConstraint {
 
 	// Example: a = document.getElementById("demo"); -> attribute constraint is: id = "demo"
@@ -17,15 +19,17 @@ public class DOMConstraint {
 		this.DOMElementVariable = DOMElementVariable;
 	}
 
-	private List<String> constraints = new ArrayList<String>();	// e.g. if (document.anchors[0].innerHTML === "text")
 
 	/*
-	    statementToSatisfyConstraint and statementToNotSatisfyConstraint will be generated as JavaScript statements to be added to the test functions
+	    statementToSatisfyConditionalConstraint and statementToNotSatisfyConditionalConstraint will be generated as JavaScript statements to be added to the test functions
 		that dynamically at run-time add to the attributes to satisfy the given constraint.
 	 */
-	private List<String> statementToSatisfyConstraint = new ArrayList<String>();
-	private List<String> statementToNotSatisfyConstraint = new ArrayList<String>();
+	private List<String> statementToSatisfyConditionalConstraint = new ArrayList<String>();
+	private List<String> statementToNotSatisfyConditionalConstraint = new ArrayList<String>();
+	private List<String> statementToSatisfyGeneralConstraints = new ArrayList<String>();
 
+	private List<String> statementForAllConstraints = new ArrayList<String>();
+	
 	//TODO: what about dependency to anoter DOM element such as being a child node of another node?
 
 	private String xpath;
@@ -34,21 +38,23 @@ public class DOMConstraint {
 		return DOMElementVariable;
 	}
 
-	public void addConstraint(String constraint, boolean conditional){  // conditional means the constraint is used in a condition
-		this.constraints.add(constraint);
-		//Generating statements
-		if (constraint.contains("==")){
-			addStatementToSatisfyConstraint(constraint.replace("==", "="));
-			addStatementToNotSatisfyConstraint(constraint.replace("==", "=") + " + \"NEGATE\"");
+	public void addConstraint(String constraint, boolean conditional){  // conditional means the constraint is used in a condition e.g. if (document.anchors[0].innerHTML === "text")
+		if (conditional==false){
+			this.statementToSatisfyGeneralConstraints.add(constraint);
+		}else{  // if (conditional==true) generate statements
+			if (constraint.contains("==") || constraint.contains("===")){
+				addStatementToSatisfyConstraint(constraint.replace("==", "="));
+				addStatementToNotSatisfyConstraint(constraint.replace("==", "=") + " + \"NEGATE\"");
+			}else{
+				addStatementToSatisfyConstraint(constraint);
+				addStatementToNotSatisfyConstraint( "!"+ constraint);
+			} 
 		}
-
-		// For a set of n constraints, produce 2^n combinations of constraints corresponding to paths
-		for(int i=0 ; i< constraints.size() ; i++){
-			System.out.println(Integer.toBinaryString(i));
-		}
-
 	}
 
+	public void generateAllConstraints(){
+		
+	}
 
 	// TODO:  Transform constraints to xpath using string/int solver
 	/*public String getCorrespondingXpath(){
@@ -195,26 +201,54 @@ public class DOMConstraint {
 	}
 
 	public List<String> getConstraints() {
-		return constraints;
+		return statementToSatisfyGeneralConstraints;
 	}
 
 
 	public List<String> getStatementToSatisfyConstraint() {
-		return statementToSatisfyConstraint;
+		return statementToSatisfyConditionalConstraint;
 	}
 
 	public void addStatementToSatisfyConstraint(
 			String statementToSatisfyConstraint) {
-		this.statementToSatisfyConstraint.add(statementToSatisfyConstraint);
+		this.statementToSatisfyConditionalConstraint.add(statementToSatisfyConstraint);
 	}
 
 	public List<String> getStatementToNotSatisfyConstraint() {
-		return statementToNotSatisfyConstraint;
+		return statementToNotSatisfyConditionalConstraint;
 	}
 
 	public void addStatementToNotSatisfyConstraint(
 			String statementToNotSatisfyConstraint) {
-		this.statementToNotSatisfyConstraint.add(statementToNotSatisfyConstraint);
+		this.statementToNotSatisfyConditionalConstraint.add(statementToNotSatisfyConstraint);
+	}
+
+	public List<String> getStatementsForAllConstraints() {
+		String statementForConstraints = "";
+		// For a set of n constraints, produce 2^n combinations of constraints corresponding to paths
+		System.out.println("produce 2^n combinations");
+		int nomOfConditionalConstraints = statementToSatisfyConditionalConstraint.size();
+		System.out.println(nomOfConditionalConstraints);
+		String controllerBits = "";
+		int numOfCombinations = (int)Math.pow(2,nomOfConditionalConstraints);
+		for(int i=0 ; i< numOfCombinations ; i++){
+			statementForConstraints = "";
+			controllerBits = StringUtils.leftPad(Integer.toBinaryString(i), nomOfConditionalConstraints, '0');
+			//System.out.println(controllerBits);
+			for(int j=0 ; j< nomOfConditionalConstraints ; j++){
+				if (controllerBits.charAt(j) == '1'){ // use the statementToSatisfyConstraint
+					System.out.println(statementToSatisfyConditionalConstraint.get(j)+ ";" + "\n\t");
+					statementForConstraints += statementToSatisfyConditionalConstraint.get(j);
+				}else{ // statementToNotSatisfyConstraint
+					System.out.println(statementToNotSatisfyConditionalConstraint.get(j)+ ";" + "\n\t");
+					statementForConstraints += statementToNotSatisfyConditionalConstraint.get(j);
+				}
+				if (j<nomOfConditionalConstraints-1)
+					statementForConstraints += ";\n\t";
+			}
+			statementForAllConstraints.add(statementForConstraints);
+		}
+		return statementForAllConstraints;
 	}
 
 }

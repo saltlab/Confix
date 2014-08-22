@@ -43,13 +43,13 @@ public class TestSuiteGenerator {
 	private String testSuiteNameToGenerate;
 	private List<String> functionsNameList;
 	private List<String> DOMFixtureList;
-	private List<List<String>> attributeConstraints;
+	private List<List<String>> attributeConstraintsStatements;
 
 	public TestSuiteGenerator(String testSuiteNameToGenerate, List<String> DOMFixture, List<String> functionsNameList, List<List<String>> attributeConstraints){
 		this.testSuiteNameToGenerate = testSuiteNameToGenerate;
 		this.DOMFixtureList = DOMFixture;
 		this.functionsNameList = functionsNameList;
-		this.attributeConstraints = attributeConstraints;
+		this.attributeConstraintsStatements = attributeConstraints;
 
 	}
 
@@ -61,28 +61,24 @@ public class TestSuiteGenerator {
 		ArrayList<TestFunction> testFunctions = new ArrayList<TestFunction>();
 		int counter = 0;
 
-		for (int i=0; i<functionsNameList.size(); i++) {
-			//For each path to the sink node
-			TestFunction testFunction = new TestFunction("Testing function " + functionsNameList.get(i));
-			int pathCount = 0;
-			testFunction.setFixture(DOMFixtureList.get(i));
+		for (int i=0; i< functionsNameList.size(); i++) {
 
-			// adding attribute constraints
-			for (String ac: attributeConstraints.get(i))
-				testFunction.addStatement(ac + ";");
+			int numOfPathsInFunction = attributeConstraintsStatements.get(i).size();
+			//For each path in a function
+			for (int j=0; j < numOfPathsInFunction; j++){
+				TestFunction testFunction = new TestFunction("Testing function " + functionsNameList.get(i) + " for path " + (j+1));
+				testFunction.setFixture(DOMFixtureList.get(i));
 
-			testFunction.addStatement(functionsNameList.get(i) + "();");
+				// adding attribute constraints
+				if (!attributeConstraintsStatements.get(i).get(j).equals(""))
+					testFunction.addStatement(attributeConstraintsStatements.get(i).get(j));
+				
+				// calling the function
+				testFunction.addStatement(functionsNameList.get(i) + "();");
 
-			/*for (int j=0;j<10;j++) {
-				//For each path ...
-				pathCount++;
-				testFunction.addStatement("// Testing paths " + Integer.toString(pathCount) + " i.e., .... ");
-				testFunction.addStatement("new statement");
-			}				
-			 */
-
-			// adding the test method to the file
-			testFunctions.add(testFunction);
+				// adding the test method to the file
+				testFunctions.add(testFunction);
+			}
 		}
 
 		String moduleName = testSuiteNameToGenerate;

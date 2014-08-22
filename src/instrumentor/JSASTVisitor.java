@@ -668,7 +668,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 		}else if (oprator.equals("=")){  // -> nodeName: Assignment
 
-		}else if (oprator.equals("==")){  // -> nodeName: InfixExpression
+		}else if (oprator.equals("==") || oprator.equals("===")){  // -> nodeName: InfixExpression
 
 		}
 		//TODO: considering other comparison operators
@@ -761,7 +761,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			// considering multiple constraints
 			if (oprator.equals("&&") || oprator.equals("||")){
 
-			}if (oprator.equals("==")){  
+			}if (oprator.equals("==") || oprator.equals("===")){  
 				if (ie.getLeft() instanceof Name){  // e.g. if we have a = $('id') or a = $('id').html()  and then if (a == X)
 					// search among JSVariables
 					for (DOMConstraint dc: DOMConstraintList){

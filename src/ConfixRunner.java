@@ -124,10 +124,9 @@ public class ConfixRunner {
 					System.out.println(dc.getCorrespondingXpath());
 					System.out.println("ATTRIBUTE CONSTRAINTS:" + dc.getConstraints());
 					//attributeList.add(dc.getConstraints());
-					attributeConstraintList.add(dc.getStatementToNotSatisfyConstraint());
+					attributeConstraintList.add(dc.getStatementsForAllConstraints());
 					//if (dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable()!="")
 						//System.out.println("***************************************************** InnerHTML_attributeVariable():" + dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable());
-
 				}
 			}
 		}
