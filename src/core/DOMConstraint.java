@@ -8,40 +8,42 @@ public class DOMConstraint {
 	// Example: a = document.getElementById("demo"); -> attribute constraint is: id = "demo"
 	private ElementTypeVariable DOMElementVariable;
 	private String enclosingFunctionName = "";
-	
+
 	private boolean addedToTheXpath = false;  // this is to know if the constarint is added to the final xpath or not
-	
+
 
 	public DOMConstraint(ElementTypeVariable DOMElementVariable) {
 		System.out.println("DOMElementVariable: " + DOMElementVariable);
 		this.DOMElementVariable = DOMElementVariable;
 	}
-	
+
 	private List<String> constraints = new ArrayList<String>();	// e.g. if (document.anchors[0].innerHTML === "text")
-	
+
 	/*
 	    statementToSatisfyConstraint and statementToNotSatisfyConstraint will be generated as JavaScript statements to be added to the test functions
 		that dynamically at run-time add to the attributes to satisfy the given constraint.
 	 */
 	private List<String> statementToSatisfyConstraint = new ArrayList<String>();
 	private List<String> statementToNotSatisfyConstraint = new ArrayList<String>();
-	
+
 	//TODO: what about dependency to anoter DOM element such as being a child node of another node?
-	
+
 	private String xpath;
-		
+
 	public ElementTypeVariable getDOMElementTypeVariable(){
 		return DOMElementVariable;
 	}
-		
+
 	public void addConstraint(String constraint){
 		this.constraints.add(constraint);
-		//TODO: generate statements
-		//addStatementToSatisfyConstraint(X);
-		//addStatementToNotSatisfyConstraint(Y);
+		//Generating statements
+		if (constraint.contains("==")){
+			addStatementToSatisfyConstraint(constraint.replace("==", "="));
+			addStatementToNotSatisfyConstraint(constraint.replace("==", "=") + " + \"NEGATE\"");
+		}
 	}
 
-	
+
 	// TODO:  Transform constraints to xpath using string/int solver
 	/*public String getCorrespondingXpath(){
 		String id = DOMElementVariable.getId_attribute();
@@ -53,15 +55,15 @@ public class DOMConstraint {
 		String src = DOMElementVariable.getSrc_attribute();
 		String innerHTML = DOMElementVariable.getInnerHTML_attribute();
 
-		
+
 		// select("html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/
 		//		descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]")
 
 		xpath = "************** select(\"document[" + tag;
-		
+
 		if (id!=null || type!=null || name!=null || Class!=null || value!=null || src!=null)
 			xpath += "[";
-		
+
 		if(id!=null)
 			xpath += "@id_" + id;
 		if(type!=null)
@@ -74,7 +76,7 @@ public class DOMConstraint {
 			xpath += "and @value_" + value;
 		if(src!=null)
 			xpath += "and @scr_" + src;
-		
+
 		if (id!=null || type!=null || name!=null || Class!=null || value!=null || src!=null)
 			xpath += "]";
 
@@ -82,7 +84,7 @@ public class DOMConstraint {
 		System.out.println("DOMElementVariable: " + DOMElementVariable);
 		return xpath;
 	}*/
-	
+
 	// TODO:  Transform constraints to xpath using string/int solver
 	public String getCorrespondingXpath(){
 		String id = DOMElementVariable.getId_attribute();
@@ -94,15 +96,15 @@ public class DOMConstraint {
 		String src = DOMElementVariable.getSrc_attribute();
 		String innerHTML = DOMElementVariable.getInnerHTML_attribute();
 
-		
+
 		// select("html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/
 		//		descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]")
 
 		xpath = tag;
-		
+
 		if (id!=null || type!=null || name!=null || Class!=null || value!=null || src!=null)
 			xpath += "[";
-		
+
 		if(id!=null)
 			xpath += "@id_" + id;
 		if(type!=null)
@@ -115,7 +117,7 @@ public class DOMConstraint {
 			xpath += "and @value_" + value;
 		if(src!=null)
 			xpath += "and @scr_" + src;
-		
+
 		if (id!=null || type!=null || name!=null || Class!=null || value!=null || src!=null)
 			xpath += "]";
 
@@ -208,5 +210,5 @@ public class DOMConstraint {
 			String statementToNotSatisfyConstraint) {
 		this.statementToNotSatisfyConstraint.add(statementToNotSatisfyConstraint);
 	}
-	
+
 }

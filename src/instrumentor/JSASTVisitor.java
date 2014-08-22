@@ -161,9 +161,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 
 
-
-
-
 		//<button id="btn1" name="subject" type="submit" value="fav_HTML">HTML</button>
 		var x = document.getElementById("btn1").value;
 
@@ -179,8 +176,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		//</form>
 		document.getElementById("frm1").submit();
       	document.getElementById("frm1").reset();
-
-
 
 
 		The following methods can be used on all HTML elements:
@@ -464,6 +459,48 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		return true;
 	}
 
+	/*
+
+	The following properties can be used on all HTML elements:
+
+	element.attribute = 	Change the attribute of an HTML element
+	element.setAttribute(attribute,value) 	Change the attribute of an HTML element
+	element.style 	Sets or returns the style attribute of an element
+	element.style.property = 	Change the style of an HTML element
+
+	element.attributes 	Returns a NamedNodeMap of an element's attributes
+	element.childNodes 	Returns a NodeList of child nodes for an element
+	element.className 	Sets or returns the class attribute of an element
+	element.clientHeight 	Returns the viewable height of an element
+	element.clientWidth 	Returns the viewable width of an element
+	element.contentEditable 	Sets or returns whether the content of an element is editable or not
+	element.firstChild 	Returns the first child of an element
+	element.id 	Sets or returns the id of an element
+	element.innerHTML 	Sets or returns the content of an element
+	element.isContentEditable 	Returns true if the content of an element is editable, otherwise false
+	element.lastChild 	Returns the last child of an element
+	element.nextSibling 	Returns the next node at the same node tree level
+	element.nodeName 	Returns the name of an element
+	element.nodeType 	Returns the node type of an element
+	element.nodeValue 	Sets or returns the value of an element
+	element.offsetHeight 	Returns the height of an element
+	element.offsetWidth 	Returns the width of an element
+	element.offsetLeft 	Returns the horizontal offset position of an element
+	element.offsetParent 	Returns the offset container of an element
+	element.offsetTop 	Returns the vertical offset position of an element
+	element.parentNode 	Returns the parent node of an element
+	element.previousSibling 	Returns the previous element at the same node tree level
+	element.scrollHeight 	Returns the entire height of an element
+	element.scrollLeft 	Returns the distance between the left edge of an element and the view
+	element.scrollTop 	Returns the distance between the top edge of an element and the view
+	element.scrollWidth 	Returns the entire width of an element
+	element.tagName 	Returns the tag name of an element
+	element.textContent 	Sets or returns the textual content of a node and its descendants
+	element.title 	Sets or returns the title attribute of an element
+
+
+	 */
+
 	private void analyseInfixExpressionNode(AstNode node) {
 		System.out.println("=== analyseInfixExpressionNode ===");
 		InfixExpression ie = (InfixExpression) node;
@@ -476,47 +513,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		System.out.println("Operator: " + oprator);
 		System.out.println("Right: " + right);			
 
-		/*
-
-		The following properties can be used on all HTML elements:
-
-		element.attribute = 	Change the attribute of an HTML element
-		element.setAttribute(attribute,value) 	Change the attribute of an HTML element
-		element.style 	Sets or returns the style attribute of an element
-		element.style.property = 	Change the style of an HTML element
-
-		element.attributes 	Returns a NamedNodeMap of an element's attributes
-		element.childNodes 	Returns a NodeList of child nodes for an element
-		element.className 	Sets or returns the class attribute of an element
-		element.clientHeight 	Returns the viewable height of an element
-		element.clientWidth 	Returns the viewable width of an element
-		element.contentEditable 	Sets or returns whether the content of an element is editable or not
-		element.firstChild 	Returns the first child of an element
-		element.id 	Sets or returns the id of an element
-		element.innerHTML 	Sets or returns the content of an element
-		element.isContentEditable 	Returns true if the content of an element is editable, otherwise false
-		element.lastChild 	Returns the last child of an element
-		element.nextSibling 	Returns the next node at the same node tree level
-		element.nodeName 	Returns the name of an element
-		element.nodeType 	Returns the node type of an element
-		element.nodeValue 	Sets or returns the value of an element
-		element.offsetHeight 	Returns the height of an element
-		element.offsetWidth 	Returns the width of an element
-		element.offsetLeft 	Returns the horizontal offset position of an element
-		element.offsetParent 	Returns the offset container of an element
-		element.offsetTop 	Returns the vertical offset position of an element
-		element.parentNode 	Returns the parent node of an element
-		element.previousSibling 	Returns the previous element at the same node tree level
-		element.scrollHeight 	Returns the entire height of an element
-		element.scrollLeft 	Returns the distance between the left edge of an element and the view
-		element.scrollTop 	Returns the distance between the top edge of an element and the view
-		element.scrollWidth 	Returns the entire width of an element
-		element.tagName 	Returns the tag name of an element
-		element.textContent 	Sets or returns the textual content of a node and its descendants
-		element.title 	Sets or returns the title attribute of an element
-
-
-		 */
 		if (oprator.equals("GETPROP")){  // -> nodeName: PropertyGet, e.g. Left: $("p").innerHTML
 			if (right.equals("innerHTML")){
 				AstNode parentNode = node.getParent();
@@ -525,6 +521,13 @@ public abstract class JSASTVisitor implements NodeVisitor{
 				if (parentNode instanceof IfStatement){
 					// innerHTML of an element was used as an if condition -> e.g. if (a.innerHTML)
 					System.out.println(left + ".innerHTML is used as an if condition");
+					if (ie.getLeft() instanceof FunctionCall){
+						// this is to make sure ie.getLeft() will be added if not already exist
+						analyseFunctionCallNode(ie.getLeft());
+						for (DOMConstraint dc: DOMConstraintList)
+							if (dc.getDOMElementTypeVariable().getSource().equals(left))
+								dc.addConstraint(left+".innerHTML");
+					}
 				}else if (parentNode instanceof Assignment){
 					// innerHTML of an element value was used or set -> e.g. a.innerHTML = x / y = a.innerHTML 
 					Assignment asmt = (Assignment)parentNode;
@@ -593,6 +596,13 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					if (parentNode.getParent() instanceof IfStatement){
 						// property of style attribute of an element was used as an if condition -> e.g. if (cur.style.MozOpacity)
 						System.out.println(parentNode.toSource() + " is used as an if condition");
+						if (ie.getLeft() instanceof FunctionCall){
+							// this is to make sure ie.getLeft() will be added if not already exist
+							analyseFunctionCallNode(ie.getLeft());
+							for (DOMConstraint dc: DOMConstraintList)
+								if (dc.getDOMElementTypeVariable().getSource().equals(left))
+									dc.addConstraint(parentNode.toSource());
+						}
 					}else if (parentNode.getParent() instanceof Assignment){
 						// style of an element value was used or set -> e.g. a.style.display = x / y = a.style.display
 						Assignment asmt = (Assignment) parentNode.getParent();
@@ -807,10 +817,10 @@ public abstract class JSASTVisitor implements NodeVisitor{
 							dc.addConstraint(condition);
 							break;
 						}
-						
+
 					}
 				}
-				
+
 			}
 
 		}else if (conditionShortName.equals("Name")){	// e.g. if (t)  -> variable should be true to go in
@@ -1087,7 +1097,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					DOMElement.setDOMJSVariable(DOMJSVariable);
 					DOMElement.setOriginalAccessCode(parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
 					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
-					
+
 					if (calledFunctionName.equals("getElementById")){
 						DOMElement.setId_attribute(argument);
 					}else if (calledFunctionName.equals("getElementsByTagName")){

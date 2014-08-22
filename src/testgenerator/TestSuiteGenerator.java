@@ -43,11 +43,14 @@ public class TestSuiteGenerator {
 	private String testSuiteNameToGenerate;
 	private List<String> functionsNameList;
 	private List<String> DOMFixtureList;
+	private List<List<String>> attributeConstraints;
 
-	public TestSuiteGenerator(String testSuiteNameToGenerate, List<String> DOMFixture, List<String> functionsNameList){
+	public TestSuiteGenerator(String testSuiteNameToGenerate, List<String> DOMFixture, List<String> functionsNameList, List<List<String>> attributeConstraints){
 		this.testSuiteNameToGenerate = testSuiteNameToGenerate;
 		this.DOMFixtureList = DOMFixture;
 		this.functionsNameList = functionsNameList;
+		this.attributeConstraints = attributeConstraints;
+
 	}
 
 	/**
@@ -63,6 +66,11 @@ public class TestSuiteGenerator {
 			TestFunction testFunction = new TestFunction("Testing function " + functionsNameList.get(i));
 			int pathCount = 0;
 			testFunction.setFixture(DOMFixtureList.get(i));
+
+			// adding attribute constraints
+			for (String ac: attributeConstraints.get(i))
+				testFunction.addStatement(ac + ";");
+
 			testFunction.addStatement(functionsNameList.get(i) + "();");
 
 			/*for (int j=0;j<10;j++) {
@@ -76,7 +84,7 @@ public class TestSuiteGenerator {
 			// adding the test method to the file
 			testFunctions.add(testFunction);
 		}
-		
+
 		String moduleName = testSuiteNameToGenerate;
 
 		String TEST_SUITE_PATH = "output/" + testSuiteNameToGenerate;

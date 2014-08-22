@@ -1,4 +1,4 @@
-// QUnit test cases generated @ Wed Aug 20 23:48:06 PDT 2014
+// QUnit test cases generated @ Thu Aug 21 17:47:49 PDT 2014
 
 module("tests_phormer.js", {
     setup: function() {
@@ -15,7 +15,9 @@ module("tests_phormer.js", {
 
 test("Testing function toggleInfo", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="theImage"/> <div id="hin"/> <div id="photoBoxes"/> ');
+	$("#qunit-fixture").append(' <div id="photoBoxes"/> <div id="theImage"/> <div id="hin"/> ');
+	dg('hin').innerHTML;
+	dg('hin').innerHTML == 'Show';
 	toggleInfo();
 });
 
@@ -24,6 +26,13 @@ test("Testing function updateIndic", function() {
 	expect(0);
 	$("#qunit-fixture").append(' <div id="indicator"/> ');
 	updateIndic();
+});
+
+
+test("Testing function dg", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="TheIDShouldBeSetFromFunctionInput"/> ');
+	dg();
 });
 
 
@@ -43,7 +52,7 @@ test("Testing function reshuffle", function() {
 
 test("Testing function ss_toggleSmaller", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="ss_smaller_link"/> <div id="ss_photo"/> ');
+	$("#qunit-fixture").append(' <div id="ss_photo"/> <div id="ss_smaller_link"/> ');
 	ss_toggleSmaller();
 });
 
@@ -57,14 +66,14 @@ test("Testing function ss_playpause", function() {
 
 test("Testing function doReply", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="cmntReply"/> <div id="viewComment"/> ');
+	$("#qunit-fixture").append(' <div id="viewComment"/> <div id="cmntReply"/> ');
 	doReply();
 });
 
 
 test("Testing function ss_update", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="ss_date"/> <div id="ss_link1"/> <div id="ss_desc"/> <div id="ss_title"/> <div id="ss_link2"/> <div id="ss_photo"/> <div id="ss_n"/> ');
+	$("#qunit-fixture").append(' <div id="ConfixGeneID57"/> <div id="ss_photo"/> <div id="ss_title"/> <div id="ss_n"/> <div id="ss_desc"/> <div id="ss_link1"/> <div id="ss_date"/> <div id="ss_link2"/> ');
 	ss_update();
 });
 

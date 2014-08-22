@@ -108,14 +108,18 @@ public class ConfixRunner {
 		codeAnalyzer.analyzeJavaScript(jsCode, scopename);
 		List<String> functionsList = codeAnalyzer.getDOMDependentFunctions();
 
+		List<List<String>> attributeList = new ArrayList<List<String>>();
+
 		for (String DDF: functionsList){
-			System.out.println("****** Listing DOM constraints in DDF: " + DDF);
+			System.out.println(">>>>>>>> Listing DOM constraints in DDF: " + DDF);
 			for (DOMConstraint dc: codeAnalyzer.getDOMConstraintList()){
 				
 				if (dc.getEnclosingFunctionName().equals(DDF)){
 					System.out.println(dc.getCorrespondingXpath());
-					if (dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable()!="")
-						System.out.println("***************************************************** InnerHTML_attributeVariable():" + dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable());
+					System.out.println("ATTRIBUTE CONSTRAINTS:" + dc.getConstraints());
+					attributeList.add(dc.getConstraints());
+					//if (dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable()!="")
+						//System.out.println("***************************************************** InnerHTML_attributeVariable():" + dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable());
 
 				}
 			}
@@ -138,7 +142,7 @@ public class ConfixRunner {
 		
 		// 4) Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
 		String testSuiteNameToGenerate = "tests_phormer.js";
-		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixtureList, functionsList);
+		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixtureList, functionsList, attributeList);
 		tsg.generateTestSuite();
 
 		//driverQuit();
