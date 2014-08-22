@@ -20,6 +20,7 @@ import org.owasp.webscarab.plugin.*;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -89,27 +90,32 @@ public class ConfixRunner {
 		load();
 		 */
 
-
 		// 2) Transform the DOM constraints in the JavaScript code into xpath constraint (xpath rule)
 		// 3) solve xpath constraints and generate corresponding XML as DOMFixture
 		//String xpathToSolve = JSModifier.generateXpathConstraint();
 		//HashSet<String> functionsList = JSModifier.getDOMDependentFunctions();
 		// Directly analyzing the code
 		codeAnalyzer = new JSAnalyzer(new JSASTInstrumenter());
-		String jsCode = "";
-		String scopename = "phorm.js";
-		FileInputStream inputStream = new FileInputStream("output/phormer_tests/phorm.js");
-	    try {
-	    	jsCode = IOUtils.toString(inputStream);
-	    } finally {
-	        inputStream.close();
-	    }
-	    
-		codeAnalyzer.analyzeJavaScript(jsCode, scopename);
+			    
+	    codeAnalyzer.analyzeJavaScript("output/phormer_tests/phorm.js", "phorm.js");
+		
 		List<String> functionsList = codeAnalyzer.getDOMDependentFunctions();
 
-		List<List<String>> attributeList = new ArrayList<List<String>>();
+		List<List<String>> attributeConstraintList = getAttributeConstraintList(functionsList);
+		
+		List<String> DOMFixtureList = getDOMFixtureList(functionsList);
+		
+		// 4) Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
+		String testSuiteNameToGenerate = "tests_phormer.js";
+		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixtureList, functionsList, attributeConstraintList);
+		tsg.generateTestSuite();
 
+		//driverQuit();
+	}
+
+
+	private static List<List<String>> getAttributeConstraintList(List<String> functionsList) {
+		List<List<String>> attributeConstraintList = new ArrayList<List<String>>();
 		for (String DDF: functionsList){
 			System.out.println(">>>>>>>> Listing DOM constraints in DDF: " + DDF);
 			for (DOMConstraint dc: codeAnalyzer.getDOMConstraintList()){
@@ -117,17 +123,20 @@ public class ConfixRunner {
 				if (dc.getEnclosingFunctionName().equals(DDF)){
 					System.out.println(dc.getCorrespondingXpath());
 					System.out.println("ATTRIBUTE CONSTRAINTS:" + dc.getConstraints());
-					attributeList.add(dc.getConstraints());
+					//attributeList.add(dc.getConstraints());
+					attributeConstraintList.add(dc.getStatementToNotSatisfyConstraint());
 					//if (dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable()!="")
 						//System.out.println("***************************************************** InnerHTML_attributeVariable():" + dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable());
 
 				}
 			}
 		}
+		return attributeConstraintList;
+	}
 
+	private static List<String> getDOMFixtureList(List<String> functionsList) throws Exception {
 		XpathSolver xpathsolver = new XpathSolver();
 		String DOMFixture = "";
-		
 		int i = 0;
 		List<String> DOMFixtureList = new ArrayList<String>();
 		for (String xpathToSolve : codeAnalyzer.generateXpathConstraints()){
@@ -138,16 +147,10 @@ public class ConfixRunner {
 			DOMFixtureList.add(DOMFixture);
 			System.out.println(DOMFixture);
 		}
-
-		
-		// 4) Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
-		String testSuiteNameToGenerate = "tests_phormer.js";
-		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixtureList, functionsList, attributeList);
-		tsg.generateTestSuite();
-
-		//driverQuit();
+		return DOMFixtureList;
 	}
-
+	
+	
 
 	// The XML solver output is on the stream so we write it into a text file
 	private static void writeStreamToFile(String string) {

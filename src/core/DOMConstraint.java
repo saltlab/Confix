@@ -34,13 +34,19 @@ public class DOMConstraint {
 		return DOMElementVariable;
 	}
 
-	public void addConstraint(String constraint){
+	public void addConstraint(String constraint, boolean conditional){  // conditional means the constraint is used in a condition
 		this.constraints.add(constraint);
 		//Generating statements
 		if (constraint.contains("==")){
 			addStatementToSatisfyConstraint(constraint.replace("==", "="));
 			addStatementToNotSatisfyConstraint(constraint.replace("==", "=") + " + \"NEGATE\"");
 		}
+
+		// For a set of n constraints, produce 2^n combinations of constraints corresponding to paths
+		for(int i=0 ; i< constraints.size() ; i++){
+			System.out.println(Integer.toBinaryString(i));
+		}
+
 	}
 
 

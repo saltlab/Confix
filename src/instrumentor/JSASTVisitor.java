@@ -526,7 +526,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 						analyseFunctionCallNode(ie.getLeft());
 						for (DOMConstraint dc: DOMConstraintList)
 							if (dc.getDOMElementTypeVariable().getSource().equals(left))
-								dc.addConstraint(left+".innerHTML");
+								dc.addConstraint(left+".innerHTML", true);
 					}
 				}else if (parentNode instanceof Assignment){
 					// innerHTML of an element value was used or set -> e.g. a.innerHTML = x / y = a.innerHTML 
@@ -601,7 +601,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 							analyseFunctionCallNode(ie.getLeft());
 							for (DOMConstraint dc: DOMConstraintList)
 								if (dc.getDOMElementTypeVariable().getSource().equals(left))
-									dc.addConstraint(parentNode.toSource());
+									dc.addConstraint(parentNode.toSource(), true);
 						}
 					}else if (parentNode.getParent() instanceof Assignment){
 						// style of an element value was used or set -> e.g. a.style.display = x / y = a.style.display
@@ -774,7 +774,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 							String condition = conditionNode.toSource();
 							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".id");
 							//System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition);
+							dc.addConstraint(condition, true);
 							break;
 						}else if (dc.getDOMElementTypeVariable().getType_attributeVariable().equals(ie.getLeft().toSource())){
 							System.out.println(dc.getDOMElementTypeVariable().getType_attributeVariable() + " variable which refers to a type attribute of a DOM element is used in a condition");
@@ -782,7 +782,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 							String condition = conditionNode.toSource();
 							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".type");
 							//System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition);
+							dc.addConstraint(condition, true);
 							break;
 						}else if (dc.getDOMElementTypeVariable().getName_attributeVariable().equals(ie.getLeft().toSource())){
 							System.out.println(dc.getDOMElementTypeVariable().getName_attributeVariable() + " variable which refers to a name attribute of a DOM element is used in a condition");
@@ -790,7 +790,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 							String condition = conditionNode.toSource();
 							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".name");
 							//System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition);
+							dc.addConstraint(condition, true);
 							break;
 						}else if (dc.getDOMElementTypeVariable().getClass_attributeVariable().equals(ie.getLeft().toSource())){
 							System.out.println(dc.getDOMElementTypeVariable().getClass_attributeVariable() + " variable which refers to a class attribute of a DOM element is used in a condition");
@@ -798,7 +798,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 							String condition = conditionNode.toSource();
 							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".class");
 							//System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition);
+							dc.addConstraint(condition, true);
 							break;
 						}else if (dc.getDOMElementTypeVariable().getValue_attributeVariable().equals(ie.getLeft().toSource())){
 							System.out.println(dc.getDOMElementTypeVariable().getValue_attributeVariable() + " variable which refers to a value attribute of a DOM element is used in a condition");
@@ -806,7 +806,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 							String condition = conditionNode.toSource();
 							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".value");
 							//System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition);
+							dc.addConstraint(condition, true);
 							break;
 						}else if (dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable().equals(ie.getLeft().toSource())){
 							System.out.println(dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable() + " variable which refers to an innerHTML attribute of a DOM element is used in a condition");
@@ -814,7 +814,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 							String condition = conditionNode.toSource();
 							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".innerHTML");
 							//System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition);
+							dc.addConstraint(condition, true);
 							break;
 						}
 

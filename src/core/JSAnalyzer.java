@@ -2,11 +2,14 @@ package core;
 
 import instrumentor.JSASTVisitor;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.mozilla.javascript.CompilerEnvirons;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Parser;
@@ -73,13 +76,23 @@ public class JSAnalyzer {
 
 
 	/**
-	 * @param input
-	 *            The JavaScript code to be analyzed
+	 * @param jsAddress
+	 *            Address of the JavaScript code to be analyzed
 	 * @param scopename
 	 *            Name of the current scope (filename mostly)
+	 * @throws Exception 
 	 */
-	public String analyzeJavaScript(String input, String scopename) {
+	public String analyzeJavaScript(String jsAddress, String scopename) throws Exception {
 
+		// reading js form the input file
+		String input = "";
+		FileInputStream inputStream = new FileInputStream(jsAddress);
+	    try {
+	    	input = IOUtils.toString(inputStream);
+	    } finally {
+	        inputStream.close();
+	    }	    
+		
 		try {
 			AstRoot ast = null;	
 
