@@ -1,4 +1,4 @@
-// QUnit test cases generated @ Wed Aug 27 12:29:25 PDT 2014
+// QUnit test cases generated @ Fri Aug 22 13:08:05 PDT 2014
 
 module("tests_phormer.js", {
     setup: function() {
@@ -100,7 +100,7 @@ test("Testing function doReply for path 1", function() {
 
 test("Testing function ss_update for path 1", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <img id="ss_photo" src="ConfixGeneratedSrc"/> <div id="ss_photo"/> <div id="ss_title"/> <div id="ConfixGeneID84"/> <div id="ss_n"/> <div id="ss_desc"/> <div id="ss_link1"/> <div id="ss_date"/> <div id="ss_link2"/> ');
+	$("#qunit-fixture").append(' <img id="ss_photo" src="ConfixGeneratedSrc"/> <div id="ss_photo"/> <div id="ss_title"/> <div id="ConfixGeneID69"/> <div id="ss_n"/> <div id="ss_desc"/> <div id="ss_link1"/> <div id="ss_date"/> <div id="ss_link2"/> ');
 	ss_update();
 });
 

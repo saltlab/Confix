@@ -260,7 +260,7 @@ function ss_update() {
 		src = ss_src [ss_cur];
 		src = ss_smaller?src_smaller(src):src;
 
-		dg('ss_photo')	.src 		= src;
+		//dg('ss_photo')	.src 		= src;
 		dg('ss_date')	.innerHTML 	= ss_date[ss_cur];
 		dg('ss_title')	.innerHTML 	= ss_ttl [ss_cur];
 		dg('ss_desc')	.innerHTML 	= ss_desc[ss_cur];
