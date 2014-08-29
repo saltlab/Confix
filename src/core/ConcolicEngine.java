@@ -1,14 +1,15 @@
-import core.DOMConstraint;
-import core.JSAnalyzer;
-import core.XpathSolver;
+package core;
 
 import instrumentor.JSASTInstrumenter;
 import instrumentor.JSModifyProxyPlugin;
 import instrumentor.ProxyConfiguration;
 
-import testgenerator.TestSuiteGenerator;
+import java.io.File;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.io.IOUtils;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -16,26 +17,39 @@ import org.openqa.selenium.firefox.FirefoxProfile;
 import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.proxy.Proxy;
-import org.owasp.webscarab.plugin.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import testgenerator.TestSuiteGenerator;
 
-
-public class ConfixRunner {
-
-	private static WebDriver driver;
+public class ConcolicEngine {
+	/*
+	 * Concolic DOM generation
+	 * 1) Input variables take values w.r.t DOM elements. These variables will be treated as symbolic variables
+	 * during symbolic execution. All other variables will be treated as concrete values.
+	 * 2) Instrument the program so that each operation which may affect a symbolic variable value or a path condition
+	 * is logged to a trace file, as well as any error that occurs.
+	 * 3) Choose an arbitrary input to begin with.
+	 * 4) Execute the program.
+	 * 5) Symbolically re-execute the program on the trace, generating a set of symbolic constraints (including path conditions).
+	 * 6) Negate the last path condition not already negated in order to visit a new execution path. If there is no such path condition, 
+	 * the algorithm terminates.
+	 * 7) Invoke an automated theorem prover to generate a new input. If there is no input satisfying the constraints, 
+	 * return to step 6 to try the next execution path.
+	 * 8) Return to step 4.
+	 */
 	private static String url;
-	private String DOM = null;
-
+	private static WebDriver driver;
 	private static JSModifyProxyPlugin JSModifier;
 	private static JSAnalyzer codeAnalyzer;
+
+	private static String jsAdderess;
+	private static String scopeName;
+
+	public ConcolicEngine(String url, String jsAdderess, String scopeName){
+		this.url = url;
+		this.jsAdderess = jsAdderess;
+		this.scopeName = scopeName;
+	}
+	
 
 	public static void driverSetup(ProxyConfiguration prox) throws Exception {
 		FirefoxProfile profile = new FirefoxProfile();
@@ -47,13 +61,6 @@ public class ConfixRunner {
 			profile.setPreference("network.proxy.no_proxies_on", "");
 		}
 		driver = new FirefoxDriver(profile);
-		//url = "http://localhost:8888/claroline-1.11.7/index.php?logout=true";
-
-		//url = "http://localhost:8888/test.htm";
-		url = "http://localhost:8888/phormer331/";
-
-		//url = "/Users/aminmf/Documents/workspace/Confix/test.html";
-
 		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
 	}
 
@@ -69,19 +76,10 @@ public class ConfixRunner {
 
 	public static void load(){
 		driver.get(url);
-		//driver.findElement(By.id("login")).clear();
-		//driver.findElement(By.id("login")).sendKeys("nainy");
-		//driver.findElement(By.id("password")).clear();
-		//driver.findElement(By.id("password")).sendKeys("nainy");
-		//driver.findElement(By.cssSelector("button[type=\"submit\"]")).click();
 	}
 
-
-	/**
-	 * @param args
-	 * @throws Exception 
-	 */
-	public static void main(String[] args) throws Exception {
+	// Runs the cocolic exectuion
+	public void run() throws Exception {
 
 		// 1) Intercept and instrument the JavaScript code via a proxy
 		/*ProxyConfiguration prox = new ProxyConfiguration();
@@ -97,24 +95,18 @@ public class ConfixRunner {
 		// Directly analyzing the code
 		codeAnalyzer = new JSAnalyzer(new JSASTInstrumenter());
 			    
-	    codeAnalyzer.analyzeJavaScript("output/phormer_tests/phorm.js", "phorm.js");
+	    codeAnalyzer.analyzeJavaScript(jsAdderess, scopeName);
 		
-		List<String> functionsList = codeAnalyzer.getDOMDependentFunctions();
-
-		List<List<String>> attributeConstraintList = getAttributeConstraintList(functionsList);
+		// These are to be used externally by the runner class to generate test suite
+	    //List<String> functionsList = codeAnalyzer.getDOMDependentFunctions();
+	    //List<List<String>> attributeConstraintList = getAttributeConstraintList(functionsList);
+		//List<String> DOMFixtureList = getDOMFixtureList(functionsList);
 		
-		List<String> DOMFixtureList = getDOMFixtureList(functionsList);
-		
-		// 4) Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
-		String testSuiteNameToGenerate = "tests_phormer.js";
-		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixtureList, functionsList, attributeConstraintList);
-		tsg.generateTestSuite();
-
 		//driverQuit();
 	}
 
 
-	private static List<List<String>> getAttributeConstraintList(List<String> functionsList) {
+	public List<List<String>> getAttributeConstraintList(List<String> functionsList) {
 		List<List<String>> attributeConstraintList = new ArrayList<List<String>>();
 		for (String DDF: functionsList){
 			System.out.println(">>>>>>>> Listing DOM constraints in DDF: " + DDF);
@@ -126,14 +118,14 @@ public class ConfixRunner {
 					//attributeList.add(dc.getConstraints());
 					attributeConstraintList.add(dc.getStatementsForAllConstraints());
 					//if (dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable()!="")
-						//System.out.println("***************************************************** InnerHTML_attributeVariable():" + dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable());
+						//System.out.println("**************** InnerHTML_attributeVariable():" + dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable());
 				}
 			}
 		}
 		return attributeConstraintList;
 	}
 
-	private static List<String> getDOMFixtureList(List<String> functionsList) throws Exception {
+	public List<String> getDOMFixtureList(List<String> functionsList) throws Exception {
 		XpathSolver xpathsolver = new XpathSolver();
 		String DOMFixture = "";
 		int i = 0;
@@ -173,5 +165,9 @@ public class ConfixRunner {
 	}
 
 
+	public List<String> getDOMDependentFunctions() {
+		return codeAnalyzer.getDOMDependentFunctions();
+	}
 
+	
 }
