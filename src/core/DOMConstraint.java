@@ -87,7 +87,7 @@ public class DOMConstraint {
 		if(value!=null)
 			xpath += "and @value_" + value;
 		if(src!=null)
-			xpath += "and @scr_" + src;
+			xpath += "and @src_" + src;
 
 		if (id!=null || type!=null || name!=null || Class!=null || value!=null || src!=null)
 			xpath += "]";
@@ -128,7 +128,7 @@ public class DOMConstraint {
 		if(value!=null)
 			xpath += "and @value_" + value;
 		if(src!=null)
-			xpath += "and @scr_" + src;
+			xpath += "and @src_" + src;
 
 		if (id!=null || type!=null || name!=null || Class!=null || value!=null || src!=null)
 			xpath += "]";

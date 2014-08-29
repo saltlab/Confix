@@ -2,8 +2,10 @@ package core;
 
 import instrumentor.JSASTVisitor;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -87,12 +89,12 @@ public class JSAnalyzer {
 		// reading js form the input file
 		String input = "";
 		FileInputStream inputStream = new FileInputStream(jsAddress);
-	    try {
-	    	input = IOUtils.toString(inputStream);
-	    } finally {
-	        inputStream.close();
-	    }	    
-		
+		try {
+			input = IOUtils.toString(inputStream);
+		} finally {
+			inputStream.close();
+		}	    
+
 		try {
 			AstRoot ast = null;	
 
@@ -108,6 +110,15 @@ public class JSAnalyzer {
 			//System.out.println("AST BEFORE INSTRUMENTATION: ");
 			//System.out.println(ast.toSource());
 			//System.out.println(ast.debugPrint());
+
+
+			//writeJSToFile(scopename, input);
+			//writeFunctionsToFile(input);
+
+
+			//System.out.println("AST BEFORE : ");
+			//System.out.println(ast.toSource());
+
 
 			astVisitor.setScopeName(scopename);
 			astVisitor.start();
@@ -151,6 +162,64 @@ public class JSAnalyzer {
 		LOGGER.warn("Here is the corresponding buffer: \n" + input + "\n");
 
 		return input;
+	}
+
+
+	private void writeJSToFile(String scopename, String input) {
+		try {
+			System.out.println("writing on /jsCode/" + scopename);
+			File file = new File("jsCode/" + scopename);
+			if (!file.exists()) {
+				file.createNewFile();
+			}
+			FileOutputStream fop = new FileOutputStream(file);
+			fop.write(input.getBytes());
+			fop.flush();
+			fop.close();
+		}
+		catch (IOException ioe) {
+			System.out.println("IO Exception");
+		}
+	}
+
+	// Look for instances of "function" in input then figure out where it ends
+	private void writeFunctionsToFile(String input) {
+		String inputCopy = input;
+		int indexOfFuncString = inputCopy.indexOf("function ");
+		while (indexOfFuncString != -1) {
+			String sub = inputCopy.substring(indexOfFuncString);
+			int nextOpenParen = sub.indexOf("(");
+			String funcName = sub.substring(9, nextOpenParen); //"function " has 9 characters
+			int firstOpenBrace = sub.indexOf("{");
+			int countOpenBraces = 1;
+			int countCloseBraces = 0;
+			int endIndex = firstOpenBrace;
+			while (countOpenBraces != countCloseBraces) {
+				endIndex++;
+				if (sub.charAt(endIndex) == '{') {
+					countOpenBraces++;
+				}
+				else if (sub.charAt(endIndex) == '}') {
+					countCloseBraces++;
+				}
+			}
+			String code = sub.substring(0, endIndex+1);
+			try {
+				File file = new File("jsCode/" +  funcName + ".js");
+				if (!file.exists()) {
+					file.createNewFile();
+				}
+				FileOutputStream fop = new FileOutputStream(file);
+				fop.write(code.getBytes());
+				fop.flush();
+				fop.close();
+			}
+			catch (IOException ioe) {
+				System.out.println("IO Exception");
+			}
+			inputCopy = sub.substring(endIndex+1);
+			indexOfFuncString = inputCopy.indexOf("function ");
+		}
 	}
 
 
