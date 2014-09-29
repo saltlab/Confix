@@ -20,27 +20,25 @@ import java.util.concurrent.TimeUnit;
 
 public class ConfixRunner {
 
-	private static String url = "http://localhost:8888/phormer331/";
-	private static String functionToTest = "http://localhost:8888/phormer331/";
+	private static String url = "http://localhost:8888/concolic.htm";
 	private static String jsAdderess = "output/phormer_tests/phorm.js";
 	private static String scopeName = "phorm.js";
 	private static String testSuiteNameToGenerate = "tests_phormer.js";
 	
+	// provide input values for a DOM dependent function 
+	private static String functionToTest = "f(-10)";
+
 	public static void main(String[] args) throws Exception {
 
-		//TODO: apply these changes
-		//get as inputs: input values for a given set of DOM dependent functions
-
-		ConcolicEngine ce = new ConcolicEngine(url, jsAdderess, scopeName);
+		ConcolicEngine ce = new ConcolicEngine(url, jsAdderess, scopeName, functionToTest);
 		ce.run();
 		List<String> functionsList = ce.getDOMDependentFunctions();
 		List<List<String>> attributeConstraintList = ce.getAttributeConstraintList(functionsList);
 		List<String> DOMFixtureList = ce.getDOMFixtureList(functionsList);
 		
-		// Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
+		// Generate a QUnit test file for a DOM-dependent function with DOM fixture
 		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixtureList, functionsList, attributeConstraintList);
 		tsg.generateTestSuite();
-
 	}
 
 

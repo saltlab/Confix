@@ -36,22 +36,24 @@ public class ConcolicEngine {
 	 * return to step 6 to try the next execution path.
 	 * 8) Return to step 4.
 	 */
-	private static String url;
-	private static WebDriver driver;
-	private static JSModifyProxyPlugin JSModifier;
-	private static JSAnalyzer codeAnalyzer;
+	private String url;
+	private WebDriver driver;
+	private JSModifyProxyPlugin JSModifier;
+	private JSAnalyzer codeAnalyzer;
 
-	private static String jsAdderess;
-	private static String scopeName;
+	private String jsAdderess;
+	private String scopeName;
+	private String functionToTest;
 
-	public ConcolicEngine(String url, String jsAdderess, String scopeName){
+	public ConcolicEngine(String url, String jsAdderess, String scopeName, String functionToTest){
 		this.url = url;
 		this.jsAdderess = jsAdderess;
 		this.scopeName = scopeName;
+		this.functionToTest = functionToTest;
 	}
 	
 
-	public static void driverSetup(ProxyConfiguration prox) throws Exception {
+	public void driverSetup(ProxyConfiguration prox) throws Exception {
 		FirefoxProfile profile = new FirefoxProfile();
 		if (prox != null) {
 			profile.setPreference("network.proxy.http", prox.getHostname());
@@ -68,13 +70,13 @@ public class ConcolicEngine {
 		((JavascriptExecutor) driver).executeScript(javascript);
 	}
 
-	public static void driverQuit() throws Exception {
+	public void driverQuit() throws Exception {
 		//if (getCoverageReport)
 		//	((JavascriptExecutor) driver).executeScript(" if (window.jscoverage_report) {return jscoverage_report('CodeCoverageReport');}");
 		driver.quit();
 	}
 
-	public static void load(){
+	public void load(){
 		driver.get(url);
 	}
 
@@ -87,7 +89,12 @@ public class ConcolicEngine {
 		driverSetup(prox);
 		load();
 		 */
-
+		driver = new FirefoxDriver();
+		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+		driver.get(url);
+		//((JavascriptExecutor) driver).executeScript(functionToTest + ";");
+		driverQuit();
+		
 		// 2) Transform the DOM constraints in the JavaScript code into xpath constraint (xpath rule)
 		// 3) solve xpath constraints and generate corresponding XML as DOMFixture
 		//String xpathToSolve = JSModifier.generateXpathConstraint();
@@ -102,7 +109,7 @@ public class ConcolicEngine {
 	    //List<List<String>> attributeConstraintList = getAttributeConstraintList(functionsList);
 		//List<String> DOMFixtureList = getDOMFixtureList(functionsList);
 		
-		//driverQuit();
+	    	    
 	}
 
 
@@ -144,7 +151,7 @@ public class ConcolicEngine {
 	
 
 	// The XML solver output is on the stream so we write it into a text file
-	private static void writeStreamToFile(String string) {
+	private void writeStreamToFile(String string) {
 		try {
 			System.setOut(new PrintStream(new File("output/output-file.txt")));
 		} catch (Exception e) {
@@ -152,7 +159,7 @@ public class ConcolicEngine {
 		}		
 	}
 
-	private static void runProxy(ProxyConfiguration prox) {
+	private void runProxy(ProxyConfiguration prox) {
 		prox.setPort(3128);
 		JSModifier = new JSModifyProxyPlugin(new JSASTInstrumenter());
 		//JSModifyProxyPlugin modifier = new JSModifyProxyPlugin("TEMP");  // output forlder name
