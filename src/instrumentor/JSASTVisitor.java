@@ -735,13 +735,19 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 		System.out.println("=== analyseIfStatementNode ===");
 
+		
 		ArrayList<DOMConstraint> pathCondition = new ArrayList<DOMConstraint>(); 
 
 		FunctionNode func=node.getEnclosingFunction();
-
 		IfStatement is = (IfStatement) node;
 		AstNode conditionNode = is.getCondition();
 
+		
+
+		
+		
+		
+		
 		System.out.println("conditionNode.shortName() : " + conditionNode.shortName());
 		System.out.println("conditionNode.depth() : " + conditionNode.depth());
 		System.out.println("conditionNode.getLineno() : " + (conditionNode.getLineno()+1));
@@ -751,6 +757,32 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		System.out.println("conditionNode.debugPrint() : \n" + conditionNode.debugPrint());
 
 		String conditionShortName = conditionNode.shortName();
+
+		
+		
+		// instrumenting the condition
+		String wrapperCode = "if (confixCondition(\""+ conditionNode.toSource() +"\", " + conditionNode.toSource() + ")) temp;";
+		System.out.println("wrapperCode : " + wrapperCode );
+		AstNode wrapperNode = parse(wrapperCode);
+		//System.out.println(wrapperNode.toSource());
+		//System.out.println( ().getCondition().toSource());
+		
+		IfStatement tempIS = (IfStatement) (AstNode) wrapperNode.getFirstChild();
+		System.out.println("Replacing condition: " + is.getCondition().toSource() + " with wrapperCondition: " + tempIS.getCondition().toSource());
+		is.setCondition(tempIS.getCondition());
+		System.out.println("New condition: " + is.getCondition().toSource());
+
+		
+			
+
+		
+		
+		
+		
+		
+		
+		
+		
 		if (conditionShortName.equals("InfixExpression")){	// e.g. if (x<5)
 			System.out.println("*** InfixExpression found in the condition ***");
 			InfixExpression ie = (InfixExpression) conditionNode;
@@ -761,7 +793,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			System.out.println("Left: " + left);
 			System.out.println("Operator: " + oprator);
 			System.out.println("Right: " + right);	
-
 
 			// check if the path condition is on a DOM element
 
@@ -998,16 +1029,16 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		String targetBody = targetNode.toSource();
 		AstNode parentNode = node.getParent();
 
+		String functionType = "";  // The called function is either "accessingDOM" or "notAccessingDOM" 
 		String argument = "";
 		String argumentShortName = "";
-		String calledFunctionName = "";
 		String enclosingFunctionName = "";
 		// to store the var in the JS code that a DOM element is assigned to
 		String DOMJSVariable = "";
 		//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); 
 
 		// avoid re-instrumentation!
-		if (fcall.getParent().toSource().contains("confixGetElement"))
+		if (fcall.getParent().toSource().contains("confixFunCall"))
 			return;
 
 		// getting the enclosing function name
@@ -1041,45 +1072,50 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			System.out.println("argument: " + argument + " - argumentShortName: " + argumentShortName);
 		}
 
+
+		if (targetBody.contains("getElementById") || targetBody.contains("getElementsByTagName") || 
+				targetBody.contains("getElementsByName") || targetBody.contains("getElementsByClassName") ||
+				targetBody.equals("$") || targetBody.equals("jQuery"))
+			functionType = "accessingDOM";
+		else
+			functionType = "notAccessingDOM"; 
+
+
+		// e.g. Replacing functionCall: document.getElementById(x) with wrapperFunCall: confixGetElement("document.getElementById", ["x"], document.getElementById(x))
+		List<AstNode> args = new ArrayList(fcall.getArguments());
+		String wrapperCode = "confixFunCall(\""+ functionType +"\", \""+ targetBody +"\", [";
+		for (int i=0; i<args.size(); i++)
+			wrapperCode += ("\"" + args.get(i).toSource().replace("\"", "").replace("'", "") + "\",");
+		wrapperCode += "], [";
+		for (int i=0; i<args.size(); i++)
+			wrapperCode += args.get(i).toSource() + ",";
+		wrapperCode += "], "+ fcall.toSource() + ")";
+		System.out.println("wrapperCode : " + wrapperCode );
+
+		AstNode wrapperNode = parse(wrapperCode);
+		ExpressionStatement es = (ExpressionStatement)((AstNode) wrapperNode.getFirstChild());
+		FunctionCall wrapperFunCall = (FunctionCall) es.getExpression();
+		args.add(wrapperFunCall.getArguments().get(0));
+		//wrapperFunCall.addArgument(fcall);
+		System.out.println("Replacing functionCall: " + fcall.toSource() + " with wrapperFunCall: " + wrapperFunCall.toSource());
+		fcall.setTarget(wrapperFunCall.getTarget());
+		fcall.setArguments(wrapperFunCall.getArguments());			
+		System.out.println("New functionCall: " + fcall.toSource());
+
+
+		
+		/*  TODO
+
 		// e.g. document.getElemenyById(x)
 		if (targetNode instanceof PropertyGet){
 			PropertyGet pg = (PropertyGet)targetNode;
-			calledFunctionName = pg.getRight().toSource();
+			targetBody = pg.getRight().toSource();
 			// getting parentNodeElement e.g. document in document.getElemenyById(x) or a in a.getElemenyById(x)
 			String parentNodeElement = pg.getLeft().toSource();
 
 			// TODO: return document.getElementbyID(x) -> return should be considered as an assignment *********
-
-
-
-			if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || 
-					calledFunctionName.equals("getElementsByName") || calledFunctionName.equals("getElementsByClassName")){
-
-				// e.g. Replacing functionCall: document.getElementById(x) with wrapperFunCall: confixGetElement("document.getElementById", ["x"], document.getElementById(x))
-				List<AstNode> args = new ArrayList(fcall.getArguments());
-				String wrapperCode = "confixGetElement(\""+ targetBody +"\", [";
-				for (int i=0; i<args.size(); i++)
-					wrapperCode += ("\"" + args.get(i).toSource().replace("\"", "").replace("'", "") + "\",");
-				wrapperCode += "], [";
-				for (int i=0; i<args.size(); i++)
-					wrapperCode += args.get(i).toSource() + ",";
-				wrapperCode += "], "+ fcall.toSource() + ")";
-				System.out.println("wrapperCode : " + wrapperCode );
-
-				AstNode wrapperNode = parse(wrapperCode);
-				ExpressionStatement es = (ExpressionStatement)((AstNode) wrapperNode.getFirstChild());
-				FunctionCall wrapperFunCall = (FunctionCall) es.getExpression();
-				args.add(wrapperFunCall.getArguments().get(0));
-				//wrapperFunCall.addArgument(fcall);
-				System.out.println("Replacing functionCall: " + fcall.toSource() + " with wrapperFunCall: " + wrapperFunCall.toSource());
-				fcall.setTarget(wrapperFunCall.getTarget());
-				fcall.setArguments(wrapperFunCall.getArguments());			
-				System.out.println("New functionCall: " + fcall.toSource());
-			}
-
-			
 			// TODO: some static analysis!!!!
-			
+
 			// e.g. getElementsByTagName("p")
 			if (argumentShortName.equals("StringLiteral")){   
 
@@ -1094,16 +1130,16 @@ public abstract class JSASTVisitor implements NodeVisitor{
 				}
 
 				DOMElement.setDOMJSVariable(DOMJSVariable);
-				DOMElement.setOriginalAccessCode(parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
-				System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
+				DOMElement.setOriginalAccessCode(parentNodeElement + "." + targetBody + "(" + argument + ")");
+				System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + targetBody + "(" + argument + ")");
 
-				if (calledFunctionName.equals("getElementById")){
+				if (targetBody.equals("getElementById")){
 					DOMElement.setId_attribute(argument);
-				}else if (calledFunctionName.equals("getElementsByTagName")){
+				}else if (targetBody.equals("getElementsByTagName")){
 					DOMElement.setTag_attribute(argument);
-				}else if (calledFunctionName.equals("getElementsByName")){
+				}else if (targetBody.equals("getElementsByName")){
 					DOMElement.setName_attribute(argument);
-				}else if (calledFunctionName.equals("getElementsByClassName")){
+				}else if (targetBody.equals("getElementsByClassName")){
 					DOMElement.setClass_attribute(argument);
 				}	
 
@@ -1113,7 +1149,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			}else 
 				// e.g.  DIV = "div";  d = getElementsByTagName(DIV);
 				if (argumentShortName.equals("Name")){   
-					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + calledFunctionName + "(" + argument + ")");
+					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + targetBody + "(" + argument + ")");
 					//backward slicing to find the corresponding defined variable in the symbol table
 					// set the id_attributeVariable to argument
 					// if argument is an input of a function then assign id to "TheIDShouldBeSetFromFunctionInput"
@@ -1128,16 +1164,16 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					}
 
 					DOMElement.setDOMJSVariable(DOMJSVariable);
-					DOMElement.setOriginalAccessCode(parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
-					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
+					DOMElement.setOriginalAccessCode(parentNodeElement + "." + targetBody + "(" + argument + ")");
+					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + targetBody + "(" + argument + ")");
 
-					if (calledFunctionName.equals("getElementById")){
+					if (targetBody.equals("getElementById")){
 						DOMElement.setId_attribute("TheIDShouldBeSetFromFunctionInput");
-					}else if (calledFunctionName.equals("getElementsByTagName")){
+					}else if (targetBody.equals("getElementsByTagName")){
 						DOMElement.setTag_attribute("TheTagShouldBeSetFromFunctionInput");
-					}else if (calledFunctionName.equals("getElementsByName")){
+					}else if (targetBody.equals("getElementsByName")){
 						DOMElement.setName_attribute("TheNameShouldBeSetFromFunctionInput");
-					}else if (calledFunctionName.equals("getElementsByClassName")){
+					}else if (targetBody.equals("getElementsByClassName")){
 						DOMElement.setClass_attribute("TheCalssNameShouldBeSetFromFunctionInput");
 					}	
 
@@ -1148,27 +1184,18 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					// e.g. d = getElementsById("item"+i);
 					if (argumentShortName.equals("Name")){   
 					}
-
 		}
 
-
-
-
-
-
-
-
-
-
+		// e.g. $(x)
 		if(targetNode instanceof Name){
-			calledFunctionName = ((Name)fcall.getTarget()).getIdentifier();
+			targetBody = ((Name)fcall.getTarget()).getIdentifier();
 			//System.out.println("calledFunctionName is " + calledFunctionName);
 
-			if(calledFunctionName.equals("$") || calledFunctionName.equals("jQuery")){
+			if(targetBody.equals("$") || targetBody.equals("jQuery")){
 
 				if (argumentShortName.equals("StringLiteral")){   // e.g. $('id')
 					DomDependentFunctions.add(enclosingFunctionName);
-					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + calledFunctionName + "(" + argument + ")");
+					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + targetBody + "(" + argument + ")");
 
 					ElementTypeVariable DOMElement = new ElementTypeVariable();
 					System.out.println("parentNodeElement: document");
@@ -1180,7 +1207,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					}
 
 					DOMElement.setDOMJSVariable(DOMJSVariable);
-					DOMElement.setOriginalAccessCode(calledFunctionName + "('" + argument + "')");
+					DOMElement.setOriginalAccessCode(targetBody + "('" + argument + "')");
 
 					if (argument.startsWith("#")){			//	e.g. $("#myElement"); // selects one HTML element with ID "myElement"  
 						DOMElement.setId_attribute(argument);
@@ -1200,92 +1227,18 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					DOMConstraintList.add(dc);
 
 				}else if (argumentShortName.equals("Name")){   // e.g.  DIV = "<div />";  d = $(DIV);
-					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + calledFunctionName + "(" + argument + ")");
+					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + targetBody + "(" + argument + ")");
 					//backward slicing to find the corresponding defined variable in the symbol table
 					// set the id_attributeVariable to argument
 					// if argument is an input of a function then assign id to "TheIDShouldBeSetFromFunctionInput"
 				}
 			}
 
-		}else if (targetNode instanceof PropertyGet){
-			PropertyGet pg = (PropertyGet)targetNode;
-			calledFunctionName = pg.getRight().toSource();
-
-			System.out.println("argumentShortName: " + argumentShortName);
-
-			if (argumentShortName.equals("StringLiteral")){   // e.g. getElementsByTagName("p")
-
-				if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || calledFunctionName.equals("getElementsByName") || calledFunctionName.equals("getElementsByClassName")){
-
-
-					DomDependentFunctions.add(enclosingFunctionName);
-					String parentNodeElement = pg.getLeft().toSource();
-					ElementTypeVariable DOMElement = new ElementTypeVariable();
-					DOMElement.setParentElementJSVariable(pg.getLeft().toSource());
-					// adding the child node to the list for the parent
-					for (DOMConstraint d: DOMConstraintList){
-						if (d.getDOMElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
-							System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
-					}
-
-					DOMElement.setDOMJSVariable(DOMJSVariable);
-					DOMElement.setOriginalAccessCode(parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
-					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
-
-					if (calledFunctionName.equals("getElementById")){
-						DOMElement.setId_attribute(argument);
-					}else if (calledFunctionName.equals("getElementsByTagName")){
-						DOMElement.setTag_attribute(argument);
-					}else if (calledFunctionName.equals("getElementsByName")){
-						DOMElement.setName_attribute(argument);
-					}else if (calledFunctionName.equals("getElementsByClassName")){
-						DOMElement.setClass_attribute(argument);
-					}	
-
-					DOMConstraint dc = new DOMConstraint(DOMElement);
-					dc.setEnclosingFunctionName(enclosingFunctionName);
-					DOMConstraintList.add(dc);
-				}
-			}else if (argumentShortName.equals("Name")){   // e.g.  DIV = "div";  d = getElementsByTagName(DIV);
-				System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + calledFunctionName + "(" + argument + ")");
-				//backward slicing to find the corresponding defined variable in the symbol table
-				// set the id_attributeVariable to argument
-				// if argument is an input of a function then assign id to "TheIDShouldBeSetFromFunctionInput"
-
-
-				DomDependentFunctions.add(enclosingFunctionName);
-				String parentNodeElement = pg.getLeft().toSource();
-				ElementTypeVariable DOMElement = new ElementTypeVariable();
-				DOMElement.setParentElementJSVariable(pg.getLeft().toSource());
-				// adding the child node to the list for the parent
-				for (DOMConstraint d: DOMConstraintList){
-					if (d.getDOMElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
-						System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
-				}
-
-				DOMElement.setDOMJSVariable(DOMJSVariable);
-				DOMElement.setOriginalAccessCode(parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
-				System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
-
-				if (calledFunctionName.equals("getElementById")){
-					DOMElement.setId_attribute("TheIDShouldBeSetFromFunctionInput");
-				}else if (calledFunctionName.equals("getElementsByTagName")){
-					DOMElement.setTag_attribute("TheTagShouldBeSetFromFunctionInput");
-				}else if (calledFunctionName.equals("getElementsByName")){
-					DOMElement.setName_attribute("TheNameShouldBeSetFromFunctionInput");
-				}else if (calledFunctionName.equals("getElementsByClassName")){
-					DOMElement.setClass_attribute("TheCalssNameShouldBeSetFromFunctionInput");
-				}	
-
-				DOMConstraint dc = new DOMConstraint(DOMElement);
-				dc.setEnclosingFunctionName(enclosingFunctionName);
-				DOMConstraintList.add(dc);
-
-			}
 		}
 
-
-
+		*/
+		
+		
 	}
 
 
