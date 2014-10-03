@@ -980,153 +980,191 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	}
 
 
-
+	/*  Detecting DOM accessing function calls
+	The following methods can be used on HTML documents:
+	document.getElementById() 			Returns the element that has the ID attribute with the specified value
+	document.getElementsByClassName() 	Returns a NodeList containing all elements with the specified class name
+	document.getElementsByName() 		Accesses all elements with a specified name
+	document.getElementsByTagName() 	Returns a NodeList containing all elements with the specified tagname
+	$()									(jQuery) : Find an element by element id
+	 */
 	private void analyseFunctionCallNode(AstNode node) {
-
+		System.out.println("=== analyseFunctionCallNode ===");
 		if (node.shortName().equals("NewExpression"))
 			return;
 
-		System.out.println("=== analyseFunctionCallNode ===");
-
-		/*  Detecting DOM accessing function calls
-		The following methods can be used on HTML documents:
-		document.getElementById() 			Returns the element that has the ID attribute with the specified value
-		document.getElementsByClassName() 	Returns a NodeList containing all elements with the specified class name
-		document.getElementsByName() 		Accesses all elements with a specified name
-		document.getElementsByTagName() 	Returns a NodeList containing all elements with the specified tagname
-		$()									(jQuery) : Find an element by element id
-		 */
 		FunctionCall fcall = (FunctionCall) node;
-		AstNode targetNode = fcall.getTarget(); // node evaluating to the function to call
+		AstNode targetNode = fcall.getTarget(); // node evaluating to the function to call. E.g document.getElemenyById(x)
 		String targetBody = targetNode.toSource();
+		AstNode parentNode = node.getParent();
 
-		// avoid reinstrumentation!
+		String argument = "";
+		String argumentShortName = "";
+		String calledFunctionName = "";
+		String enclosingFunctionName = "";
+		// to store the var in the JS code that a DOM element is assigned to
+		String DOMJSVariable = "";
+		//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); 
+
+		// avoid re-instrumentation!
 		if (fcall.getParent().toSource().contains("confixGetElement"))
 			return;
 
-		String calledFunctionName = "";
-		String enclosingFunctionName = "";
-
+		// getting the enclosing function name
 		FunctionNode func=node.getEnclosingFunction();
 		if (func.getFunctionName()!=null){
 			enclosingFunctionName = func.getFunctionName().getIdentifier();
-			//System.out.println("enclosingFunctionName = " + enclosingFunctionName);
+			System.out.println("enclosingFunctionName = " + enclosingFunctionName);
 		}
 
-
-		int tt = targetNode.getType();
-		if (tt == org.mozilla.javascript.Token.NAME || tt == org.mozilla.javascript.Token.GETPROP) {
-
-
-			if (targetNode instanceof PropertyGet){
-				PropertyGet pg = (PropertyGet)targetNode;
-				calledFunctionName = pg.getRight().toSource();
-				if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || calledFunctionName.equals("getElementsByName") || calledFunctionName.equals("getElementsByClassName")){
-
-					// e.g. Replacing functionCall: document.getElementById(x) with wrapperFunCall: confixGetElement("document.getElementById", ["x"], document.getElementById(x))
-					List<AstNode> args = new ArrayList(fcall.getArguments());
-					String wrapperCode = "confixGetElement(\""+ targetBody +"\", [";
-					for (int i=0; i<args.size(); i++){
-						String argument = args.get(i).toSource().replace("\"", "").replace("'", "");
-						wrapperCode += ("\"" + argument + "\",");
-					}
-					//wrapperCode += ", otherHelperArgs)";
-					wrapperCode += "], [";
-					for (int i=0; i<args.size(); i++){
-						String argument = args.get(i).toSource();
-						wrapperCode += argument + ",";
-					}
-					//wrapperCode += ", otherHelperArgs)";
-					wrapperCode += "], "+ fcall.toSource() + ")";
-					System.out.println("wrapperCode : " + wrapperCode );
-
-					AstNode wrapperNode = parse(wrapperCode);
-					ExpressionStatement es = (ExpressionStatement)((AstNode) wrapperNode.getFirstChild());
-					FunctionCall wrapperFunCall = (FunctionCall) es.getExpression();
-					args.add(wrapperFunCall.getArguments().get(0));
-					//wrapperFunCall.addArgument(fcall);
-					System.out.println("Replacing functionCall: " + fcall.toSource() + " with wrapperFunCall: " + wrapperFunCall.toSource());
-					fcall.setTarget(wrapperFunCall.getTarget());
-					fcall.setArguments(wrapperFunCall.getArguments());			
-					System.out.println(fcall.toSource());
-				} else {
-					if (tt == org.mozilla.javascript.Token.GETELEM) {
-						System.out.println("====== " + org.mozilla.javascript.Token.GETELEM + " - " + targetBody);
-					}
-					else if (tt == org.mozilla.javascript.Token.LP) {
-						System.out.println("====== " + org.mozilla.javascript.Token.LP + " - " + targetBody);
-					}
-					else if (tt == org.mozilla.javascript.Token.THIS) {
-						System.out.println("====== " + org.mozilla.javascript.Token.THIS + " - " + targetBody);
-					}
-					else
-						System.out.println("======");
-				}
-
-			}
-		}
-
-
-
-
-
-
-		//System.out.println(node.debugPrint());
-
-		AstNode parentNode = node.getParent();
-
-		//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); // to store the var in the JS code that a DOM element is assigned to
-		String DOMJSVariable = "";
-
-		//System.out.println("parentNode.debugPrint(): ");
-		//System.out.println(parentNode.shortName());
-		//System.out.println(parentNode.debugPrint());
-
+		// e.g. var x = document.getElemenyById('id1')
 		if (parentNode.shortName().equals("VariableInitializer")){
 			VariableInitializer vi = (VariableInitializer)parentNode;
-
 			Name varName = (Name) vi.getTarget();
 			AstNode varLiteral = vi.getInitializer();
-
 			DOMJSVariable = varName.toSource();
-
 			//System.out.println("parentNode.getChildBefore(ASTNode).getString() :" + parentNode.getChildBefore(ASTNode).getString());
-			System.out.println("varName: " + varName.toSource());
-			System.out.println("varLiteral: " + varLiteral.toSource());
+			System.out.println("VariableInitializer - varName: " + varName.toSource());
+			System.out.println("VariableInitializer - varLiteral: " + varLiteral.toSource());
+		}else 
+			// e.g. x = document.getElemenyById('id2')
+			if (parentNode.shortName().equals("Assignment")){
+				Assignment asmt = (Assignment)parentNode;
+				DOMJSVariable = asmt.getLeft().toSource();
+			}
+
+		// getting the argument (id, class, tag, etc.) based on which DOM element is selected
+		if (fcall.getArguments().size()>0){
+			argument = fcall.getArguments().get(0).toSource();
+			//argument = argument.replace("'", "");
+			argumentShortName = fcall.getArguments().get(0).shortName();
+			System.out.println("argument: " + argument + " - argumentShortName: " + argumentShortName);
+		}
+
+		// e.g. document.getElemenyById(x)
+		if (targetNode instanceof PropertyGet){
+			PropertyGet pg = (PropertyGet)targetNode;
+			calledFunctionName = pg.getRight().toSource();
+			// getting parentNodeElement e.g. document in document.getElemenyById(x) or a in a.getElemenyById(x)
+			String parentNodeElement = pg.getLeft().toSource();
+
+			// TODO: return document.getElementbyID(x) -> return should be considered as an assignment *********
+
+
+
+			if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || 
+					calledFunctionName.equals("getElementsByName") || calledFunctionName.equals("getElementsByClassName")){
+
+				// e.g. Replacing functionCall: document.getElementById(x) with wrapperFunCall: confixGetElement("document.getElementById", ["x"], document.getElementById(x))
+				List<AstNode> args = new ArrayList(fcall.getArguments());
+				String wrapperCode = "confixGetElement(\""+ targetBody +"\", [";
+				for (int i=0; i<args.size(); i++)
+					wrapperCode += ("\"" + args.get(i).toSource().replace("\"", "").replace("'", "") + "\",");
+				wrapperCode += "], [";
+				for (int i=0; i<args.size(); i++)
+					wrapperCode += args.get(i).toSource() + ",";
+				wrapperCode += "], "+ fcall.toSource() + ")";
+				System.out.println("wrapperCode : " + wrapperCode );
+
+				AstNode wrapperNode = parse(wrapperCode);
+				ExpressionStatement es = (ExpressionStatement)((AstNode) wrapperNode.getFirstChild());
+				FunctionCall wrapperFunCall = (FunctionCall) es.getExpression();
+				args.add(wrapperFunCall.getArguments().get(0));
+				//wrapperFunCall.addArgument(fcall);
+				System.out.println("Replacing functionCall: " + fcall.toSource() + " with wrapperFunCall: " + wrapperFunCall.toSource());
+				fcall.setTarget(wrapperFunCall.getTarget());
+				fcall.setArguments(wrapperFunCall.getArguments());			
+				System.out.println("New functionCall: " + fcall.toSource());
+			}
+
+			
+			// TODO: some static analysis!!!!
+			
+			// e.g. getElementsByTagName("p")
+			if (argumentShortName.equals("StringLiteral")){   
+
+				// Adding the enclosingFunctionName to the list of DDF during static instrumentation. DDF can increase during dynamic execution if a function calls a DDF   
+				DomDependentFunctions.add(enclosingFunctionName);
+				ElementTypeVariable DOMElement = new ElementTypeVariable();
+				DOMElement.setParentElementJSVariable(pg.getLeft().toSource());
+				// adding the child node to the list for the parent
+				for (DOMConstraint d: DOMConstraintList){
+					if (d.getDOMElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
+						System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+				}
+
+				DOMElement.setDOMJSVariable(DOMJSVariable);
+				DOMElement.setOriginalAccessCode(parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
+				System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
+
+				if (calledFunctionName.equals("getElementById")){
+					DOMElement.setId_attribute(argument);
+				}else if (calledFunctionName.equals("getElementsByTagName")){
+					DOMElement.setTag_attribute(argument);
+				}else if (calledFunctionName.equals("getElementsByName")){
+					DOMElement.setName_attribute(argument);
+				}else if (calledFunctionName.equals("getElementsByClassName")){
+					DOMElement.setClass_attribute(argument);
+				}	
+
+				DOMConstraint dc = new DOMConstraint(DOMElement);
+				dc.setEnclosingFunctionName(enclosingFunctionName);
+				DOMConstraintList.add(dc);
+			}else 
+				// e.g.  DIV = "div";  d = getElementsByTagName(DIV);
+				if (argumentShortName.equals("Name")){   
+					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + calledFunctionName + "(" + argument + ")");
+					//backward slicing to find the corresponding defined variable in the symbol table
+					// set the id_attributeVariable to argument
+					// if argument is an input of a function then assign id to "TheIDShouldBeSetFromFunctionInput"
+
+					DomDependentFunctions.add(enclosingFunctionName);
+					ElementTypeVariable DOMElement = new ElementTypeVariable();
+					DOMElement.setParentElementJSVariable(pg.getLeft().toSource());
+					// adding the child node to the list for the parent
+					for (DOMConstraint d: DOMConstraintList){
+						if (d.getDOMElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
+							System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+					}
+
+					DOMElement.setDOMJSVariable(DOMJSVariable);
+					DOMElement.setOriginalAccessCode(parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
+					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + calledFunctionName + "(" + argument + ")");
+
+					if (calledFunctionName.equals("getElementById")){
+						DOMElement.setId_attribute("TheIDShouldBeSetFromFunctionInput");
+					}else if (calledFunctionName.equals("getElementsByTagName")){
+						DOMElement.setTag_attribute("TheTagShouldBeSetFromFunctionInput");
+					}else if (calledFunctionName.equals("getElementsByName")){
+						DOMElement.setName_attribute("TheNameShouldBeSetFromFunctionInput");
+					}else if (calledFunctionName.equals("getElementsByClassName")){
+						DOMElement.setClass_attribute("TheCalssNameShouldBeSetFromFunctionInput");
+					}	
+
+					DOMConstraint dc = new DOMConstraint(DOMElement);
+					dc.setEnclosingFunctionName(enclosingFunctionName);
+					DOMConstraintList.add(dc);
+				}else
+					// e.g. d = getElementsById("item"+i);
+					if (argumentShortName.equals("Name")){   
+					}
+
 		}
 
 
-		if (parentNode.shortName().equals("Assignment")){
-			Assignment asmt = (Assignment)parentNode;
-
-			DOMJSVariable = asmt.getLeft().toSource();
-		}
 
 
 
 
-		if (fcall.getArguments().size()==0){
-			System.out.println("NO ARGUMENT!");
-			System.out.println("ASTNode.toSource(): " + node.toSource());
-			System.out.println("targetNode.toSource(): " + targetNode.toSource());
-			return;
-		}
 
-		String argument = fcall.getArguments().get(0).toSource();
-		String argumentShortName = fcall.getArguments().get(0).shortName();
-		argument = argument.replace("'", "");
+
+
 
 		if(targetNode instanceof Name){
-
 			calledFunctionName = ((Name)fcall.getTarget()).getIdentifier();
 			//System.out.println("calledFunctionName is " + calledFunctionName);
 
-			if(calledFunctionName.equals("$") || calledFunctionName.equals("jQuery")
-					|| calledFunctionName.equals("dg") // for phormer app
-					){
-
-				System.out.println("argumentShortName: " + argumentShortName);
-
+			if(calledFunctionName.equals("$") || calledFunctionName.equals("jQuery")){
 
 				if (argumentShortName.equals("StringLiteral")){   // e.g. $('id')
 					DomDependentFunctions.add(enclosingFunctionName);
@@ -1144,7 +1182,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 					DOMElement.setDOMJSVariable(DOMJSVariable);
 					DOMElement.setOriginalAccessCode(calledFunctionName + "('" + argument + "')");
 
-					if (argument.startsWith("#")  || calledFunctionName.equals("dg")){			//	e.g. $("#myElement"); // selects one HTML element with ID "myElement"  
+					if (argument.startsWith("#")){			//	e.g. $("#myElement"); // selects one HTML element with ID "myElement"  
 						DOMElement.setId_attribute(argument);
 					}else if (argument.startsWith(".")){	//	e.g. $(".myClass"); // selects HTML elements with class "myClass" 
 						DOMElement.setClass_attribute(argument);
@@ -1243,18 +1281,10 @@ public abstract class JSASTVisitor implements NodeVisitor{
 				dc.setEnclosingFunctionName(enclosingFunctionName);
 				DOMConstraintList.add(dc);
 
-
-
 			}
 		}
 
 
-		// check for callback
-		boolean detected = false;
-		for (AstNode n : fcall.getArguments())
-			if (n.shortName().equals("FunctionNode")){
-				System.out.println("callback found at line : " + ( node.getLineno()+1));
-			}
 
 	}
 
