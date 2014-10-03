@@ -108,7 +108,7 @@ public class JSAnalyzer {
 			ast = rhinoParser.parse(new String(input), scopename, 0);
 
 			//System.out.println("AST BEFORE INSTRUMENTATION: ");
-			//System.out.println(ast.toSource());
+			System.out.println(ast.toSource());
 			//System.out.println(ast.debugPrint());
 
 
@@ -147,7 +147,7 @@ public class JSAnalyzer {
 
 
 			//System.out.println("AST AFTER INSTRUMENTATION: ");
-			//System.out.println(ast.toSource());
+			System.out.println(ast.toSource());
 			//System.out.println(ast.debugPrint());
 
 			return ast.toSource();

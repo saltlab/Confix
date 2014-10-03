@@ -1,23 +1,3 @@
-/*
-    Automatic JavaScript Invariants is a plugin for Crawljax that can be
-    used to derive JavaScript invariants automatically and use them for
-    regressions testing.
-    Copyright (C) 2010  crawljax.com
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
- */
 package instrumentor;
 
 import org.mozilla.javascript.ast.AstNode;
@@ -28,9 +8,6 @@ import org.mozilla.javascript.ast.FunctionNode;
 /**
  * This class is used to visit all JS nodes. When a node matches a certain condition, this class
  * will add instrumentation code near this code.
- * 
- * @author Amin Milani Fard
- * @author Frank Groeneveld
  */
 public class JSASTInstrumenter extends JSASTVisitor {
 
@@ -46,8 +23,10 @@ public class JSASTInstrumenter extends JSASTVisitor {
 	 * @return The AstNode which contains array.
 	 */
 	private AstNode jsLineExectutionCounter() {
-
-		String code = "var " + jsName + "_exec_counter = new Array(); " +
+		String code = "function confixGetElement(functionCallName, args, argsValues, actualDOMElement){" +
+					   "return actualDOMElement;" +
+					   "}";
+		code += "var " + jsName + "_exec_counter = new Array(); " +
 				"for (var i=0;i<" + instrumentedLinesCounter + ";i++)" +
 				"if("+jsName + "_exec_counter[i]== undefined || "+jsName + "_exec_counter[i]== null) "+jsName + "_exec_counter[i]=0;";
 		

@@ -83,24 +83,33 @@ public class ConcolicEngine {
 	// Runs the cocolic exectuion
 	public void run() throws Exception {
 
-		// 1) Intercept and instrument the JavaScript code via a proxy
+		
+		// Intercept and instrument the JavaScript code via a proxy
+		// No need for dynamic instrumentation. Removed!
 		/*ProxyConfiguration prox = new ProxyConfiguration();
 		runProxy(prox);
 		driverSetup(prox);
 		load();
 		 */
-		driver = new FirefoxDriver();
+		
+		
+		// Statically instrument the JavaScript code
+		codeAnalyzer = new JSAnalyzer(new JSASTInstrumenter());
+		
+		// Dynamic symbolic execution
+		
+		/*driver = new FirefoxDriver();
 		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
 		driver.get(url);
 		//((JavascriptExecutor) driver).executeScript(functionToTest + ";");
 		driverQuit();
+		*/
 		
 		// 2) Transform the DOM constraints in the JavaScript code into xpath constraint (xpath rule)
 		// 3) solve xpath constraints and generate corresponding XML as DOMFixture
 		//String xpathToSolve = JSModifier.generateXpathConstraint();
 		//HashSet<String> functionsList = JSModifier.getDOMDependentFunctions();
 		// Directly analyzing the code
-		codeAnalyzer = new JSAnalyzer(new JSASTInstrumenter());
 			    
 	    codeAnalyzer.analyzeJavaScript(jsAdderess, scopeName);
 		

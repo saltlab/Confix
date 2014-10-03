@@ -32,6 +32,7 @@ import org.mozilla.javascript.ast.ObjectProperty;
 import org.mozilla.javascript.ast.ParenthesizedExpression;
 import org.mozilla.javascript.ast.PropertyGet;
 import org.mozilla.javascript.ast.ReturnStatement;
+import org.mozilla.javascript.ast.Scope;
 import org.mozilla.javascript.ast.StringLiteral;
 import org.mozilla.javascript.ast.SwitchCase;
 import org.mozilla.javascript.ast.Symbol;
@@ -340,12 +341,13 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	 */
 	public AstNode parse(String code) {
 		//Parser p = new Parser(compilerEnvirons, null);
+
 		compilerEnvirons.setErrorReporter(new ConsoleErrorReporter());
 		Parser p = new Parser(compilerEnvirons, new ConsoleErrorReporter());
+
 		//System.out.print(code+"*******\n");
 		return p.parse(code, null, 0);
 	}
-
 
 	/**
 	 * Find out the function name of a certain node and return "anonymous" if it's an anonymous function.
@@ -446,10 +448,12 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			analyseNameNode(node);
 		else if (node instanceof IfStatement)
 			analyseIfStatementNode(node);
-		else if (node instanceof FunctionNode)
+		else if (node instanceof FunctionNode){
 			analyseFunctionNode(node);
-		else if (node instanceof FunctionCall)
+		}
+		else if (node instanceof FunctionCall){
 			analyseFunctionCallNode(node);
+		}
 		else if (node instanceof SwitchCase)
 			analyseSwitchCaseNode(node);
 		else if (node instanceof InfixExpression)
@@ -599,7 +603,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 								break;
 							}
 					}
-					
+
 
 				}
 			}else if (right.equals("style")){  	//  element.style.property  : Change the style of an HTML element
@@ -994,6 +998,79 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		 */
 		FunctionCall fcall = (FunctionCall) node;
 		AstNode targetNode = fcall.getTarget(); // node evaluating to the function to call
+		String targetBody = targetNode.toSource();
+
+		// avoid reinstrumentation!
+		if (fcall.getParent().toSource().contains("confixGetElement"))
+			return;
+
+		String calledFunctionName = "";
+		String enclosingFunctionName = "";
+
+		FunctionNode func=node.getEnclosingFunction();
+		if (func.getFunctionName()!=null){
+			enclosingFunctionName = func.getFunctionName().getIdentifier();
+			//System.out.println("enclosingFunctionName = " + enclosingFunctionName);
+		}
+
+
+		int tt = targetNode.getType();
+		if (tt == org.mozilla.javascript.Token.NAME || tt == org.mozilla.javascript.Token.GETPROP) {
+
+
+			if (targetNode instanceof PropertyGet){
+				PropertyGet pg = (PropertyGet)targetNode;
+				calledFunctionName = pg.getRight().toSource();
+				if (calledFunctionName.equals("getElementById") || calledFunctionName.equals("getElementsByTagName") || calledFunctionName.equals("getElementsByName") || calledFunctionName.equals("getElementsByClassName")){
+
+					// e.g. Replacing functionCall: document.getElementById(x) with wrapperFunCall: confixGetElement("document.getElementById", ["x"], document.getElementById(x))
+					List<AstNode> args = new ArrayList(fcall.getArguments());
+					String wrapperCode = "confixGetElement(\""+ targetBody +"\", [";
+					for (int i=0; i<args.size(); i++){
+						String argument = args.get(i).toSource().replace("\"", "").replace("'", "");
+						wrapperCode += ("\"" + argument + "\",");
+					}
+					//wrapperCode += ", otherHelperArgs)";
+					wrapperCode += "], [";
+					for (int i=0; i<args.size(); i++){
+						String argument = args.get(i).toSource();
+						wrapperCode += argument + ",";
+					}
+					//wrapperCode += ", otherHelperArgs)";
+					wrapperCode += "], "+ fcall.toSource() + ")";
+					System.out.println("wrapperCode : " + wrapperCode );
+
+					AstNode wrapperNode = parse(wrapperCode);
+					ExpressionStatement es = (ExpressionStatement)((AstNode) wrapperNode.getFirstChild());
+					FunctionCall wrapperFunCall = (FunctionCall) es.getExpression();
+					args.add(wrapperFunCall.getArguments().get(0));
+					//wrapperFunCall.addArgument(fcall);
+					System.out.println("Replacing functionCall: " + fcall.toSource() + " with wrapperFunCall: " + wrapperFunCall.toSource());
+					fcall.setTarget(wrapperFunCall.getTarget());
+					fcall.setArguments(wrapperFunCall.getArguments());			
+					System.out.println(fcall.toSource());
+				} else {
+					if (tt == org.mozilla.javascript.Token.GETELEM) {
+						System.out.println("====== " + org.mozilla.javascript.Token.GETELEM + " - " + targetBody);
+					}
+					else if (tt == org.mozilla.javascript.Token.LP) {
+						System.out.println("====== " + org.mozilla.javascript.Token.LP + " - " + targetBody);
+					}
+					else if (tt == org.mozilla.javascript.Token.THIS) {
+						System.out.println("====== " + org.mozilla.javascript.Token.THIS + " - " + targetBody);
+					}
+					else
+						System.out.println("======");
+				}
+
+			}
+		}
+
+
+
+
+
+
 		//System.out.println(node.debugPrint());
 
 		AstNode parentNode = node.getParent();
@@ -1026,14 +1103,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		}
 
 
-		String calledFunctionName = "";
-		String enclosingFunctionName = "";
-
-		FunctionNode func=node.getEnclosingFunction();
-		if (func.getFunctionName()!=null){
-			enclosingFunctionName = func.getFunctionName().getIdentifier();
-			//System.out.println("enclosingFunctionName = " + enclosingFunctionName);
-		}
 
 
 		if (fcall.getArguments().size()==0){

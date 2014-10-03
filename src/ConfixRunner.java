@@ -32,13 +32,13 @@ public class ConfixRunner {
 
 		ConcolicEngine ce = new ConcolicEngine(url, jsAdderess, scopeName, functionToTest);
 		ce.run();
-		List<String> functionsList = ce.getDOMDependentFunctions();
-		List<List<String>> attributeConstraintList = ce.getAttributeConstraintList(functionsList);
-		List<String> DOMFixtureList = ce.getDOMFixtureList(functionsList);
+		//List<String> functionsList = ce.getDOMDependentFunctions();
+		//List<List<String>> attributeConstraintList = ce.getAttributeConstraintList(functionsList);
+		//List<String> DOMFixtureList = ce.getDOMFixtureList(functionsList);
 		
 		// Generate a QUnit test file for a DOM-dependent function with DOM fixture
-		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixtureList, functionsList, attributeConstraintList);
-		tsg.generateTestSuite();
+		//TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixtureList, functionsList, attributeConstraintList);
+		//tsg.generateTestSuite();
 	}
 
 
