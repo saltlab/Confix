@@ -696,7 +696,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		}
 		//TODO: considering other comparison operators
 
-
 		/*
 			The following properties can be used on HTML documents:
 			document.anchors 	Returns a collection of all <a> with a value in the name attribute
@@ -732,22 +731,13 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 
 	private void analyseIfStatementNode(AstNode node) {
-
 		System.out.println("=== analyseIfStatementNode ===");
-
-		
 		ArrayList<DOMConstraint> pathCondition = new ArrayList<DOMConstraint>(); 
 
 		FunctionNode func=node.getEnclosingFunction();
 		IfStatement is = (IfStatement) node;
 		AstNode conditionNode = is.getCondition();
 
-		
-
-		
-		
-		
-		
 		System.out.println("conditionNode.shortName() : " + conditionNode.shortName());
 		System.out.println("conditionNode.depth() : " + conditionNode.depth());
 		System.out.println("conditionNode.getLineno() : " + (conditionNode.getLineno()+1));
@@ -756,33 +746,22 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		System.out.println("conditionNode.getAstRoot() : " + conditionNode.getAstRoot());
 		System.out.println("conditionNode.debugPrint() : \n" + conditionNode.debugPrint());
 
-		String conditionShortName = conditionNode.shortName();
-
-		
-		
 		// instrumenting the condition
-		String wrapperCode = "if (confixCondition(\""+ conditionNode.toSource() +"\", " + conditionNode.toSource() + ")) temp;";
+		String originalCondition = conditionNode.toSource().replace("\"", "\\\"");
+		String wrapperCode = "if (confixCondition(\""+ originalCondition +"\", " + conditionNode.toSource() + ")) temp;";
 		System.out.println("wrapperCode : " + wrapperCode );
 		AstNode wrapperNode = parse(wrapperCode);
 		//System.out.println(wrapperNode.toSource());
 		//System.out.println( ().getCondition().toSource());
-		
+
 		IfStatement tempIS = (IfStatement) (AstNode) wrapperNode.getFirstChild();
 		System.out.println("Replacing condition: " + is.getCondition().toSource() + " with wrapperCondition: " + tempIS.getCondition().toSource());
 		is.setCondition(tempIS.getCondition());
 		System.out.println("New condition: " + is.getCondition().toSource());
 
-		
-			
 
-		
-		
-		
-		
-		
-		
-		
-		
+		String conditionShortName = conditionNode.shortName();
+
 		if (conditionShortName.equals("InfixExpression")){	// e.g. if (x<5)
 			System.out.println("*** InfixExpression found in the condition ***");
 			InfixExpression ie = (InfixExpression) conditionNode;
@@ -1037,8 +1016,8 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		String DOMJSVariable = "";
 		//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); 
 
-		// avoid re-instrumentation!
-		if (fcall.getParent().toSource().contains("confixFunCall"))
+		// avoid instrumenting wrapper function calls!
+		if (fcall.getParent().toSource().contains("confixFunCall") || fcall.getParent().toSource().contains("confixCondition"))
 			return;
 
 		// getting the enclosing function name
@@ -1103,7 +1082,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		System.out.println("New functionCall: " + fcall.toSource());
 
 
-		
+
 		/*  TODO
 
 		// e.g. document.getElemenyById(x)
@@ -1236,9 +1215,9 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 		}
 
-		*/
-		
-		
+		 */
+
+
 	}
 
 

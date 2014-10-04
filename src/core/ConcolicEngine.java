@@ -41,13 +41,12 @@ public class ConcolicEngine {
 	private JSModifyProxyPlugin JSModifier;
 	private JSAnalyzer codeAnalyzer;
 
-	private String jsAdderess;
+	private String jsAddress;
 	private String scopeName;
 	private String functionToTest;
 
-	public ConcolicEngine(String url, String jsAdderess, String scopeName, String functionToTest){
-		this.url = url;
-		this.jsAdderess = jsAdderess;
+	public ConcolicEngine(String jsAdderess, String scopeName, String functionToTest){
+		this.jsAddress = jsAdderess;
 		this.scopeName = scopeName;
 		this.functionToTest = functionToTest;
 	}
@@ -80,9 +79,10 @@ public class ConcolicEngine {
 		driver.get(url);
 	}
 
+
+
 	// Runs the cocolic exectuion
 	public void run() throws Exception {
-
 		
 		// Intercept and instrument the JavaScript code via a proxy
 		// No need for dynamic instrumentation. Removed!
@@ -92,12 +92,19 @@ public class ConcolicEngine {
 		load();
 		 */
 		
+		// Instrument the JavaScript code
+		codeAnalyzer = new JSAnalyzer(new JSASTInstrumenter(), jsAddress, scopeName);
+	    codeAnalyzer.instrumentJavaScript();
 		
-		// Statically instrument the JavaScript code
-		codeAnalyzer = new JSAnalyzer(new JSASTInstrumenter());
-		
+
 		// Dynamic symbolic execution
-		
+	    String htmlTestFile = (System.getProperty("user.dir")+"/"+jsAddress).replace(scopeName, "concolic.thm");
+	    codeAnalyzer.generateHTMLTestFile(htmlTestFile);
+
+	    System.out.println(htmlTestFile);
+		url = "http://localhost:8888/concolic.htm";
+	    
+	    
 		/*driver = new FirefoxDriver();
 		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
 		driver.get(url);
@@ -111,7 +118,6 @@ public class ConcolicEngine {
 		//HashSet<String> functionsList = JSModifier.getDOMDependentFunctions();
 		// Directly analyzing the code
 			    
-	    codeAnalyzer.analyzeJavaScript(jsAdderess, scopeName);
 		
 		// These are to be used externally by the runner class to generate test suite
 	    //List<String> functionsList = codeAnalyzer.getDOMDependentFunctions();

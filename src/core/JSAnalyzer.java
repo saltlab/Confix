@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.apache.commons.io.CopyUtils;
 import org.apache.commons.io.IOUtils;
 import org.mozilla.javascript.CompilerEnvirons;
 import org.mozilla.javascript.Context;
@@ -43,6 +44,8 @@ public class JSAnalyzer {
 
 	private JSASTVisitor astVisitor;
 	private String outputfolder;
+	private String jsAddress, scopeName;
+	
 	private List<String> xpathsToSolve = new ArrayList<String>();
 	private List<String> DOMDependentFunctionsList = new ArrayList<String>();
 	private List<DOMConstraint> DOMConstraintList = new ArrayList<DOMConstraint>();
@@ -52,10 +55,14 @@ public class JSAnalyzer {
 	 * 
 	 * @param astVisit
 	 *            The JSASTVisitor to run over all JavaScript.
+	 * @param scopeName 
+	 * @param jsAddress 
 	 */
-	public JSAnalyzer(JSASTVisitor astVisit) {
-		excludeFilenamePatterns = new ArrayList<String>();
-		astVisitor = astVisit;
+	public JSAnalyzer(JSASTVisitor astVisit, String jsAddress, String scopeName) {
+		this.excludeFilenamePatterns = new ArrayList<String>();
+		this.astVisitor = astVisit;
+		this.jsAddress = jsAddress;
+		this.scopeName = scopeName;
 	}
 
 	/**
@@ -79,16 +86,19 @@ public class JSAnalyzer {
 
 	/**
 	 * @param jsAddress
-	 *            Address of the JavaScript code to be analyzed
-	 * @param scopename
+	 *            Address of the JavaScript code to be instrumented
+	 * @param scopeName
 	 *            Name of the current scope (filename mostly)
 	 * @throws Exception 
 	 */
-	public String analyzeJavaScript(String jsAddress, String scopename) throws Exception {
+	@SuppressWarnings("deprecation")
+	public String instrumentJavaScript() throws Exception {
 
 		// reading js form the input file
 		String input = "";
 		FileInputStream inputStream = new FileInputStream(jsAddress);
+		String outputFileAddress = jsAddress.replace(".js", "_instrumented.js");
+		FileOutputStream outputStream = new FileOutputStream(outputFileAddress);
 		try {
 			input = IOUtils.toString(inputStream);
 		} finally {
@@ -105,7 +115,7 @@ public class JSAnalyzer {
 			Parser rhinoParser = new Parser(new CompilerEnvirons(), cx.getErrorReporter());
 
 			/* parse some script and save it in AST */
-			ast = rhinoParser.parse(new String(input), scopename, 0);
+			ast = rhinoParser.parse(new String(input), scopeName, 0);
 
 			//System.out.println("AST BEFORE INSTRUMENTATION: ");
 			System.out.println(ast.toSource());
@@ -120,7 +130,7 @@ public class JSAnalyzer {
 			//System.out.println(ast.toSource());
 
 
-			astVisitor.setScopeName(scopename);
+			astVisitor.setScopeName(scopeName);
 			astVisitor.start();
 
 			/* recurse through AST */
@@ -147,8 +157,16 @@ public class JSAnalyzer {
 
 
 			//System.out.println("AST AFTER INSTRUMENTATION: ");
-			System.out.println(ast.toSource());
+			String instrumentedCode = ast.toSource();
+			System.out.println(instrumentedCode);
 			//System.out.println(ast.debugPrint());
+
+			try {
+				CopyUtils.copy( instrumentedCode, outputStream);
+				outputStream.flush();
+			} finally {
+				outputStream.close();
+			}
 
 			return ast.toSource();
 		} catch (RhinoException re) {
@@ -165,6 +183,20 @@ public class JSAnalyzer {
 	}
 
 
+	@SuppressWarnings("deprecation")
+	public void generateHTMLTestFile(String htmlTestFile) throws Exception {
+		FileOutputStream outputStream = new FileOutputStream(htmlTestFile);
+		String htmlTestContent = "<!DOCTYPE html> <html> <head> <script src=\"" + scopeName + "\"> </script> </head> <body> <div id=\"confixTestFixture\"> </div> </body> </html>";
+		
+		try {
+			CopyUtils.copy(htmlTestContent, outputStream);
+			outputStream.flush();
+		} finally {
+			outputStream.close();
+		}
+	}
+
+	
 	private void writeJSToFile(String scopename, String input) {
 		try {
 			System.out.println("writing on /jsCode/" + scopename);

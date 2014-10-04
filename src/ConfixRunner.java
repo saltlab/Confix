@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 
 public class ConfixRunner {
 
-	private static String url = "http://localhost:8888/concolic.htm";
 	private static String jsAdderess = "output/phormer_tests/phorm.js";
 	private static String scopeName = "phorm.js";
 	private static String testSuiteNameToGenerate = "tests_phormer.js";
@@ -30,7 +29,7 @@ public class ConfixRunner {
 
 	public static void main(String[] args) throws Exception {
 
-		ConcolicEngine ce = new ConcolicEngine(url, jsAdderess, scopeName, functionToTest);
+		ConcolicEngine ce = new ConcolicEngine(jsAdderess, scopeName, functionToTest);
 		ce.run();
 		//List<String> functionsList = ce.getDOMDependentFunctions();
 		//List<List<String>> attributeConstraintList = ce.getAttributeConstraintList(functionsList);
