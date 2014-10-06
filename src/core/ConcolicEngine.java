@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.JavascriptExecutor;
@@ -43,6 +44,8 @@ public class ConcolicEngine {
 	private String jsAddress;
 	private String scopeName;
 	private String functionToTest;
+	private String fixture = "";
+
 
 	public ConcolicEngine(String jsAdderess, String scopeName, String functionToTest){
 		this.jsAddress = jsAdderess;
@@ -55,40 +58,58 @@ public class ConcolicEngine {
 	public void run() throws Exception {
 
 		// Instrument the JavaScript code
-		instrumentDynamically(false);  // No need for dynamic instrumentation at proxy level.
+		//instrumentDynamically(false);  // No need for dynamic instrumentation at proxy level.
 		codeAnalyzer = new JSAnalyzer(new JSASTInstrumenter(), jsAddress, scopeName);
 		codeAnalyzer.instrumentJavaScript();
 
 
 		// Dynamic symbolic execution (done in a browser to deal with DOM)
 		String htmlTestFile = (System.getProperty("user.dir")+"/"+jsAddress).replace(scopeName, "concolic.htm");
+		//System.out.println(htmlTestFile);
 		codeAnalyzer.generateHTMLTestFile(htmlTestFile);
 
-		System.out.println(htmlTestFile);
+		/*
+		do {
+			// Loading the htmlTestFile and reset the fixture
+			loadPage(htmlTestFile);
+
+			// Apply the new fixture on htmlTestFile
+			((JavascriptExecutor) driver).executeScript("$(\"#confixTestFixture\").append('" + fixture + "');");
+
+			// Execute the function under test
+			((JavascriptExecutor) driver).executeScript(functionToTest + ";");
+			// Get the execution trace
+			Map<String,String> o = (Map<String,String>)((JavascriptExecutor) driver).executeScript("return getTrace();");
+			for(String key : o.keySet()) {
+				String value = o.get(key);
+				System.out.printf("%s: %s\n", key, value);
+			}
+			
+			
+			//Map<String, Integer> map = (Map<String, Integer>)  ((JavascriptExecutor) driver).executeScript("return {foo: 1, bar: 2}");
+			//System.out.printf("foo: %d\n", map.get("foo"));
+			//System.out.printf("bar: %d\n", map.get("bar"));
+			
 
 
-		loadPage(htmlTestFile);
+			// Generate DOM constraints from the trace
 
-		// execute the function under test
-		((JavascriptExecutor) driver).executeScript(functionToTest + ";");
-		// get the execution trace
-		((JavascriptExecutor) driver).executeScript("return getTrace();");
-		
-		// generate DOM constraints from the trace
-		
-		// 
-		
-		// transform the DOM constraints in the into xpath constraint (xpath rule)
-		
-		// solve xpath constraints and generate corresponding DOMFixture
-		
-		//String xpathToSolve = JSModifier.generateXpathConstraint();
-		//HashSet<String> functionsList = JSModifier.getDOMDependentFunctions();
-		
-		
+			// Transform the DOM constraints in the into xpath constraint (xpath rule)
+
+			// Solve xpath constraints and generate corresponding DOMFixture
+
+			//String xpathToSolve = JSModifier.generateXpathConstraint();
+			//HashSet<String> functionsList = JSModifier.getDOMDependentFunctions();
+
+			// Generate a new fixture to execute another path. If all paths were exercised, fixture will be set to "" to terminate the loop
+			fixture = "";
+
+		} while (fixture!="");
+
 		quitDriver();
 
-
+		*/
+		
 		// These are to be used externally by the runner class to generate test suite
 		//List<String> functionsList = codeAnalyzer.getDOMDependentFunctions();
 		//List<List<String>> attributeConstraintList = getAttributeConstraintList(functionsList);
@@ -110,7 +131,7 @@ public class ConcolicEngine {
 		}
 	}
 
-	
+
 	public void driverSetup(ProxyConfiguration prox) throws Exception {
 		FirefoxProfile profile = new FirefoxProfile();
 		if (prox != null) {

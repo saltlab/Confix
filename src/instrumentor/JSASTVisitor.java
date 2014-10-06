@@ -747,8 +747,9 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		System.out.println("conditionNode.debugPrint() : \n" + conditionNode.debugPrint());
 
 		// instrumenting the condition
-		String originalCondition = conditionNode.toSource().replace("\"", "\\\"");
-		String wrapperCode = "if (confixCondition(\""+ originalCondition +"\", " + conditionNode.toSource() + ")) temp;";
+		String originalCondition = conditionNode.toSource().replace("\"", "\\\"");		
+		// e.g. if(x>5) -> confixWrapper("condition", "x>5", ["x"], [x], x>5)
+		String wrapperCode = "if (confixWrapper(\"condition\", \""+ originalCondition +"\", [\"\"], [], " + conditionNode.toSource() + ")) temp;";
 		System.out.println("wrapperCode : " + wrapperCode );
 		AstNode wrapperNode = parse(wrapperCode);
 		//System.out.println(wrapperNode.toSource());
@@ -1017,7 +1018,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); 
 
 		// avoid instrumenting wrapper function calls!
-		if (fcall.getParent().toSource().contains("confixFunCall") || fcall.getParent().toSource().contains("confixCondition"))
+		if (fcall.getParent().toSource().contains("confixWrapper"))
 			return;
 
 		// getting the enclosing function name
@@ -1052,6 +1053,8 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		}
 
 
+		
+		//**** TODO: shift this part to trace analysis for functionCalls
 		if (targetBody.contains("getElementById") || targetBody.contains("getElementsByTagName") || 
 				targetBody.contains("getElementsByName") || targetBody.contains("getElementsByClassName") ||
 				targetBody.equals("$") || targetBody.equals("jQuery"))
@@ -1060,9 +1063,11 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			functionType = "notAccessingDOM"; 
 
 
-		// e.g. Replacing functionCall: document.getElementById(x) with wrapperFunCall: confixGetElement("document.getElementById", ["x"], document.getElementById(x))
+		
+		
+		// e.g. Replacing functionCall: document.getElementById(x) with wrapperFunCall: confixWrapper("functionCall", "document.getElementById(x)", ["x"], [x], document.getElementById(x))
 		List<AstNode> args = new ArrayList(fcall.getArguments());
-		String wrapperCode = "confixFunCall(\""+ functionType +"\", \""+ targetBody +"\", [";
+		String wrapperCode = "confixWrapper(\"functionCall\", \""+ fcall.toSource().replace("\"", "\\\"") +"\", [";
 		for (int i=0; i<args.size(); i++)
 			wrapperCode += ("\"" + args.get(i).toSource().replace("\"", "").replace("'", "") + "\",");
 		wrapperCode += "], [";

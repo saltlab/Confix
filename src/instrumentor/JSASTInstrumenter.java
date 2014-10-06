@@ -23,12 +23,10 @@ public class JSASTInstrumenter extends JSASTVisitor {
 	 * @return The AstNode which contains array.
 	 */
 	private AstNode jsLineExectutionCounter() {
-		String code = "function confixFunCall(functionType, functionCallName, args, argsValues, actualFunCall){" +
-					   "return actualFunCall;" +
+		// statement can be functionCall, assignment, return, condition, etc.
+		String code = "function confixWrapper(statementType, statement, varList, varValueList, actualStatement){" +
+					   "return actualStatement;" +
 					   "}";
-		code += "function confixCondition(conditionSource, actualCondition){" +
-				   "return actualCondition;" +
-				   "}";
 		code += "var " + jsName + "_exec_counter = new Array(); " +
 				"for (var i=0;i<" + instrumentedLinesCounter + ";i++)" +
 				"if("+jsName + "_exec_counter[i]== undefined || "+jsName + "_exec_counter[i]== null) "+jsName + "_exec_counter[i]=0;";
