@@ -25,7 +25,7 @@ public class ConfixRunner {
 	private static String testSuiteNameToGenerate = "tests_phormer.js";
 	
 	// provide input values for a DOM dependent function 
-	private static String functionToTest = "f(-10)";
+	private static String functionToTest = "SaveRating(-10)";
 
 	public static void main(String[] args) throws Exception {
 

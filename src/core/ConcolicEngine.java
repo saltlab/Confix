@@ -36,7 +36,6 @@ public class ConcolicEngine {
 	 * return to step 6 to try the next execution path.
 	 * 8) Return to step 4.
 	 */
-	private String url;
 	private WebDriver driver;
 	private JSModifyProxyPlugin JSModifier;
 	private JSAnalyzer codeAnalyzer;
@@ -50,8 +49,68 @@ public class ConcolicEngine {
 		this.scopeName = scopeName;
 		this.functionToTest = functionToTest;
 	}
-	
 
+
+	// Runs the cocolic exectuion
+	public void run() throws Exception {
+
+		// Instrument the JavaScript code
+		instrumentDynamically(false);  // No need for dynamic instrumentation at proxy level.
+		codeAnalyzer = new JSAnalyzer(new JSASTInstrumenter(), jsAddress, scopeName);
+		codeAnalyzer.instrumentJavaScript();
+
+
+		// Dynamic symbolic execution (done in a browser to deal with DOM)
+		String htmlTestFile = (System.getProperty("user.dir")+"/"+jsAddress).replace(scopeName, "concolic.htm");
+		codeAnalyzer.generateHTMLTestFile(htmlTestFile);
+
+		System.out.println(htmlTestFile);
+
+
+		loadPage(htmlTestFile);
+
+		// execute the function under test
+		((JavascriptExecutor) driver).executeScript(functionToTest + ";");
+		// get the execution trace
+		((JavascriptExecutor) driver).executeScript("return getTrace();");
+		
+		// generate DOM constraints from the trace
+		
+		// 
+		
+		// transform the DOM constraints in the into xpath constraint (xpath rule)
+		
+		// solve xpath constraints and generate corresponding DOMFixture
+		
+		//String xpathToSolve = JSModifier.generateXpathConstraint();
+		//HashSet<String> functionsList = JSModifier.getDOMDependentFunctions();
+		
+		
+		quitDriver();
+
+
+		// These are to be used externally by the runner class to generate test suite
+		//List<String> functionsList = codeAnalyzer.getDOMDependentFunctions();
+		//List<List<String>> attributeConstraintList = getAttributeConstraintList(functionsList);
+		//List<String> DOMFixtureList = getDOMFixtureList(functionsList);
+
+	}
+
+
+	private void instrumentDynamically(boolean useproxy) throws Exception {
+		if (useproxy){
+			// setting a proxy for intercepting and instrument the JavaScript code
+			ProxyConfiguration prox = new ProxyConfiguration();
+			runProxy(prox);
+			driverSetup(prox);
+		}else{
+			// setting the webdriver without proxy
+			driver = new FirefoxDriver();
+			driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+		}
+	}
+
+	
 	public void driverSetup(ProxyConfiguration prox) throws Exception {
 		FirefoxProfile profile = new FirefoxProfile();
 		if (prox != null) {
@@ -69,62 +128,14 @@ public class ConcolicEngine {
 		((JavascriptExecutor) driver).executeScript(javascript);
 	}
 
-	public void driverQuit() throws Exception {
+	public void quitDriver() throws Exception {
 		//if (getCoverageReport)
 		//	((JavascriptExecutor) driver).executeScript(" if (window.jscoverage_report) {return jscoverage_report('CodeCoverageReport');}");
 		driver.quit();
 	}
 
-	public void load(){
-		driver.get(url);
-	}
-
-
-
-	// Runs the cocolic exectuion
-	public void run() throws Exception {
-		
-		// Intercept and instrument the JavaScript code via a proxy
-		// No need for dynamic instrumentation. Removed!
-		/*ProxyConfiguration prox = new ProxyConfiguration();
-		runProxy(prox);
-		driverSetup(prox);
-		load();
-		 */
-		
-		// Instrument the JavaScript code
-		codeAnalyzer = new JSAnalyzer(new JSASTInstrumenter(), jsAddress, scopeName);
-	    codeAnalyzer.instrumentJavaScript();
-		
-
-		// Dynamic symbolic execution
-	    String htmlTestFile = (System.getProperty("user.dir")+"/"+jsAddress).replace(scopeName, "concolic.thm");
-	    codeAnalyzer.generateHTMLTestFile(htmlTestFile);
-
-	    System.out.println(htmlTestFile);
-		url = "http://localhost:8888/concolic.htm";
-	    
-	    
-		/*driver = new FirefoxDriver();
-		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
-		driver.get(url);
-		//((JavascriptExecutor) driver).executeScript(functionToTest + ";");
-		driverQuit();
-		*/
-		
-		// 2) Transform the DOM constraints in the JavaScript code into xpath constraint (xpath rule)
-		// 3) solve xpath constraints and generate corresponding XML as DOMFixture
-		//String xpathToSolve = JSModifier.generateXpathConstraint();
-		//HashSet<String> functionsList = JSModifier.getDOMDependentFunctions();
-		// Directly analyzing the code
-			    
-		
-		// These are to be used externally by the runner class to generate test suite
-	    //List<String> functionsList = codeAnalyzer.getDOMDependentFunctions();
-	    //List<List<String>> attributeConstraintList = getAttributeConstraintList(functionsList);
-		//List<String> DOMFixtureList = getDOMFixtureList(functionsList);
-		
-	    	    
+	public void loadPage(String htmlTestFile){
+		driver.get(htmlTestFile);
 	}
 
 
@@ -133,14 +144,14 @@ public class ConcolicEngine {
 		for (String DDF: functionsList){
 			System.out.println(">>>>>>>> Listing DOM constraints in DDF: " + DDF);
 			for (DOMConstraint dc: codeAnalyzer.getDOMConstraintList()){
-				
+
 				if (dc.getEnclosingFunctionName().equals(DDF)){
 					System.out.println(dc.getCorrespondingXpath());
 					System.out.println("ATTRIBUTE CONSTRAINTS:" + dc.getConstraints());
 					//attributeList.add(dc.getConstraints());
 					attributeConstraintList.add(dc.getStatementsForAllConstraints());
 					//if (dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable()!="")
-						//System.out.println("**************** InnerHTML_attributeVariable():" + dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable());
+					//System.out.println("**************** InnerHTML_attributeVariable():" + dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable());
 				}
 			}
 		}
@@ -162,8 +173,8 @@ public class ConcolicEngine {
 		}
 		return DOMFixtureList;
 	}
-	
-	
+
+
 
 	// The XML solver output is on the stream so we write it into a text file
 	private void writeStreamToFile(String string) {
@@ -191,5 +202,5 @@ public class ConcolicEngine {
 		return codeAnalyzer.getDOMDependentFunctions();
 	}
 
-	
+
 }
