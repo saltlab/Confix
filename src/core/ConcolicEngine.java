@@ -26,6 +26,7 @@ public class ConcolicEngine {
 	private WebDriver driver;
 	private JSModifyProxyPlugin JSModifier;
 	private JSAnalyzer codeAnalyzer;
+	private TraceAnalyzer traceAnalyzer;
 
 	private String jsAddress;
 	private String scopeName;
@@ -64,6 +65,7 @@ public class ConcolicEngine {
 		codeAnalyzer.generateHTMLTestFile(htmlTestFile);
 
 
+		
 		do {
 			// Loading the htmlTestFile and reset the fixture
 			loadPage(htmlTestFile);
@@ -79,12 +81,9 @@ public class ConcolicEngine {
 			Map<String,String> map;
 			for (int i=0; i<traceList.size(); i++){
 				map = (Map<String,String>)(traceList.get(i));
-				System.out.printf("statementType: %s\n", map.get("statementType"));
+				traceAnalyzer.analyzeTrace(map);
 			}
-
-
-			//codeAnalyzer.
-			
+		
 			//Map<String,String> map = (Map<String,String>)((JavascriptExecutor) driver).executeScript("return getConfixTrace();");
 			//for(String key : map.keySet()) {
 			//	String value = map.get(key);
@@ -113,7 +112,7 @@ public class ConcolicEngine {
 		} while (fixture!="");
 
 		quitDriver();
-
+	
 		generateTestSuite();
 		
 	}
