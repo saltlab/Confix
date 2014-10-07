@@ -237,37 +237,4 @@ public class JSAnalyzer {
 		}
 	}
 
-
-	public List<String> generateXpathConstraints() {
-		
-		// setting the xpathToSolve for each function
-		HashSet<String> fList = astVisitor.getDOMDependentFunctionsList();
-		DOMDependentFunctionsList.addAll(fList); 
-		HashSet<DOMConstraint> dList = astVisitor.getDOMConstraintList();
-		DOMConstraintList.addAll(dList); 
-
-		for (String DDF: DOMDependentFunctionsList){
-			System.out.println("****** Generating xpath for DOM constraints in DDF: " + DDF);
-			String xpathToSolve = astVisitor.generateXpathConstraint(DDF);
-			astVisitor.resetXpath();
-			xpathsToSolve.add(xpathToSolve);
-			System.out.println("xpathToSolve: " + xpathToSolve);
-		}
-
-		// e.g. select("html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/
-		//		descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]")
-
-		// System.out.println(xpathsToSolve);
-		return xpathsToSolve;
-	}
-
-
-	public List<String> getDOMDependentFunctions() {
-		return DOMDependentFunctionsList;
-	}
-
-	public List<DOMConstraint> getDOMConstraintList() {
-		return DOMConstraintList;
-	}
-
 }

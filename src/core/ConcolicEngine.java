@@ -39,6 +39,8 @@ public class ConcolicEngine {
 		this.scopeName = scopeName;
 		this.functionToTest = functionToTest;
 		this.testSuiteNameToGenerate = testSuiteNameToGenerate;
+		this.codeAnalyzer = new JSAnalyzer(new JSASTInstrumenter(), jsAddress, scopeName);
+		this.traceAnalyzer = new TraceAnalyzer();
 	}
 
 
@@ -56,7 +58,6 @@ public class ConcolicEngine {
 
 		// Instrument the JavaScript code
 		//instrumentDynamically(false);  // No need for dynamic instrumentation at proxy level.
-		codeAnalyzer = new JSAnalyzer(new JSASTInstrumenter(), jsAddress, scopeName);
 		codeAnalyzer.instrumentJavaScript();
 
 		// Dynamic symbolic execution (done in a browser to deal with DOM)
@@ -64,8 +65,6 @@ public class ConcolicEngine {
 		//System.out.println(htmlTestFile);
 		codeAnalyzer.generateHTMLTestFile(htmlTestFile);
 
-
-		
 		do {
 			// Loading the htmlTestFile and reset the fixture
 			loadPage(htmlTestFile);
@@ -182,14 +181,14 @@ public class ConcolicEngine {
 	}
 
 	public List<String> getDOMDependentFunctions() {
-		return codeAnalyzer.getDOMDependentFunctions();
+		return traceAnalyzer.getDOMDependentFunctions();
 	}
 
 	public List<List<String>> getAttributeConstraintList(List<String> functionsList) {
 		List<List<String>> attributeConstraintList = new ArrayList<List<String>>();
 		for (String DDF: functionsList){
 			System.out.println(">>>>>>>> Listing DOM constraints in DDF: " + DDF);
-			for (DOMConstraint dc: codeAnalyzer.getDOMConstraintList()){
+			for (DOMConstraint dc: traceAnalyzer.getDOMConstraintList()){
 
 				if (dc.getEnclosingFunctionName().equals(DDF)){
 					System.out.println(dc.getCorrespondingXpath());
@@ -209,7 +208,7 @@ public class ConcolicEngine {
 		String DOMFixture = "";
 		int i = 0;
 		List<String> DOMFixtureList = new ArrayList<String>();
-		for (String xpathToSolve : codeAnalyzer.generateXpathConstraints()){
+		for (String xpathToSolve : traceAnalyzer.generateXpathConstraints()){
 			System.out.println("DOM fixture for function: " + functionsList.get(i++));
 			xpathsolver.setXpath(xpathToSolve);
 			xpathsolver.solve();

@@ -3,31 +3,23 @@ package core;
 import instrumentor.ConsoleErrorReporter;
 import instrumentor.JSASTVisitor;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.CopyUtils;
-import org.apache.commons.io.IOUtils;
 import org.mozilla.javascript.CompilerEnvirons;
-import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Parser;
 import org.mozilla.javascript.RhinoException;
+import org.mozilla.javascript.ast.Assignment;
 import org.mozilla.javascript.ast.AstNode;
 import org.mozilla.javascript.ast.AstRoot;
 import org.mozilla.javascript.ast.ExpressionStatement;
 import org.mozilla.javascript.ast.FunctionCall;
-import org.owasp.webscarab.httpclient.HTTPClient;
-import org.owasp.webscarab.model.Request;
-import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.plugin.proxy.BrowserCache;
-import org.owasp.webscarab.plugin.proxy.ProxyPlugin;
+import org.mozilla.javascript.ast.FunctionNode;
+import org.mozilla.javascript.ast.Name;
+import org.mozilla.javascript.ast.PropertyGet;
+import org.mozilla.javascript.ast.VariableInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -42,220 +34,260 @@ public class TraceAnalyzer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TraceAnalyzer.class.getName());
 
 	private CompilerEnvirons compilerEnvirons = new CompilerEnvirons();
-
-	private List<String> excludeFilenamePatterns;
-
-	private JSASTVisitor astVisitor;
-	private String outputfolder;
-	private String jsAddress, scopeName;
 	
 	private List<String> xpathsToSolve = new ArrayList<String>();
 	private List<String> DOMDependentFunctionsList = new ArrayList<String>();
 	private List<DOMConstraint> DOMConstraintList = new ArrayList<DOMConstraint>();
 
-	/**
-	 * Construct without patterns.
-	 * 
-	 * @param astVisit
-	 *            The JSASTVisitor to run over all JavaScript.
-	 * @param scopeName 
-	 * @param jsAddress 
-	 */
-	public TraceAnalyzer(JSASTVisitor astVisit, String jsAddress, String scopeName) {
-		this.excludeFilenamePatterns = new ArrayList<String>();
-		this.astVisitor = astVisit;
-		this.jsAddress = jsAddress;
-		this.scopeName = scopeName;
-	}
-
-	/**
-	 * Constructor with patterns.
-	 * 
-	 * @param astVisit
-	 *            The JSASTVisitor to run over all JavaScript.
-	 * @param excludes
-	 *            List with variable patterns to exclude.
-	 */
-	public TraceAnalyzer(JSASTVisitor astVisit, List<String> excludes) {
-		excludeFilenamePatterns = excludes;
-		astVisitor = astVisit;
-	}
-
-	public TraceAnalyzer(String outputfolder){
-		excludeFilenamePatterns = new ArrayList<String>();
-		this.outputfolder=outputfolder;
+	
+	public void analyzeTrace(Map<String, String> map) {
+		System.out.printf("statementType: %s\n", map.get("statementType"));
+		System.out.printf("statement: %s\n", map.get("statement"));
+		System.out.printf("varList: %s\n", map.get("varList"));
+		System.out.printf("varValueList: %s\n", map.get("varValueList"));
+		System.out.printf("actualStatement: %s\n", map.get("actualStatement"));
+		
+		// parsing the original statement for analysis
+		if (map.get("statementType").equals("functionCall"))
+			analyseFunctionCallNode(map);		
+		else if (map.get("statementType").equals("condition"))
+			analyseIfStatementNode(map);
+		else if (map.get("statementType").equals("assignment"))
+			analyseAssignmentNode(map);
+		else if (map.get("statementType").equals("return"))
+			analyseReturnNode(map);
 	}
 
 
-	/**
-	 * @param jsAddress
-	 *            Address of the JavaScript code to be instrumented
-	 * @param scopeName
-	 *            Name of the current scope (filename mostly)
-	 * @throws Exception 
+	/*  Detecting DOM accessing function calls
+	The following methods can be used on HTML documents:
+	document.getElementById() 			Returns the element that has the ID attribute with the specified value
+	document.getElementsByClassName() 	Returns a NodeList containing all elements with the specified class name
+	document.getElementsByName() 		Accesses all elements with a specified name
+	document.getElementsByTagName() 	Returns a NodeList containing all elements with the specified tagname
+	$()									(jQuery) : Find an element by element id
 	 */
-	@SuppressWarnings("deprecation")
-	public String instrumentJavaScript() throws Exception {
+	private void analyseFunctionCallNode(Map<String, String> map) {
+		System.out.println("=== analyseFunctionCallNode ===");
+		
+		AstNode generatedNode = parse(map.get("statement"));
+		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
+		AstNode node = es.getExpression();
 
-		// reading js form the input file
-		String input = "";
-		FileInputStream inputStream = new FileInputStream(jsAddress);
-		String outputFileAddress = jsAddress.replace(".js", "_instrumented.js");
-		FileOutputStream outputStream = new FileOutputStream(outputFileAddress);
-		try {
-			input = IOUtils.toString(inputStream);
-		} finally {
-			inputStream.close();
-		}	    
+		FunctionCall fcall = (FunctionCall) node;
+		AstNode targetNode = fcall.getTarget(); // node evaluating to the function to call. E.g document.getElemenyById(x)
+		String targetBody = targetNode.toSource();
+		AstNode parentNode = node.getParent();
 
-		try {
-			AstRoot ast = null;	
+		String functionType = "";  // The called function is either "accessingDOM" or "notAccessingDOM" 
+		String argument = "";
+		String argumentShortName = "";
+		String enclosingFunctionName = "";
+		// to store the var in the JS code that a DOM element is assigned to
+		String DOMJSVariable = "";
+		//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); 
 
-			/* initialize JavaScript context */
-			Context cx = Context.enter();
+		// getting the enclosing function name
+		FunctionNode func=node.getEnclosingFunction();
+		if (func.getFunctionName()!=null){
+			enclosingFunctionName = func.getFunctionName().getIdentifier();
+			System.out.println("enclosingFunctionName = " + enclosingFunctionName);
+		}
 
-			/* create a new parser */
-			Parser rhinoParser = new Parser(new CompilerEnvirons(), cx.getErrorReporter());
-
-			/* parse some script and save it in AST */
-			ast = rhinoParser.parse(new String(input), scopeName, 0);
-
-			//System.out.println("AST BEFORE INSTRUMENTATION: ");
-			System.out.println(ast.toSource());
-			//System.out.println(ast.debugPrint());
-
-
-			//writeJSToFile(scopename, input);
-			//writeFunctionsToFile(input);
-
-
-			//System.out.println("AST BEFORE : ");
-			//System.out.println(ast.toSource());
-
-
-			astVisitor.setScopeName(scopeName);
-			astVisitor.start();
-
-			/* recurse through AST */
-			ast.visit(astVisitor);
-
-			astVisitor.finish(ast);
-
-			/* clean up */
-			Context.exit();
-
-			//System.out.println("AST AFTER INSTRUMENTATION: ");
-			String instrumentedCode = ast.toSource();
-			System.out.println(instrumentedCode);
-			//System.out.println(ast.debugPrint());
-
-			try {
-				CopyUtils.copy( instrumentedCode, outputStream);
-				outputStream.flush();
-			} finally {
-				outputStream.close();
+		// e.g. var x = document.getElemenyById('id1')
+		if (parentNode.shortName().equals("VariableInitializer")){
+			VariableInitializer vi = (VariableInitializer)parentNode;
+			Name varName = (Name) vi.getTarget();
+			AstNode varLiteral = vi.getInitializer();
+			DOMJSVariable = varName.toSource();
+			//System.out.println("parentNode.getChildBefore(ASTNode).getString() :" + parentNode.getChildBefore(ASTNode).getString());
+			System.out.println("VariableInitializer - varName: " + varName.toSource());
+			System.out.println("VariableInitializer - varLiteral: " + varLiteral.toSource());
+		}else 
+			// e.g. x = document.getElemenyById('id2')
+			if (parentNode.shortName().equals("Assignment")){
+				Assignment asmt = (Assignment)parentNode;
+				DOMJSVariable = asmt.getLeft().toSource();
 			}
 
-			return ast.toSource();
-		} catch (RhinoException re) {
-			System.err.println(re.getMessage());
-			LOGGER.warn("Unable to instrument. This might be a JSON response sent"
-					+ " with the wrong Content-Type or a syntax error.");
-		} catch (IllegalArgumentException iae) {
-
-			LOGGER.warn("Invalid operator exception catched. Not instrumenting code.");
+		// getting the argument (id, class, tag, etc.) based on which DOM element is selected
+		if (fcall.getArguments().size()>0){
+			argument = fcall.getArguments().get(0).toSource();
+			//argument = argument.replace("'", "");
+			argumentShortName = fcall.getArguments().get(0).shortName();
+			System.out.println("argument: " + argument + " - argumentShortName: " + argumentShortName);
 		}
-		LOGGER.warn("Here is the corresponding buffer: \n" + input + "\n");
 
-		return input;
+
+		if (targetBody.contains("getElementById") || targetBody.contains("getElementsByTagName") || 
+				targetBody.contains("getElementsByName") || targetBody.contains("getElementsByClassName") ||
+				targetBody.equals("$") || targetBody.equals("jQuery"))
+			functionType = "accessingDOM";
+		else
+			functionType = "notAccessingDOM"; 
+
+
+
+		// e.g. document.getElemenyById(x)
+		if (targetNode instanceof PropertyGet){
+			PropertyGet pg = (PropertyGet)targetNode;
+			targetBody = pg.getRight().toSource();
+			// getting parentNodeElement e.g. document in document.getElemenyById(x) or a in a.getElemenyById(x)
+			String parentNodeElement = pg.getLeft().toSource();
+
+			// TODO: return document.getElementbyID(x) -> return should be considered as an assignment *********
+			// TODO: some static analysis!!!!
+
+			// e.g. getElementsByTagName("p")
+			if (argumentShortName.equals("StringLiteral")){   
+
+				// Adding the enclosingFunctionName to the list of DDF during static instrumentation. DDF can increase during dynamic execution if a function calls a DDF   
+				JSASTVisitor.DomDependentFunctions.add(enclosingFunctionName);
+				ElementTypeVariable DOMElement = new ElementTypeVariable();
+				DOMElement.setParentElementJSVariable(pg.getLeft().toSource());
+				// adding the child node to the list for the parent
+				for (DOMConstraint d: DOMConstraintList){
+					if (d.getDOMElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
+						System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+				}
+
+				DOMElement.setDOMJSVariable(DOMJSVariable);
+				DOMElement.setOriginalAccessCode(parentNodeElement + "." + targetBody + "(" + argument + ")");
+				System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + targetBody + "(" + argument + ")");
+
+				if (targetBody.equals("getElementById")){
+					DOMElement.setId_attribute(argument);
+				}else if (targetBody.equals("getElementsByTagName")){
+					DOMElement.setTag_attribute(argument);
+				}else if (targetBody.equals("getElementsByName")){
+					DOMElement.setName_attribute(argument);
+				}else if (targetBody.equals("getElementsByClassName")){
+					DOMElement.setClass_attribute(argument);
+				}	
+
+				DOMConstraint dc = new DOMConstraint(DOMElement);
+				dc.setEnclosingFunctionName(enclosingFunctionName);
+				DOMConstraintList.add(dc);
+			}else 
+				// e.g.  DIV = "div";  d = getElementsByTagName(DIV);
+				if (argumentShortName.equals("Name")){   
+					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + targetBody + "(" + argument + ")");
+					//backward slicing to find the corresponding defined variable in the symbol table
+					// set the id_attributeVariable to argument
+					// if argument is an input of a function then assign id to "TheIDShouldBeSetFromFunctionInput"
+
+					JSASTVisitor.DomDependentFunctions.add(enclosingFunctionName);
+					ElementTypeVariable DOMElement = new ElementTypeVariable();
+					DOMElement.setParentElementJSVariable(pg.getLeft().toSource());
+					// adding the child node to the list for the parent
+					for (DOMConstraint d: DOMConstraintList){
+						if (d.getDOMElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
+							System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+					}
+
+					DOMElement.setDOMJSVariable(DOMJSVariable);
+					DOMElement.setOriginalAccessCode(parentNodeElement + "." + targetBody + "(" + argument + ")");
+					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + targetBody + "(" + argument + ")");
+
+					if (targetBody.equals("getElementById")){
+						DOMElement.setId_attribute("TheIDShouldBeSetFromFunctionInput");
+					}else if (targetBody.equals("getElementsByTagName")){
+						DOMElement.setTag_attribute("TheTagShouldBeSetFromFunctionInput");
+					}else if (targetBody.equals("getElementsByName")){
+						DOMElement.setName_attribute("TheNameShouldBeSetFromFunctionInput");
+					}else if (targetBody.equals("getElementsByClassName")){
+						DOMElement.setClass_attribute("TheCalssNameShouldBeSetFromFunctionInput");
+					}	
+
+					DOMConstraint dc = new DOMConstraint(DOMElement);
+					dc.setEnclosingFunctionName(enclosingFunctionName);
+					DOMConstraintList.add(dc);
+				}else
+					// e.g. d = getElementsById("item"+i);
+					if (argumentShortName.equals("Name")){   
+					}
+		}
+
+		// e.g. $(x)
+		if(targetNode instanceof Name){
+			targetBody = ((Name)fcall.getTarget()).getIdentifier();
+			//System.out.println("calledFunctionName is " + calledFunctionName);
+
+			if(targetBody.equals("$") || targetBody.equals("jQuery")){
+
+				if (argumentShortName.equals("StringLiteral")){   // e.g. $('id')
+					JSASTVisitor.DomDependentFunctions.add(enclosingFunctionName);
+					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + targetBody + "(" + argument + ")");
+
+					ElementTypeVariable DOMElement = new ElementTypeVariable();
+					System.out.println("parentNodeElement: document");
+					DOMElement.setParentElementJSVariable("document");
+					// adding the child node to the list for the parent
+					for (DOMConstraint d: DOMConstraintList){
+						if (d.getDOMElementTypeVariable().getDOMJSVariable().equals("document"))
+							System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+					}
+
+					DOMElement.setDOMJSVariable(DOMJSVariable);
+					DOMElement.setOriginalAccessCode(targetBody + "('" + argument + "')");
+
+					if (argument.startsWith("#")){			//	e.g. $("#myElement"); // selects one HTML element with ID "myElement"  
+						DOMElement.setId_attribute(argument);
+					}else if (argument.startsWith(".")){	//	e.g. $(".myClass"); // selects HTML elements with class "myClass" 
+						DOMElement.setClass_attribute(argument);
+					}else {									//	e.g. $("div"); // selects all HTML div elements  
+						DOMElement.setTag_attribute(argument);
+					}
+
+					//TODO:
+					//	e.g. $("p#myElement"); // selects paragraph elements with ID "myElement"  
+					//	e.g. $("ul li a.navigation"); // selects anchors with class "navigation" that are nested in list items  
+
+					DOMElement.setSource(node.toSource());
+					DOMConstraint dc = new DOMConstraint(DOMElement);
+					dc.setEnclosingFunctionName(enclosingFunctionName);
+					DOMConstraintList.add(dc);
+
+				}else if (argumentShortName.equals("Name")){   // e.g.  DIV = "<div />";  d = $(DIV);
+					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + targetBody + "(" + argument + ")");
+					//backward slicing to find the corresponding defined variable in the symbol table
+					// set the id_attributeVariable to argument
+					// if argument is an input of a function then assign id to "TheIDShouldBeSetFromFunctionInput"
+				}
+			}
+
+		}
+
 	}
 
 
-	@SuppressWarnings("deprecation")
-	public void generateHTMLTestFile(String htmlTestFile) throws Exception {
-		String instrumentedFileName = scopeName.replace(".js", "_instrumented.js");
-		FileOutputStream outputStream = new FileOutputStream(htmlTestFile);
-		String htmlTestContent = "<!DOCTYPE html> <html> <head> <script src=\"" + instrumentedFileName + "\"> </script> </head> <body> <div id=\"confixTestFixture\"> </div> </body> </html>";
+	private void analyseReturnNode(Map<String, String> map) {
+		// TODO Auto-generated method stub
 		
-		try {
-			CopyUtils.copy(htmlTestContent, outputStream);
-			outputStream.flush();
-		} finally {
-			outputStream.close();
-		}
+	}
+
+	private void analyseAssignmentNode(Map<String, String> map) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void analyseIfStatementNode(Map<String, String> map) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	
-	private void writeJSToFile(String scopename, String input) {
-		try {
-			System.out.println("writing on /jsCode/" + scopename);
-			File file = new File("jsCode/" + scopename);
-			if (!file.exists()) {
-				file.createNewFile();
-			}
-			FileOutputStream fop = new FileOutputStream(file);
-			fop.write(input.getBytes());
-			fop.flush();
-			fop.close();
-		}
-		catch (IOException ioe) {
-			System.out.println("IO Exception");
-		}
-	}
-
-	// Look for instances of "function" in input then figure out where it ends
-	private void writeFunctionsToFile(String input) {
-		String inputCopy = input;
-		int indexOfFuncString = inputCopy.indexOf("function ");
-		while (indexOfFuncString != -1) {
-			String sub = inputCopy.substring(indexOfFuncString);
-			int nextOpenParen = sub.indexOf("(");
-			String funcName = sub.substring(9, nextOpenParen); //"function " has 9 characters
-			int firstOpenBrace = sub.indexOf("{");
-			int countOpenBraces = 1;
-			int countCloseBraces = 0;
-			int endIndex = firstOpenBrace;
-			while (countOpenBraces != countCloseBraces) {
-				endIndex++;
-				if (sub.charAt(endIndex) == '{') {
-					countOpenBraces++;
-				}
-				else if (sub.charAt(endIndex) == '}') {
-					countCloseBraces++;
-				}
-			}
-			String code = sub.substring(0, endIndex+1);
-			try {
-				File file = new File("jsCode/" +  funcName + ".js");
-				if (!file.exists()) {
-					file.createNewFile();
-				}
-				FileOutputStream fop = new FileOutputStream(file);
-				fop.write(code.getBytes());
-				fop.flush();
-				fop.close();
-			}
-			catch (IOException ioe) {
-				System.out.println("IO Exception");
-			}
-			inputCopy = sub.substring(endIndex+1);
-			indexOfFuncString = inputCopy.indexOf("function ");
-		}
-	}
-
-
-	public List<String> generateXpathConstraints() {
-		
+	public List<String> generateXpathConstraints() {	
 		// setting the xpathToSolve for each function
-		HashSet<String> fList = astVisitor.getDOMDependentFunctionsList();
+		HashSet<String> fList = JSASTVisitor.getDOMDependentFunctionsList();
 		DOMDependentFunctionsList.addAll(fList); 
-		HashSet<DOMConstraint> dList = astVisitor.getDOMConstraintList();
+		HashSet<DOMConstraint> dList = JSASTVisitor.getDOMConstraintList();
 		DOMConstraintList.addAll(dList); 
 
 		for (String DDF: DOMDependentFunctionsList){
 			System.out.println("****** Generating xpath for DOM constraints in DDF: " + DDF);
-			String xpathToSolve = astVisitor.generateXpathConstraint(DDF);
-			astVisitor.resetXpath();
+			String xpathToSolve = JSASTVisitor.generateXpathConstraint(DDF);
+			JSASTVisitor.resetXpath();
 			xpathsToSolve.add(xpathToSolve);
 			System.out.println("xpathToSolve: " + xpathToSolve);
 		}
@@ -274,31 +306,6 @@ public class TraceAnalyzer {
 
 	public List<DOMConstraint> getDOMConstraintList() {
 		return DOMConstraintList;
-	}
-
-	
-	public void analyzeTrace(Map<String, String> map) {
-		System.out.printf("statementType: %s\n", map.get("statementType"));
-		System.out.printf("statementType: %s\n", map.get("statement"));
-		System.out.printf("statementType: %s\n", map.get("varList"));
-		System.out.printf("statementType: %s\n", map.get("varValueList"));
-		System.out.printf("statementType: %s\n", map.get("actualStatement"));
-		
-		// parsing the original statement for analysis
-		if (map.get("statementType").equals("functionCall")){
-			
-			AstNode generatedNode = parse(map.get("statement"));
-			ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
-			FunctionCall functionCallNode = (FunctionCall) es.getExpression();
-			System.out.println("functionCallNode: " + functionCallNode.toSource());
-			functionCallNode.getTarget();
-			functionCallNode.getArguments();			
-
-
-			
-		}
-		
-		
 	}
 
 	
