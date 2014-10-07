@@ -22,21 +22,7 @@ import org.owasp.webscarab.plugin.proxy.Proxy;
 import testgenerator.TestSuiteGenerator;
 
 public class ConcolicEngine {
-	/*
-	 * Concolic DOM generation
-	 * 1) Input variables take values w.r.t DOM elements. These variables will be treated as symbolic variables
-	 * during symbolic execution. All other variables will be treated as concrete values.
-	 * 2) Instrument the program so that each operation which may affect a symbolic variable value or a path condition
-	 * is logged to a trace file, as well as any error that occurs.
-	 * 3) Choose an arbitrary input to begin with.
-	 * 4) Execute the program.
-	 * 5) Symbolically re-execute the program on the trace, generating a set of symbolic constraints (including path conditions).
-	 * 6) Negate the last path condition not already negated in order to visit a new execution path. If there is no such path condition, 
-	 * the algorithm terminates.
-	 * 7) Invoke an automated theorem prover to generate a new input. If there is no input satisfying the constraints, 
-	 * return to step 6 to try the next execution path.
-	 * 8) Return to step 4.
-	 */
+
 	private WebDriver driver;
 	private JSModifyProxyPlugin JSModifier;
 	private JSAnalyzer codeAnalyzer;
@@ -44,31 +30,40 @@ public class ConcolicEngine {
 	private String jsAddress;
 	private String scopeName;
 	private String functionToTest;
+	private String testSuiteNameToGenerate;
 	private String fixture = "";
 
-
-	public ConcolicEngine(String jsAdderess, String scopeName, String functionToTest){
+	public ConcolicEngine(String jsAdderess, String scopeName, String functionToTest, String testSuiteNameToGenerate){
 		this.jsAddress = jsAdderess;
 		this.scopeName = scopeName;
 		this.functionToTest = functionToTest;
+		this.testSuiteNameToGenerate = testSuiteNameToGenerate;
 	}
 
 
-	// Runs the cocolic exectuion
+	// Runs the concolic exectuion
 	public void run() throws Exception {
+
+		/*
+		 * 1) Execute the program.
+		 * 2) Symbolically re-execute the program on the trace, generating a set of symbolic constraints (including path conditions).
+		 * 3) Negate the last path condition not already negated in order to visit a new execution path. If there is no such path condition, 
+		 * the algorithm terminates.
+		 * 4) Use solver to generate a new input. If there is no input satisfying the constraints, return to step 3 to try the next execution path.
+		 * 5) Return to step 1.
+		 */
 
 		// Instrument the JavaScript code
 		//instrumentDynamically(false);  // No need for dynamic instrumentation at proxy level.
 		codeAnalyzer = new JSAnalyzer(new JSASTInstrumenter(), jsAddress, scopeName);
 		codeAnalyzer.instrumentJavaScript();
 
-
 		// Dynamic symbolic execution (done in a browser to deal with DOM)
 		String htmlTestFile = (System.getProperty("user.dir")+"/"+jsAddress).replace(scopeName, "concolic.htm");
 		//System.out.println(htmlTestFile);
 		codeAnalyzer.generateHTMLTestFile(htmlTestFile);
 
-		/*
+
 		do {
 			// Loading the htmlTestFile and reset the fixture
 			loadPage(htmlTestFile);
@@ -76,20 +71,31 @@ public class ConcolicEngine {
 			// Apply the new fixture on htmlTestFile
 			((JavascriptExecutor) driver).executeScript("$(\"#confixTestFixture\").append('" + fixture + "');");
 
-			// Execute the function under test
+			// Execute the function under test according to the user input value
 			((JavascriptExecutor) driver).executeScript(functionToTest + ";");
 			// Get the execution trace
-			Map<String,String> o = (Map<String,String>)((JavascriptExecutor) driver).executeScript("return getTrace();");
-			for(String key : o.keySet()) {
-				String value = o.get(key);
-				System.out.printf("%s: %s\n", key, value);
+
+			ArrayList traceList = (ArrayList)((JavascriptExecutor) driver).executeScript("return getConfixTrace();");
+			Map<String,String> map;
+			for (int i=0; i<traceList.size(); i++){
+				map = (Map<String,String>)(traceList.get(i));
+				System.out.printf("statementType: %s\n", map.get("statementType"));
 			}
+
+
+			//codeAnalyzer.
 			
-			
+			//Map<String,String> map = (Map<String,String>)((JavascriptExecutor) driver).executeScript("return getConfixTrace();");
+			//for(String key : map.keySet()) {
+			//	String value = map.get(key);
+			//	System.out.printf("%s: %s\n", key, value);
+			//}
+
+
 			//Map<String, Integer> map = (Map<String, Integer>)  ((JavascriptExecutor) driver).executeScript("return {foo: 1, bar: 2}");
 			//System.out.printf("foo: %d\n", map.get("foo"));
 			//System.out.printf("bar: %d\n", map.get("bar"));
-			
+
 
 
 			// Generate DOM constraints from the trace
@@ -108,13 +114,19 @@ public class ConcolicEngine {
 
 		quitDriver();
 
-		*/
+		generateTestSuite();
 		
-		// These are to be used externally by the runner class to generate test suite
-		//List<String> functionsList = codeAnalyzer.getDOMDependentFunctions();
-		//List<List<String>> attributeConstraintList = getAttributeConstraintList(functionsList);
-		//List<String> DOMFixtureList = getDOMFixtureList(functionsList);
+	}
 
+
+	private void generateTestSuite() throws Exception {
+		List<String> functionsList = getDOMDependentFunctions();
+		List<List<String>> attributeConstraintList = getAttributeConstraintList(functionsList);
+		List<String> DOMFixtureList = getDOMFixtureList(functionsList);
+		
+		// Generate a QUnit test file for a DOM-dependent function with DOM fixture
+		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixtureList, functionsList, attributeConstraintList);
+		tsg.generateTestSuite();
 	}
 
 
@@ -131,7 +143,6 @@ public class ConcolicEngine {
 		}
 	}
 
-
 	public void driverSetup(ProxyConfiguration prox) throws Exception {
 		FirefoxProfile profile = new FirefoxProfile();
 		if (prox != null) {
@@ -143,6 +154,18 @@ public class ConcolicEngine {
 		}
 		driver = new FirefoxDriver(profile);
 		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+	}
+
+	private void runProxy(ProxyConfiguration prox) {
+		prox.setPort(3128);
+		JSModifier = new JSModifyProxyPlugin(new JSASTInstrumenter());
+		//JSModifyProxyPlugin modifier = new JSModifyProxyPlugin("TEMP");  // output forlder name
+		JSModifier.excludeDefaults();
+		Framework framework = new Framework();
+		Preferences.setPreference("Proxy.listeners", "127.0.0.1:" + prox.getPort());
+		Proxy proxy = new Proxy(framework);
+		proxy.addPlugin(JSModifier);
+		proxy.run();
 	}
 
 	public void driverExecute(String javascript) throws Exception {
@@ -159,6 +182,9 @@ public class ConcolicEngine {
 		driver.get(htmlTestFile);
 	}
 
+	public List<String> getDOMDependentFunctions() {
+		return codeAnalyzer.getDOMDependentFunctions();
+	}
 
 	public List<List<String>> getAttributeConstraintList(List<String> functionsList) {
 		List<List<String>> attributeConstraintList = new ArrayList<List<String>>();
@@ -206,22 +232,8 @@ public class ConcolicEngine {
 		}		
 	}
 
-	private void runProxy(ProxyConfiguration prox) {
-		prox.setPort(3128);
-		JSModifier = new JSModifyProxyPlugin(new JSASTInstrumenter());
-		//JSModifyProxyPlugin modifier = new JSModifyProxyPlugin("TEMP");  // output forlder name
-		JSModifier.excludeDefaults();
-		Framework framework = new Framework();
-		Preferences.setPreference("Proxy.listeners", "127.0.0.1:" + prox.getPort());
-		Proxy proxy = new Proxy(framework);
-		proxy.addPlugin(JSModifier);
-		proxy.run();
-	}
 
 
-	public List<String> getDOMDependentFunctions() {
-		return codeAnalyzer.getDOMDependentFunctions();
-	}
 
 
 }

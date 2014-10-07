@@ -32,9 +32,6 @@ import org.w3c.dom.NodeList;
 
 
 
-import com.crawljax.util.Helper;
-
-
 
 public class JSAnalyzer {
 
@@ -141,21 +138,6 @@ public class JSAnalyzer {
 			/* clean up */
 			Context.exit();
 
-			// setting the xpathToSolve for each function
-			HashSet<String> fList = astVisitor.getDOMDependentFunctionsList();
-			DOMDependentFunctionsList.addAll(fList); 
-			HashSet<DOMConstraint> dList = astVisitor.getDOMConstraintList();
-			DOMConstraintList.addAll(dList); 
-
-			for (String DDF: DOMDependentFunctionsList){
-				System.out.println("****** Generating xpath for DOM constraints in DDF: " + DDF);
-				String xpathToSolve = astVisitor.generateXpathConstraint(DDF);
-				astVisitor.resetXpath();
-				xpathsToSolve.add(xpathToSolve);
-				System.out.println("xpathToSolve: " + xpathToSolve);
-			}
-
-
 			//System.out.println("AST AFTER INSTRUMENTATION: ");
 			String instrumentedCode = ast.toSource();
 			System.out.println(instrumentedCode);
@@ -257,6 +239,21 @@ public class JSAnalyzer {
 
 
 	public List<String> generateXpathConstraints() {
+		
+		// setting the xpathToSolve for each function
+		HashSet<String> fList = astVisitor.getDOMDependentFunctionsList();
+		DOMDependentFunctionsList.addAll(fList); 
+		HashSet<DOMConstraint> dList = astVisitor.getDOMConstraintList();
+		DOMConstraintList.addAll(dList); 
+
+		for (String DDF: DOMDependentFunctionsList){
+			System.out.println("****** Generating xpath for DOM constraints in DDF: " + DDF);
+			String xpathToSolve = astVisitor.generateXpathConstraint(DDF);
+			astVisitor.resetXpath();
+			xpathsToSolve.add(xpathToSolve);
+			System.out.println("xpathToSolve: " + xpathToSolve);
+		}
+
 		// e.g. select("html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/
 		//		descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]")
 

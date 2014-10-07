@@ -1,6 +1,11 @@
 function confixWrapper(statementType, statement, varList, varValueList, actualStatement) {
+  trace.push({statementType: statementType, statement: statement, varList: varList, varValueList: varValueList, actualStatement: actualStatement});
   return actualStatement;
 }
+var phorm_js_exec_counter = new Array();
+for (var i = 0; i < 0; i++) 
+  if (phorm_js_exec_counter[i] == undefined || phorm_js_exec_counter[i] == null) 
+  phorm_js_exec_counter[i] = 0;
 var phorm_js_exec_counter = new Array();
 for (var i = 0; i < 0; i++) 
   if (phorm_js_exec_counter[i] == undefined || phorm_js_exec_counter[i] == null) 

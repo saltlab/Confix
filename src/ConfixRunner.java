@@ -1,22 +1,4 @@
 import core.ConcolicEngine;
-import core.DOMConstraint;
-import core.JSAnalyzer;
-import core.XpathSolver;
-
-import instrumentor.JSASTInstrumenter;
-import instrumentor.JSModifyProxyPlugin;
-import instrumentor.ProxyConfiguration;
-
-import testgenerator.TestSuiteGenerator;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class ConfixRunner {
 
@@ -29,15 +11,8 @@ public class ConfixRunner {
 
 	public static void main(String[] args) throws Exception {
 
-		ConcolicEngine ce = new ConcolicEngine(jsAdderess, scopeName, functionToTest);
+		ConcolicEngine ce = new ConcolicEngine(jsAdderess, scopeName, functionToTest, testSuiteNameToGenerate);
 		ce.run();
-		//List<String> functionsList = ce.getDOMDependentFunctions();
-		//List<List<String>> attributeConstraintList = ce.getAttributeConstraintList(functionsList);
-		//List<String> DOMFixtureList = ce.getDOMFixtureList(functionsList);
-		
-		// Generate a QUnit test file for a DOM-dependent function with DOM fixture
-		//TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixtureList, functionsList, attributeConstraintList);
-		//tsg.generateTestSuite();
 	}
 
 

@@ -25,8 +25,14 @@ public class JSASTInstrumenter extends JSASTVisitor {
 	private AstNode jsLineExectutionCounter() {
 		// statement can be functionCall, assignment, return, condition, etc.
 		String code = "function confixWrapper(statementType, statement, varList, varValueList, actualStatement){" +
-					   "return actualStatement;" +
+						 "trace.push({statementType: statementType, statement: statement, varList: varList, varValueList: varValueList, actualStatement: actualStatement});" +
+						 "return actualStatement;" +
 					   "}";
+
+		code += "function getConfixTrace(){" +
+				 "return trace;" +
+			   "}";
+		
 		code += "var " + jsName + "_exec_counter = new Array(); " +
 				"for (var i=0;i<" + instrumentedLinesCounter + ";i++)" +
 				"if("+jsName + "_exec_counter[i]== undefined || "+jsName + "_exec_counter[i]== null) "+jsName + "_exec_counter[i]=0;";
