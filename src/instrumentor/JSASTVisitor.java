@@ -60,31 +60,17 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	protected static final Logger LOGGER = LoggerFactory.getLogger(JSASTVisitor.class.getName());
 
-	public static HashSet<String> DomDependentFunctions = new HashSet<String>();
-	private static HashSet<DOMConstraint> DOMConstraintList = new HashSet<DOMConstraint>();
-	private static List<ArrayList<DOMConstraint>> pathConditions = new ArrayList<ArrayList<DOMConstraint>>();
-
 	private final ArrayList<String> jqueryList=new ArrayList<String>();
 	private final ArrayList<String> jsList=new ArrayList<String>();
 
 	private int m_rootCount = 0;
 
-	private static String xpath="";
-	private static int numOfDOMElementsInFixture = 0;
 
 	private CompilerEnvirons compilerEnvirons = new CompilerEnvirons();
 	private String scopeName = null;	// Contains the scopename of the AST we are visiting. Generally this will be the filename
 	protected String jsName = null;		//To store js corresponding name
 
-
 	public JSASTVisitor(){
-
-		// adding the initial "document" node to be used for xpath generation
-		ElementTypeVariable DOMElement = new ElementTypeVariable();
-		DOMElement.setDOMJSVariable("document");
-		DOMConstraint dc = new DOMConstraint(DOMElement);
-		DOMConstraintList.add(dc);
-
 		jqueryList.add("addClass");
 		jqueryList.add("removeClass");
 		jqueryList.add("removeAttr");
@@ -105,8 +91,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		jsList.add("setAttribute");
 		jsList.add("getAttribute");
 		jsList.add("removeAttribute");
-
-
 
 		/*
 		 * Amin: DOM accessor
@@ -245,72 +229,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 
 
-	public static void resetXpath(){
-		numOfDOMElementsInFixture = 0;
-	}
-
-	public static String generateXpathConstraint(String enclosingFunctionName) {
-		xpath = "select(\"document[";
-		List<String> JSDOMVars = new ArrayList<String>();
-		// Transform constraints to xpath
-		for (DOMConstraint dc : DOMConstraintList){
-			if (dc.isAddedToTheXpath())
-				continue;
-			//dc.setAddedToTheXpath(true); // this is to consider each constraint only once -> this is done in the recursive function generateSubXpath
-
-			if (dc.getDOMElementTypeVariable().getDOMJSVariable().equals("document")) // ignore the first node
-				continue;
-
-			// for each node consider all its children nodes
-			if (dc.getEnclosingFunctionName().equals(enclosingFunctionName))
-				generateSubXpath(dc, enclosingFunctionName);
-		}
-
-		xpath += "]\")";
-
-		return xpath;
-	}
-
-	private static void generateSubXpath(DOMConstraint currentConstraint, String enclosingFunctionName){
-		// generate xpath for currentConstraint first (id+attributes) and then add its children
-		String id = currentConstraint.getDOMElementTypeVariable().getId_attribute();
-		String tag = currentConstraint.getDOMElementTypeVariable().getTag_attribute();
-		String type = currentConstraint.getDOMElementTypeVariable().getType_attribute();
-		String name = currentConstraint.getDOMElementTypeVariable().getName_attribute();
-		String Class = currentConstraint.getDOMElementTypeVariable().getClass_attribute();
-		String value = currentConstraint.getDOMElementTypeVariable().getValue_attribute();
-		String src = currentConstraint.getDOMElementTypeVariable().getSrc_attribute();
-		if (numOfDOMElementsInFixture>0)
-			xpath += " and child::";
-		xpath += (tag + "_" + Integer.toString(numOfDOMElementsInFixture++) + "[");  // e.g. div_0[, p_1[, img_2[, ...
-		if(id!=null)
-			xpath += "@id_" + id;
-		if(type!=null)
-			xpath += " and @type_" + type;
-		if(name!=null)
-			xpath += " and @name_" + name;
-		if(Class!=null)
-			xpath += " and @class_" + Class;
-		if(value!=null)
-			xpath += " and @value_" + value;
-		if(src!=null)
-			xpath += " and @src_" + src;
-
-		currentConstraint.setAddedToTheXpath(true); // this is to consider each constraint only once
-
-		for (DOMConstraint dc : DOMConstraintList){
-			if (dc.getDOMElementTypeVariable().getDOMJSVariable().equals("document")) // ignore the first node
-				continue;
-			if(dc.getDOMElementTypeVariable().getParentElementJSVariable().equals(currentConstraint.getDOMElementTypeVariable().getDOMJSVariable())){
-				//xpath += " and child::";
-				if (dc.getEnclosingFunctionName().equals(enclosingFunctionName))
-					generateSubXpath(dc, enclosingFunctionName);
-			}
-		}
-		xpath += "]";
-	}
-
-
 
 	/**
 	 * @param scopeName
@@ -323,7 +241,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		String s = scopeName.substring(index+1, scopeName.length());
 		jsName = s.replace('.', '_');
 	}
-
 
 	/**
 	 * @return the scopeName
@@ -384,7 +301,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		return b;
 	}
 
-
 	/**
 	 * @param node
 	 *            The node we want to have wrapped.
@@ -422,7 +338,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 		return node.getParent();
 	}
-
 
 	/**
 	 * Actual visiting method.
@@ -502,233 +417,19 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	 */
 
+
+
+
 	private void instrumentInfixExpressionNode(AstNode node) {
-		System.out.println("=== analyseInfixExpressionNode ===");
-		InfixExpression ie = (InfixExpression) node;
-
-		String left = ie.getLeft().toSource();
-		String oprator = ASTNodeUtility.operatorToString(ie.getOperator());
-		String right = ie.getRight().toSource();
-
-		System.out.println("Left: " + left);
-		System.out.println("Operator: " + oprator);
-		System.out.println("Right: " + right);			
-
-		if (oprator.equals("GETPROP")){  // -> nodeName: PropertyGet, e.g. Left: $("p").innerHTML
-			if (right.equals("innerHTML")){
-				AstNode parentNode = node.getParent();
-				//System.out.println("parentNode: " + parentNode.toSource());
-				//System.out.println("shortName: " + parentNode.shortName());
-				if (parentNode instanceof IfStatement){
-					// innerHTML of an element was used as an if condition -> e.g. if (a.innerHTML)
-					System.out.println(left + ".innerHTML is used as an if condition");
-					if (ie.getLeft() instanceof FunctionCall){
-						// this is to make sure ie.getLeft() will be added if not already exist
-						instrumentFunctionCallNode(ie.getLeft());
-						for (DOMConstraint dc: DOMConstraintList)
-							if (dc.getDOMElementTypeVariable().getSource().equals(left))
-								dc.addConstraint(left+".innerHTML", true);
-					}
-				}else if (parentNode instanceof Assignment){
-					// innerHTML of an element value was used or set -> e.g. a.innerHTML = x / y = a.innerHTML 
-					Assignment asmt = (Assignment)parentNode;
-					if (asmt.getLeft().equals(node)){ // innerHTML is set
-						System.out.println(left + ".innerHTML is set to " + asmt.getRight().toSource());
-					}else{
-						System.out.println(asmt.getLeft().toSource() + " is set to " + left + ".innerHTML");
-						// adding the variable storing this attribute
-						if (ie.getLeft() instanceof FunctionCall){
-							System.out.println("analyseFunctionCallNode");
-							// this is to make sure ie.getLeft() will be added if not already exist
-							instrumentFunctionCallNode(ie.getLeft());
-							for (DOMConstraint dc: DOMConstraintList)
-								if (dc.getDOMElementTypeVariable().getSource().equals(left))
-									dc.getDOMElementTypeVariable().setInnerHTML_attributeVariable(asmt.getLeft().toSource());
-						}
-					}
-				}else if (parentNode instanceof VariableInitializer){
-					// innerHTML of an element used to initialize a variable -> e.g. v = dg('indicator').innerHTML
-					VariableInitializer vi = (VariableInitializer)parentNode;
-					System.out.println("innerHTML property for " + left + " is used to initialize " + vi.getTarget().toSource());
-				}
-			}else if (right.equals("src")){
-				AstNode parentNode = node.getParent();
-				//System.out.println("parentNode: " + parentNode.toSource());
-				//System.out.println("shortName: " + parentNode.shortName());
-				if (parentNode instanceof IfStatement){
-					// src of an element was used as an if condition -> e.g. if (a.src)
-					System.out.println(left + ".src is used as an if condition");
-					if (ie.getLeft() instanceof FunctionCall){
-						// this is to make sure ie.getLeft() will be added if not already exist
-						instrumentFunctionCallNode(ie.getLeft());
-						for (DOMConstraint dc: DOMConstraintList)
-							if (dc.getDOMElementTypeVariable().getSource().equals(left)){
-								dc.addConstraint(left+".src", true);
-								break;
-							}
-					}
-				}else if (parentNode instanceof Assignment){
-					// src of an element value was used or set -> e.g. a.src = x / y = a.src 
-					Assignment asmt = (Assignment)parentNode;
-					if (asmt.getLeft().equals(node)){ // src is set
-						System.out.println(left + ".src is set to " + asmt.getRight().toSource());
-					}else{
-						System.out.println(asmt.getLeft().toSource() + " is set to " + left + ".src");
-						// adding the variable storing this attribute
-						if (ie.getLeft() instanceof FunctionCall){
-							System.out.println("analyseFunctionCallNode");
-							// this is to make sure ie.getLeft() will be added if not already exist
-							instrumentFunctionCallNode(ie.getLeft());
-							for (DOMConstraint dc: DOMConstraintList)
-								if (dc.getDOMElementTypeVariable().getSource().equals(left))
-									dc.getDOMElementTypeVariable().setSrc_attributeVariable(asmt.getLeft().toSource());
-						}
-					}
-				}else if (parentNode instanceof VariableInitializer){
-					// src of an element used to initialize a variable -> e.g. v = dg('indicator').src
-					VariableInitializer vi = (VariableInitializer)parentNode;
-					System.out.println("src property for " + left + " is used to initialize " + vi.getTarget().toSource());
-				}else{
-					//  just a use of src prop, make sure the prop exist and the tag is set to eithert frame, iframe, img, input, layer, script, textarea, video
-					if (ie.getLeft() instanceof FunctionCall){
-						// this is to make sure ie.getLeft() will be added if not already exist
-						instrumentFunctionCallNode(ie.getLeft());
-						for (DOMConstraint dc: DOMConstraintList)
-							if (dc.getDOMElementTypeVariable().getSource().equals(left)){
-								dc.getDOMElementTypeVariable().setTag_attribute("img");
-								dc.getDOMElementTypeVariable().setSrc_attribute("ConfixGeneratedSrc");
-								break;
-							}
-					}
-
-
-				}
-			}else if (right.equals("style")){  	//  element.style.property  : Change the style of an HTML element
-				AstNode parentNode = node.getParent();
-				//System.out.println("parentNode: " + parentNode.toSource());
-				//System.out.println("shortName: " + parentNode.shortName());
-				if (parentNode instanceof InfixExpression){  // e.g. e.style.
-					InfixExpression pie = (InfixExpression) parentNode;
-					String pLeft = pie.getLeft().toSource();
-					String pOprator = ASTNodeUtility.operatorToString(pie.getOperator());
-					String pRight = pie.getRight().toSource();
-					//System.out.println(pRight + " property of style attribute for element " + left);
-					if (parentNode.getParent() instanceof IfStatement){
-						// property of style attribute of an element was used as an if condition -> e.g. if (cur.style.MozOpacity)
-						System.out.println(parentNode.toSource() + " is used as an if condition");
-						if (ie.getLeft() instanceof FunctionCall){
-							// this is to make sure ie.getLeft() will be added if not already exist
-							instrumentFunctionCallNode(ie.getLeft());
-							for (DOMConstraint dc: DOMConstraintList)
-								if (dc.getDOMElementTypeVariable().getSource().equals(left))
-									dc.addConstraint(parentNode.toSource(), true);
-						}
-					}else if (parentNode.getParent() instanceof Assignment){
-						// style of an element value was used or set -> e.g. a.style.display = x / y = a.style.display
-						Assignment asmt = (Assignment) parentNode.getParent();
-						if (asmt.getLeft().equals(parentNode)){ // style is set
-							System.out.println(parentNode.toSource() + " is set to " + asmt.getRight().toSource());
-						}else{
-							System.out.println(asmt.getLeft().toSource() + " is set to " + parentNode.toSource());
-						}
-					}else if (parentNode instanceof VariableInitializer){
-						// style of an element used to initialize a variable -> e.g. v = dg('indicator').style
-						VariableInitializer vi = (VariableInitializer)parentNode;
-						System.out.println(parentNode + " is used to initialize " + vi.getTarget().toSource());
-					}
-				}else if (parentNode instanceof IfStatement){
-					// style of an element was used as an if condition -> e.g. if (a.style)
-					System.out.println("style property for " + left + " is used as an if condition");
-				}else if (parentNode instanceof Assignment){
-					// style of an element value was used or set -> e.g. a.style = x / y = a.style 
-					Assignment asmt = (Assignment)parentNode;
-					if (asmt.getLeft().equals(node)){ // style is set
-						System.out.println("style property for " + left + " is set to " + asmt.getRight().toSource());
-					}else{
-						System.out.println(asmt.getLeft().toSource() + " is set to style property for " + left);
-					}
-				}else if (parentNode instanceof VariableInitializer){
-					// style of an element used to initialize a variable -> e.g. v = dg('indicator').style
-					VariableInitializer vi = (VariableInitializer)parentNode;
-					System.out.println("style property for " + left + " is used to initialize " + vi.getTarget().toSource());
-				}
-			}else if (right.equals("anchors")){
-				// serach the DOMElementVariable list to check if a corresponding DOMJSVariable exists
-				// e.g. a.innerHTML = document.anchors[0].innerHTML; -> document is a default DOMJSVariable in the DOMElementVariable list
-				boolean JSVarExist = false;
-				for (DOMConstraint dc: DOMConstraintList){
-					String JSVar = dc.getDOMElementTypeVariable().getDOMJSVariable();
-					if (left.equals(JSVar)){
-						JSVarExist = true;
-						System.out.println(JSVar + " is the parent of anchors");
-
-						ElementTypeVariable DOMElement = new ElementTypeVariable();
-						DOMElement.setParentElementJSVariable(left);
-						// adding the child node to the list for the parent
-						//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); // to store the var in the JS code that a DOM element is assigned to
-						String DOMJSVariable = "";
-						DOMElement.setDOMJSVariable(DOMJSVariable);
-
-						//System.out.println("Function " + enclosingFunctionName + " accesses DOM via .anchors");
-
-						DOMElement.setTag_attribute("a");
-						DOMElement.setName_attribute("ConfixGenName" + Integer.toString((new Random()).nextInt(100)));
-
-						// TODO...
-						DOMConstraint newDC = new DOMConstraint(DOMElement);
-						DOMConstraintList.add(newDC);
-						break;
-					}
-				}
-				if (JSVarExist == false){
-					// add the new DOMElementVariable
-				}
-			}
-
-
-		}else if (oprator.equals("=")){  // -> nodeName: Assignment
-
-		}else if (oprator.equals("==") || oprator.equals("===")){  // -> nodeName: InfixExpression
-
-		}
-		//TODO: considering other comparison operators
-
-		/*
-			The following properties can be used on HTML documents:
-			document.anchors 	Returns a collection of all <a> with a value in the name attribute
-			document.applets 	Returns a collection of all <applet> elements (Deprecated in HTML5)
-			document.embeds 	Returns a collection of all <embed> elements 
-			document.forms 	Returns a collection of all the <form> elements 
-			document.head 	Returns the <head> element
-			document.images 	Returns a collection of all <image> elements 
-			document.links 	Returns a collection of all <area> and <a> elements value in href
-			document.title 	Sets or returns the <title> element
-
-			Adding and Deleting Elements
-			document.createElement() 	Create an HTML element
-			document.removeChild() 	Remove an HTML element
-			document.appendChild() 	Add an HTML element
-			document.replaceChild() 	Replace an HTML element
-			document.write(text) 	Write into the HTML output stream
-		 */
-
-
-		// serach the DOMElementVariable list to check if on the left or right a DOMJSVariable is used
-		for (DOMConstraint dc: DOMConstraintList){
-			String JSVar = dc.getDOMElementTypeVariable().getDOMJSVariable();
-			if (JSVar!=null)
-				if (JSVar.equals(left)){
-					System.out.println("********* A property of JSVAr: " + JSVar + " is being set");
-				}else if (JSVar.equals(right)){
-					System.out.println("********* A property of JSVAr: " + JSVar + " is being used");
-				}
-		}
-
+		// TODO Auto-generated method stub
+		
 	}
 
 
+
+
 	private void instrumentIfStatementNode(AstNode node) {
-		System.out.println("=== analyseIfStatementNode ===");
+		System.out.println("=== instrumentIfStatementNode ===");
 		ArrayList<DOMConstraint> pathCondition = new ArrayList<DOMConstraint>(); 
 
 		FunctionNode func=node.getEnclosingFunction();
@@ -755,131 +456,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		IfStatement tempIS = (IfStatement) (AstNode) wrapperNode.getFirstChild();
 		System.out.println("Replacing condition: " + is.getCondition().toSource() + " with wrapperCondition: " + tempIS.getCondition().toSource());
 		is.setCondition(tempIS.getCondition());
-		System.out.println("New condition: " + is.getCondition().toSource());
-
-
-		String conditionShortName = conditionNode.shortName();
-
-		if (conditionShortName.equals("InfixExpression")){	// e.g. if (x<5)
-			System.out.println("*** InfixExpression found in the condition ***");
-			InfixExpression ie = (InfixExpression) conditionNode;
-			String left = ie.getLeft().toSource();
-			String oprator = ASTNodeUtility.operatorToString(ie.getOperator());
-			String right = ie.getRight().toSource();
-
-			System.out.println("Left: " + left);
-			System.out.println("Operator: " + oprator);
-			System.out.println("Right: " + right);	
-
-			// check if the path condition is on a DOM element
-
-			// adding the pathCondition to the 
-			/*DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
-			System.out.println("parentNodeElement: document");
-			DOMElement.setParentElementJSVariable("document");
-			// adding the child node to the list for the parent
-			for (DOMConstraint d: DOMConstraintList){
-				if (d.getDOMElementTypeVariable().getDOMJSVariable().equals("document"))
-					System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
-			}
-
-			DOMElement.setDOMJSVariable(DOMJSVariable);
-
-			DOMElement.setId_attribute(argument);
-			DOMConstraint dc = new DOMConstraint(DOMElement);
-			 */
-
-			// considering multiple constraints
-			if (oprator.equals("&&") || oprator.equals("||")){
-
-			}if (oprator.equals("==") || oprator.equals("===")){  
-				if (ie.getLeft() instanceof Name){  // e.g. if we have a = $('id') or a = $('id').html()  and then if (a == X)
-					// search among JSVariables
-					for (DOMConstraint dc: DOMConstraintList){
-						if (dc.getDOMElementTypeVariable().getDOMJSVariable().equals(ie.getLeft().toSource())){
-							System.out.println(dc.getDOMElementTypeVariable().getDOMJSVariable() + " variable which refers to a DOM element is used in a condition");
-							break;
-						}else if (dc.getDOMElementTypeVariable().getId_attributeVariable().equals(ie.getLeft().toSource())){
-							System.out.println(dc.getDOMElementTypeVariable().getId_attributeVariable() + " variable which refers to an id attribute of a DOM element is used in a condition");
-							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
-							String condition = conditionNode.toSource();
-							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".id");
-							//System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition, true);
-							break;
-						}else if (dc.getDOMElementTypeVariable().getType_attributeVariable().equals(ie.getLeft().toSource())){
-							System.out.println(dc.getDOMElementTypeVariable().getType_attributeVariable() + " variable which refers to a type attribute of a DOM element is used in a condition");
-							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
-							String condition = conditionNode.toSource();
-							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".type");
-							//System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition, true);
-							break;
-						}else if (dc.getDOMElementTypeVariable().getName_attributeVariable().equals(ie.getLeft().toSource())){
-							System.out.println(dc.getDOMElementTypeVariable().getName_attributeVariable() + " variable which refers to a name attribute of a DOM element is used in a condition");
-							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
-							String condition = conditionNode.toSource();
-							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".name");
-							//System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition, true);
-							break;
-						}else if (dc.getDOMElementTypeVariable().getClass_attributeVariable().equals(ie.getLeft().toSource())){
-							System.out.println(dc.getDOMElementTypeVariable().getClass_attributeVariable() + " variable which refers to a class attribute of a DOM element is used in a condition");
-							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
-							String condition = conditionNode.toSource();
-							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".class");
-							//System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition, true);
-							break;
-						}else if (dc.getDOMElementTypeVariable().getValue_attributeVariable().equals(ie.getLeft().toSource())){
-							System.out.println(dc.getDOMElementTypeVariable().getValue_attributeVariable() + " variable which refers to a value attribute of a DOM element is used in a condition");
-							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
-							String condition = conditionNode.toSource();
-							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".value");
-							//System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition, true);
-							break;
-						}else if (dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable().equals(ie.getLeft().toSource())){
-							System.out.println(dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable() + " variable which refers to an innerHTML attribute of a DOM element is used in a condition");
-							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
-							String condition = conditionNode.toSource();
-							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".innerHTML");
-							//System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition, true);
-							break;
-						}else if (dc.getDOMElementTypeVariable().getSrc_attributeVariable().equals(ie.getLeft().toSource())){
-							System.out.println(dc.getDOMElementTypeVariable().getSrc_attributeVariable() + " variable which refers to an src attribute of a DOM element is used in a condition");
-							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
-							String condition = conditionNode.toSource();
-							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".src");
-							//System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition, true);
-							break;
-						}
-
-					}
-				}
-
-			}
-
-		}else if (conditionShortName.equals("Name")){	// e.g. if (t)  -> variable should be true to go in
-			Name varName = (Name) conditionNode;
-			System.out.println("varName.toSource(): " + varName.toSource());
-		}else if (conditionShortName.equals("UnaryExpression")){	// e.g. if (!t)  -> variable should be false to go in
-			UnaryExpression ue = (UnaryExpression) conditionNode;
-			String oprator = ASTNodeUtility.operatorToString(ue.getOperator());
-			System.out.println("Oprator: " + oprator);
-			System.out.println("Operand: " + ue.getOperand().toSource());
-		}else if (conditionShortName.equals("PropertyGet")){  // e.g. if (a.innerHTML)
-			PropertyGet pg = (PropertyGet)conditionNode;
-			String property = pg.getRight().toSource();
-			if (property.equals("innerHTML")){
-				System.out.println("innerHTML found");
-			}
-		}
-
-		pathConditions.add(pathCondition);
-
+		System.out.println("New condition: " + is.getCondition().toSource());	
 	}
 
 
@@ -975,7 +552,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 				//setJsDomMap(node.getParent().getParent(), "js_c_id_tag");
 			}
 			else if(node.toSource().equals("insertBefore") || node.toSource().equals("replaceChild")){
-				//				setJsDomMap(node.getParent().getParent(), "js_s_arg");
+				//setJsDomMap(node.getParent().getParent(), "js_s_arg");
 			}
 
 		}
@@ -987,17 +564,8 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	}
 
-
-	/*  Detecting DOM accessing function calls
-	The following methods can be used on HTML documents:
-	document.getElementById() 			Returns the element that has the ID attribute with the specified value
-	document.getElementsByClassName() 	Returns a NodeList containing all elements with the specified class name
-	document.getElementsByName() 		Accesses all elements with a specified name
-	document.getElementsByTagName() 	Returns a NodeList containing all elements with the specified tagname
-	$()									(jQuery) : Find an element by element id
-	 */
 	private void instrumentFunctionCallNode(AstNode node) {
-		System.out.println("=== analyseFunctionCallNode ===");
+		System.out.println("=== instrumentFunctionCallNode ===");
 		if (node.shortName().equals("NewExpression"))
 			return;
 
@@ -1064,8 +632,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	}
 
-
-
 	/**
 	 * Creates a node that can be inserted at a certain point in function.
 	 * 
@@ -1095,18 +661,15 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	 */
 	protected abstract AstNode createNode(AstRoot root, String postfix, int lineNo, int rootCount);
 
-
 	protected abstract AstNode createFunctionTypeNameTrackingNode(FunctionNode callerFunc, AstNode node);
 	/**
 	 *  create node for logging variable/function-parameters
 	 */
 	protected abstract AstNode createNode(FunctionNode function, AstNode nodeForVarLog, String statementCategory);
 
-
 	/**
 	 * create node for tracking function calls
 	 */
-
 	protected abstract AstNode createFunctionTrackingNode(FunctionNode calleeFunction, String callerName);
 	/**
 	 * This method is called when the complete AST has been traversed.
@@ -1121,13 +684,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	 */
 	public abstract void start();
 
-	public static HashSet<String> getDOMDependentFunctionsList() {
-		return DomDependentFunctions;
-	}
-
-	public static HashSet<DOMConstraint> getDOMConstraintList() {
-		return DOMConstraintList;
-	}
 
 }
 

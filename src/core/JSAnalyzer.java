@@ -4,11 +4,9 @@ import instrumentor.JSASTVisitor;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import org.apache.commons.io.CopyUtils;
@@ -17,19 +15,9 @@ import org.mozilla.javascript.CompilerEnvirons;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Parser;
 import org.mozilla.javascript.RhinoException;
-import org.mozilla.javascript.ast.AstNode;
 import org.mozilla.javascript.ast.AstRoot;
-import org.owasp.webscarab.httpclient.HTTPClient;
-import org.owasp.webscarab.model.Request;
-import org.owasp.webscarab.model.Response;
-import org.owasp.webscarab.plugin.proxy.BrowserCache;
-import org.owasp.webscarab.plugin.proxy.ProxyPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 
 
 
@@ -43,10 +31,6 @@ public class JSAnalyzer {
 	private String outputfolder;
 	private String jsAddress, scopeName;
 	
-	private List<String> xpathsToSolve = new ArrayList<String>();
-	private List<String> DOMDependentFunctionsList = new ArrayList<String>();
-	private List<DOMConstraint> DOMConstraintList = new ArrayList<DOMConstraint>();
-
 	/**
 	 * Construct without patterns.
 	 * 
@@ -118,14 +102,11 @@ public class JSAnalyzer {
 			System.out.println(ast.toSource());
 			//System.out.println(ast.debugPrint());
 
-
 			//writeJSToFile(scopename, input);
 			//writeFunctionsToFile(input);
 
-
 			//System.out.println("AST BEFORE : ");
 			//System.out.println(ast.toSource());
-
 
 			astVisitor.setScopeName(scopeName);
 			astVisitor.start();
