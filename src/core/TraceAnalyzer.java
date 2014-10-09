@@ -73,13 +73,65 @@ public class TraceAnalyzer {
 			analyseFunctionCallNode(map);		
 		else if (map.get("statementType").equals("condition"))
 			analyseIfStatementNode(map);
-		else if (map.get("statementType").equals("assignment"))
-			analyseAssignmentNode(map);
+		else if (map.get("statementType").equals("infix"))
+			analyseInfixExpressionNode(map);
 		else if (map.get("statementType").equals("return"))
 			analyseReturnNode(map);
 	}
 
 
+	
+	/*
+
+	The following properties can be used on all HTML elements:
+
+	element.attribute = 	Change the attribute of an HTML element
+	element.setAttribute(attribute,value) 	Change the attribute of an HTML element
+	element.style 	Sets or returns the style attribute of an element
+	element.style.property = 	Change the style of an HTML element
+
+	element.attributes 	Returns a NamedNodeMap of an element's attributes
+	element.childNodes 	Returns a NodeList of child nodes for an element
+	element.className 	Sets or returns the class attribute of an element
+	element.clientHeight 	Returns the viewable height of an element
+	element.clientWidth 	Returns the viewable width of an element
+	element.contentEditable 	Sets or returns whether the content of an element is editable or not
+	element.firstChild 	Returns the first child of an element
+	element.id 	Sets or returns the id of an element
+	element.innerHTML 	Sets or returns the content of an element
+	element.isContentEditable 	Returns true if the content of an element is editable, otherwise false
+	element.lastChild 	Returns the last child of an element
+	element.nextSibling 	Returns the next node at the same node tree level
+	element.nodeName 	Returns the name of an element
+	element.nodeType 	Returns the node type of an element
+	element.nodeValue 	Sets or returns the value of an element
+	element.offsetHeight 	Returns the height of an element
+	element.offsetWidth 	Returns the width of an element
+	element.offsetLeft 	Returns the horizontal offset position of an element
+	element.offsetParent 	Returns the offset container of an element
+	element.offsetTop 	Returns the vertical offset position of an element
+	element.parentNode 	Returns the parent node of an element
+	element.previousSibling 	Returns the previous element at the same node tree level
+	element.scrollHeight 	Returns the entire height of an element
+	element.scrollLeft 	Returns the distance between the left edge of an element and the view
+	element.scrollTop 	Returns the distance between the top edge of an element and the view
+	element.scrollWidth 	Returns the entire width of an element
+	element.tagName 	Returns the tag name of an element
+	element.textContent 	Sets or returns the textual content of a node and its descendants
+	element.title 	Sets or returns the title attribute of an element
+
+	 */
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/*  Detecting DOM accessing function calls
 	The following methods can be used on HTML documents:
 	document.getElementById() 			Returns the element that has the ID attribute with the specified value
@@ -287,11 +339,6 @@ public class TraceAnalyzer {
 		
 	}
 
-	private void analyseAssignmentNode(Map<String, String> map) {
-		// TODO Auto-generated method stub
-		
-	}
-
 	private void analyseIfStatementNode(Map<String, String> map) {
 
 		System.out.println("=== analyseIfStatementNode ===");
@@ -444,16 +491,14 @@ public class TraceAnalyzer {
 		
 		
 		
-		
-		
-		
-		
-		
-		InfixExpression ie = (InfixExpression) node;
 
-		String left = ie.getLeft().toSource();
-		String oprator = ASTNodeUtility.operatorToString(ie.getOperator());
-		String right = ie.getRight().toSource();
+		/*
+		
+		InfixExpression infix = (InfixExpression) node;
+
+		String left = infix.getLeft().toSource();
+		String oprator = ASTNodeUtility.operatorToString(infix.getOperator());
+		String right = infix.getRight().toSource();
 
 		System.out.println("Left: " + left);
 		System.out.println("Operator: " + oprator);
@@ -467,9 +512,9 @@ public class TraceAnalyzer {
 				if (parentNode instanceof IfStatement){
 					// innerHTML of an element was used as an if condition -> e.g. if (a.innerHTML)
 					System.out.println(left + ".innerHTML is used as an if condition");
-					if (ie.getLeft() instanceof FunctionCall){
+					if (infix.getLeft() instanceof FunctionCall){
 						// this is to make sure ie.getLeft() will be added if not already exist
-						instrumentFunctionCallNode(ie.getLeft());
+						instrumentFunctionCallNode(infix.getLeft());
 						for (DOMConstraint dc: DOMConstraintList)
 							if (dc.getDOMElementTypeVariable().getSource().equals(left))
 								dc.addConstraint(left+".innerHTML", true);
@@ -482,10 +527,10 @@ public class TraceAnalyzer {
 					}else{
 						System.out.println(asmt.getLeft().toSource() + " is set to " + left + ".innerHTML");
 						// adding the variable storing this attribute
-						if (ie.getLeft() instanceof FunctionCall){
+						if (infix.getLeft() instanceof FunctionCall){
 							System.out.println("analyseFunctionCallNode");
 							// this is to make sure ie.getLeft() will be added if not already exist
-							instrumentFunctionCallNode(ie.getLeft());
+							instrumentFunctionCallNode(infix.getLeft());
 							for (DOMConstraint dc: DOMConstraintList)
 								if (dc.getDOMElementTypeVariable().getSource().equals(left))
 									dc.getDOMElementTypeVariable().setInnerHTML_attributeVariable(asmt.getLeft().toSource());
@@ -503,9 +548,9 @@ public class TraceAnalyzer {
 				if (parentNode instanceof IfStatement){
 					// src of an element was used as an if condition -> e.g. if (a.src)
 					System.out.println(left + ".src is used as an if condition");
-					if (ie.getLeft() instanceof FunctionCall){
+					if (infix.getLeft() instanceof FunctionCall){
 						// this is to make sure ie.getLeft() will be added if not already exist
-						instrumentFunctionCallNode(ie.getLeft());
+						instrumentFunctionCallNode(infix.getLeft());
 						for (DOMConstraint dc: DOMConstraintList)
 							if (dc.getDOMElementTypeVariable().getSource().equals(left)){
 								dc.addConstraint(left+".src", true);
@@ -520,10 +565,10 @@ public class TraceAnalyzer {
 					}else{
 						System.out.println(asmt.getLeft().toSource() + " is set to " + left + ".src");
 						// adding the variable storing this attribute
-						if (ie.getLeft() instanceof FunctionCall){
+						if (infix.getLeft() instanceof FunctionCall){
 							System.out.println("analyseFunctionCallNode");
 							// this is to make sure ie.getLeft() will be added if not already exist
-							instrumentFunctionCallNode(ie.getLeft());
+							instrumentFunctionCallNode(infix.getLeft());
 							for (DOMConstraint dc: DOMConstraintList)
 								if (dc.getDOMElementTypeVariable().getSource().equals(left))
 									dc.getDOMElementTypeVariable().setSrc_attributeVariable(asmt.getLeft().toSource());
@@ -535,9 +580,9 @@ public class TraceAnalyzer {
 					System.out.println("src property for " + left + " is used to initialize " + vi.getTarget().toSource());
 				}else{
 					//  just a use of src prop, make sure the prop exist and the tag is set to eithert frame, iframe, img, input, layer, script, textarea, video
-					if (ie.getLeft() instanceof FunctionCall){
+					if (infix.getLeft() instanceof FunctionCall){
 						// this is to make sure ie.getLeft() will be added if not already exist
-						instrumentFunctionCallNode(ie.getLeft());
+						instrumentFunctionCallNode(infix.getLeft());
 						for (DOMConstraint dc: DOMConstraintList)
 							if (dc.getDOMElementTypeVariable().getSource().equals(left)){
 								dc.getDOMElementTypeVariable().setTag_attribute("img");
@@ -561,9 +606,9 @@ public class TraceAnalyzer {
 					if (parentNode.getParent() instanceof IfStatement){
 						// property of style attribute of an element was used as an if condition -> e.g. if (cur.style.MozOpacity)
 						System.out.println(parentNode.toSource() + " is used as an if condition");
-						if (ie.getLeft() instanceof FunctionCall){
+						if (infix.getLeft() instanceof FunctionCall){
 							// this is to make sure ie.getLeft() will be added if not already exist
-							instrumentFunctionCallNode(ie.getLeft());
+							instrumentFunctionCallNode(infix.getLeft());
 							for (DOMConstraint dc: DOMConstraintList)
 								if (dc.getDOMElementTypeVariable().getSource().equals(left))
 									dc.addConstraint(parentNode.toSource(), true);
@@ -638,6 +683,8 @@ public class TraceAnalyzer {
 		}
 		//TODO: considering other comparison operators
 
+		*/
+
 		/*
 			The following properties can be used on HTML documents:
 			document.anchors 	Returns a collection of all <a> with a value in the name attribute
@@ -659,7 +706,7 @@ public class TraceAnalyzer {
 
 
 		// serach the DOMElementVariable list to check if on the left or right a DOMJSVariable is used
-		for (DOMConstraint dc: DOMConstraintList){
+		/*for (DOMConstraint dc: DOMConstraintList){
 			String JSVar = dc.getDOMElementTypeVariable().getDOMJSVariable();
 			if (JSVar!=null)
 				if (JSVar.equals(left)){
@@ -667,7 +714,7 @@ public class TraceAnalyzer {
 				}else if (JSVar.equals(right)){
 					System.out.println("********* A property of JSVAr: " + JSVar + " is being used");
 				}
-		}
+		}*/
 
 	}
 

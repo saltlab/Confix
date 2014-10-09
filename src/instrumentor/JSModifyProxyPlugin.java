@@ -37,7 +37,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 	private JSASTVisitor astVisitor;
 	private String outputfolder;
 	private List<String> xpathsToSolve = new ArrayList<String>();
-	private HashSet<String> DOMDependentFunctionsList = new HashSet<String>();
+//	private HashSet<String> DOMDependentFunctionsList = new HashSet<String>();
 
 	/**
 	 * Construct without patterns.
@@ -199,9 +199,6 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 			//xpathsToSolve.add(xpathToSolve);
 			//System.out.println("xpathToSolve: " + xpathToSolve);
 			
-			HashSet<String> fList = astVisitor.getDOMDependentFunctionsList();
-			DOMDependentFunctionsList.addAll(fList); 
-
 			
 			//System.out.println("AST AFTER INSTRUMENTATION: ");
 			//System.out.println(ast.toSource());
@@ -332,12 +329,6 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 			return createResponse(response, request);
 		}
 	}
-
-
-	public HashSet<String> getDOMDependentFunctions() {
-		return DOMDependentFunctionsList;
-	}
-
 
 
 

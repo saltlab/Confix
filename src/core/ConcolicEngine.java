@@ -65,6 +65,8 @@ public class ConcolicEngine {
 		//System.out.println(htmlTestFile);
 		codeAnalyzer.generateHTMLTestFile(htmlTestFile);
 
+		
+		/*
 		do {
 			// Loading the htmlTestFile and reset the fixture
 			loadPage(htmlTestFile);
@@ -112,7 +114,9 @@ public class ConcolicEngine {
 
 		quitDriver();
 	
+	
 		generateTestSuite();
+		*/
 		
 	}
 

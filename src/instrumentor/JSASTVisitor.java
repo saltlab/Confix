@@ -371,68 +371,125 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			instrumentSwitchCaseNode(node);
 		else if (node instanceof InfixExpression)
 			instrumentInfixExpressionNode(node);
+		else if (node instanceof VariableInitializer)
+			instrumentVariableInitializerNode(node);
+		else if (node instanceof ReturnStatement)
+			instrumentReturnStatementNode(node);
 
 		/* have a look at the children of this node */
 		return true;
 	}
 
-	/*
 
-	The following properties can be used on all HTML elements:
+	private void instrumentReturnStatementNode(AstNode node) {
+		System.out.println("=== instrumentReturnStatementNode ===");
+		ReturnStatement rs = (ReturnStatement) node;
+		System.out.println("ra.toSource(): " + rs.toSource());
+		if (rs.getReturnValue()!=null){
+			System.out.println("ra.getReturnValue().toSource(): " + rs.getReturnValue().toSource());
 
-	element.attribute = 	Change the attribute of an HTML element
-	element.setAttribute(attribute,value) 	Change the attribute of an HTML element
-	element.style 	Sets or returns the style attribute of an element
-	element.style.property = 	Change the style of an HTML element
+			String originalSource = rs.toSource().replace("\"", "\\\"");		
+			originalSource = originalSource.replace("\n", "").replace("\r", ""); // if it contains a function body		
+			// e.g. return a; -> return confixWrapper("return", "a", [""], [], a);
+			String wrapperCode = "function temp(){ return confixWrapper(\"return\", \""+ originalSource +"\", [\"\"], [], " + rs.getReturnValue().toSource() + ") }";
+			System.out.println("wrapperCode : " + wrapperCode );
+			AstNode wrapperNode = parse(wrapperCode);
+			System.out.println(wrapperNode.toSource());
 
-	element.attributes 	Returns a NamedNodeMap of an element's attributes
-	element.childNodes 	Returns a NodeList of child nodes for an element
-	element.className 	Sets or returns the class attribute of an element
-	element.clientHeight 	Returns the viewable height of an element
-	element.clientWidth 	Returns the viewable width of an element
-	element.contentEditable 	Sets or returns whether the content of an element is editable or not
-	element.firstChild 	Returns the first child of an element
-	element.id 	Sets or returns the id of an element
-	element.innerHTML 	Sets or returns the content of an element
-	element.isContentEditable 	Returns true if the content of an element is editable, otherwise false
-	element.lastChild 	Returns the last child of an element
-	element.nextSibling 	Returns the next node at the same node tree level
-	element.nodeName 	Returns the name of an element
-	element.nodeType 	Returns the node type of an element
-	element.nodeValue 	Sets or returns the value of an element
-	element.offsetHeight 	Returns the height of an element
-	element.offsetWidth 	Returns the width of an element
-	element.offsetLeft 	Returns the horizontal offset position of an element
-	element.offsetParent 	Returns the offset container of an element
-	element.offsetTop 	Returns the vertical offset position of an element
-	element.parentNode 	Returns the parent node of an element
-	element.previousSibling 	Returns the previous element at the same node tree level
-	element.scrollHeight 	Returns the entire height of an element
-	element.scrollLeft 	Returns the distance between the left edge of an element and the view
-	element.scrollTop 	Returns the distance between the top edge of an element and the view
-	element.scrollWidth 	Returns the entire width of an element
-	element.tagName 	Returns the tag name of an element
-	element.textContent 	Sets or returns the textual content of a node and its descendants
-	element.title 	Sets or returns the title attribute of an element
+			FunctionNode fn = (FunctionNode) (AstNode) wrapperNode.getFirstChild();
+			Block block = (Block) fn.getBody();
+			ReturnStatement tempRS = (ReturnStatement) block.getFirstChild();
 
-	 */
+			System.out.println("Replacing returnVal: " + rs.toSource() + " with wrappedInfix: " + tempRS.toSource());
+			rs.setReturnValue(tempRS.getReturnValue());
+			System.out.println("New returnVal is: " + rs.toSource());	
+		}
+	}
+
+	private void instrumentVariableInitializerNode(AstNode node) {
+		System.out.println("=== instrumentVariableInitializerNode ===");
+		VariableInitializer vi = (VariableInitializer) node;
+
+		Name varName = (Name) vi.getTarget();
+		AstNode varLiteral = vi.getInitializer();
+		//System.out.println("parentNode.getChildBefore(ASTNode).getString() :" + parentNode.getChildBefore(ASTNode).getString());
+		System.out.println("VariableInitializer - source: " + vi.toSource());
+		System.out.println("VariableInitializer - varName: " + varName.toSource());
+		System.out.println("VariableInitializer - varLiteral: " + varLiteral.toSource());
 
 
+		String left = varName.toSource();
+		String right =  varLiteral.toSource();
+
+		String originalSource = vi.toSource().replace("\"", "\\\"");		
+		originalSource = originalSource.replace("\n", "").replace("\r", ""); // if it contains a function body		
+		// e.g. var a = b -> a = confixWrapper("infix", "var a=b", [""], [], b)
+		String wrapperCode = "var " + left + " = confixWrapper(\"initvar\", \"var "+ originalSource +"\", [\"\"], [], " + right + ")";
+		System.out.println("wrapperCode : " + wrapperCode );
+		AstNode wrapperNode = parse(wrapperCode);
+		System.out.println(wrapperNode.toSource());
+
+		ExpressionStatement es = (ExpressionStatement) (AstNode) wrapperNode.getFirstChild();
+		System.out.println("ES: " + es.toSource());
+		VariableDeclaration vd = (VariableDeclaration) (AstNode) es.getExpression();
 
 
-	private void instrumentInfixExpressionNode(AstNode node) {
-		// TODO Auto-generated method stub
-		
+		VariableInitializer tempVI = (VariableInitializer) (AstNode) vd.getVariables().get(0);
+
+
+		System.out.println("Replacing initvar: " + vi.toSource() + " with wrappedInfix: " + tempVI.toSource());
+		vi.setTarget(tempVI.getTarget());
+		vi.setInitializer(tempVI.getInitializer());
+		System.out.println("New initvar is: " + vi.toSource());	
+
 	}
 
 
 
 
+	private void instrumentInfixExpressionNode(AstNode node) {
+		System.out.println("=== instrumentInfixExpressionNode ===");
+		InfixExpression infex = (InfixExpression) node;
+
+
+		String left = infex.getLeft().toSource();
+		String oprator = ASTNodeUtility.operatorToString(infex.getOperator());
+		String right = infex.getRight().toSource();
+
+		System.out.println("infex.toSource(): " + infex.toSource());
+		System.out.println("Left: " + left);
+		System.out.println("Left.shortName: " + infex.getLeft().shortName());
+		System.out.println("Operator: " + oprator);
+		System.out.println("Right: " + right);			
+		System.out.println("Right.shortName: " + infex.getRight().shortName());
+
+		String originalSource = infex.toSource().replace("\"", "\\\"");		
+		originalSource = originalSource.replace("\n", "").replace("\r", ""); // if it contains a function body		
+		if (oprator.equals("=")){
+			// e.g. a = b -> a = confixWrapper("infix", "a=b", [""], [], b)
+			String wrapperCode = left + " = confixWrapper(\"infix\", \""+ originalSource +"\", [\"\"], [], " + right + ")";
+			System.out.println("wrapperCode : " + wrapperCode );
+			AstNode wrapperNode = parse(wrapperCode);
+			System.out.println(wrapperNode.toSource());
+
+			ExpressionStatement es = (ExpressionStatement) (AstNode) wrapperNode.getFirstChild();
+			System.out.println("ES: " + es.toSource());
+			InfixExpression tempInf = (InfixExpression) (AstNode) es.getExpression();
+			System.out.println("Replacing infix: " + infex.toSource() + " with wrappedInfix: " + tempInf.toSource());
+			infex.setLeft(tempInf.getLeft());
+			infex.setOperator(tempInf.getOperator());
+			infex.setRight(tempInf.getRight());
+			System.out.println("New infix is: " + infex.toSource());	
+
+		}		
+
+	}
+
+
 	private void instrumentIfStatementNode(AstNode node) {
 		System.out.println("=== instrumentIfStatementNode ===");
-		ArrayList<DOMConstraint> pathCondition = new ArrayList<DOMConstraint>(); 
 
-		FunctionNode func=node.getEnclosingFunction();
+		FunctionNode func=node.getEnclosingFunction();  // TODO: Add this to the wrapper function later
 		IfStatement is = (IfStatement) node;
 		AstNode conditionNode = is.getCondition();
 
@@ -528,12 +585,13 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		//System.out.println(f.getSymbolTable());
 		//System.out.println(f.getSymbols());
 
-		System.out.println("=== analyseFunctionNode ===");
+		System.out.println("=== instrumentFunctionNode ===");
 		String fName = "";
 		if (f.getFunctionName()!=null){
 			fName = f.getFunctionName().getIdentifier();
 			System.out.println("fName = " + fName);
 		}
+		System.out.println("Nothing instrumented!");
 
 	}
 
@@ -574,6 +632,9 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		String targetBody = targetNode.toSource();
 		AstNode parentNode = node.getParent();
 
+		//if (!fcall.getTarget().toSource().contains("confixWrapper"))
+		//	System.out.println("fcall.getTarget().toSource(): " + fcall.getTarget().toSource());
+
 		String functionType = "";  // The called function is either "accessingDOM" or "notAccessingDOM" 
 		String argument = "";
 		String argumentShortName = "";
@@ -583,8 +644,10 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); 
 
 		// avoid instrumenting wrapper function calls!
-		if (fcall.getParent().toSource().contains("confixWrapper"))
+		if (fcall.getParent().toSource().contains("confixWrapper")){
+			//System.out.println("Not instrumenting because of: " + fcall.getParent().toSource());
 			return;
+		}
 
 		// getting the enclosing function name
 		FunctionNode func=node.getEnclosingFunction();
@@ -608,7 +671,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 				Assignment asmt = (Assignment)parentNode;
 				DOMJSVariable = asmt.getLeft().toSource();
 			}
-				
+
 		// e.g. Replacing functionCall: document.getElementById(x) with wrapperFunCall: confixWrapper("functionCall", "document.getElementById(x)", ["x"], [x], document.getElementById(x))
 		List<AstNode> args = new ArrayList(fcall.getArguments());
 		String wrapperCode = "confixWrapper(\"functionCall\", \""+ fcall.toSource().replace("\"", "\\\"") +"\", [";

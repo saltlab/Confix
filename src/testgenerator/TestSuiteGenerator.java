@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 
 
-/* Generating QUnit test suite of the foillowing format
+/* Generating QUnit test suite
 
 // QUnit test cases generated @ ${date}
 
