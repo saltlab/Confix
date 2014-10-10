@@ -153,8 +153,8 @@ function SaveRating(pid, rate) {
 	}
 	isAjaxing = true;
 	dg('rateStatus').innerHTML = 'Saving your rate ';
-	updateIndic();
-	makeRequest("./?cmd=rate&p="+pid+"&rate="+rate+"&r="+Math.round(Math.random()*100000)); // to avoid unwanted caching
+	//updateIndic();
+	//makeRequest("./?cmd=rate&p="+pid+"&rate="+rate+"&r="+Math.round(Math.random()*100000)); // to avoid unwanted caching
 }
 
 function prepareBody() {

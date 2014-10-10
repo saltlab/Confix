@@ -1,3 +1,4 @@
+trace = [];
 function confixWrapper(statementType, statement, varList, varValueList, enclosingFunction, actualStatement) {
   trace.push({statementType: statementType, statement: statement, varList: varList, varValueList: varValueList, enclosingFunction: enclosingFunction, actualStatement: actualStatement});
   return actualStatement;
@@ -165,8 +166,6 @@ function SaveRating(pid, rate) {
   }
   isAjaxing = confixWrapper("infix", "isAjaxing = true", [""], [], "SaveRating", true);
   confixWrapper("functionCall", "dg('rateStatus')", ["rateStatus"], ['rateStatus'], "SaveRating", dg('rateStatus')).innerHTML = confixWrapper("infix", "dg('rateStatus').innerHTML = 'Saving your rate '", [""], [], "SaveRating", 'Saving your rate ');
-  confixWrapper("functionCall", "updateIndic()", [], [], "SaveRating", updateIndic());
-  confixWrapper("functionCall", "makeRequest(\"./?cmd=rate&p=\" + pid + \"&rate=\" + rate + \"&r=\" + Math.round(Math.random() * 100000))", ["./?cmd=rate&p= + pid + &rate= + rate + &r= + Math.round(Math.random() * 100000)"], ["./?cmd=rate&p=" + pid + "&rate=" + rate + "&r=" + confixWrapper("functionCall", "Math.round(Math.random() * 100000)", ["Math.random() * 100000"], [confixWrapper("functionCall", "Math.random()", [], [], "SaveRating", Math.random()) * 100000], "SaveRating", Math.round(confixWrapper("functionCall", "Math.random()", [], [], "SaveRating", Math.random()) * 100000))], "SaveRating", makeRequest("./?cmd=rate&p=" + pid + "&rate=" + rate + "&r=" + confixWrapper("functionCall", "Math.round(Math.random() * 100000)", ["Math.random() * 100000"], [confixWrapper("functionCall", "Math.random()", [], [], "SaveRating", Math.random()) * 100000], "SaveRating", Math.round(confixWrapper("functionCall", "Math.random()", [], [], "SaveRating", Math.random()) * 100000))));
 }
 function prepareBody() {
   try {

@@ -150,7 +150,9 @@ public class JSAnalyzer {
 	public void generateHTMLTestFile(String htmlTestFile) throws Exception {
 		String instrumentedFileName = scopeName.replace(".js", "_instrumented.js");
 		FileOutputStream outputStream = new FileOutputStream(htmlTestFile);
-		String htmlTestContent = "<!DOCTYPE html> <html> <head> <script src=\"" + instrumentedFileName + "\"> </script> </head> <body> <div id=\"confixTestFixture\"> </div> </body> </html>";
+		String htmlTestContent = "<!DOCTYPE html> <html> <head> <script src=\"" + instrumentedFileName + "\"> </script> " +
+				"<script src=\"http://code.jquery.com/jquery-1.11.0.min.js\"></script>" +
+				"</head> <body> <div id=\"confixTestFixture\"> </div> </body> </html>";
 		
 		try {
 			CopyUtils.copy(htmlTestContent, outputStream);

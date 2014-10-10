@@ -65,24 +65,28 @@ public class ConcolicEngine {
 		String htmlTestFile = (System.getProperty("user.dir")+"/"+jsAddress).replace(scopeName, "concolic.htm");
 		//System.out.println(htmlTestFile);
 		codeAnalyzer.generateHTMLTestFile(htmlTestFile);
-
 		
+		htmlTestFile = "file:///" + htmlTestFile;
+		
+		fixture = " <div id=\"rateStatus\"/>  <div id=\"indicator\"/>";
 		
 		do {
 			// Loading the htmlTestFile and reset the fixture
 			loadPage(htmlTestFile);
 
 			// Apply the new fixture on htmlTestFile
-			//((JavascriptExecutor) driver).executeScript("$(\"#confixTestFixture\").append('" + fixture + "');");
+			((JavascriptExecutor) driver).executeScript("$(\"#confixTestFixture\").append('" + fixture + "');");
 
 			// Execute the function under test according to the user input value
 			((JavascriptExecutor) driver).executeScript(functionToTest + ";");
 			// Get the execution trace
 
 			ArrayList traceList = (ArrayList)((JavascriptExecutor) driver).executeScript("return getConfixTrace();");
+			System.out.println("traceList: " + traceList);
 			Map<String,String> map;
 			for (int i=0; i<traceList.size(); i++){
 				map = (Map<String,String>)(traceList.get(i));
+				System.out.println("map: " + map);
 				traceAnalyzer.analyzeTrace(map);
 			}
 		

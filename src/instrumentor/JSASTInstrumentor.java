@@ -471,7 +471,7 @@ public class JSASTInstrumentor implements NodeVisitor{
 
 
 	private void instrumentNameNode(AstNode node) {
-		System.out.println("=== analyseNameNode ===");
+		System.out.println("=== instrumentNameNode ===");
 
 		/* function calls like .addClass, .css, .attr ... */
 		if (node.getParent() instanceof PropertyGet
@@ -615,7 +615,9 @@ public class JSASTInstrumentor implements NodeVisitor{
 	 */
 	private AstNode headerCode() {
 		// statement can be functionCall, assignment, return, condition, etc.
-		String code = "function confixWrapper(statementType, statement, varList, varValueList, enclosingFunction, actualStatement){" +
+		String code = "trace = [];";
+		
+		code += "function confixWrapper(statementType, statement, varList, varValueList, enclosingFunction, actualStatement){" +
 						 "trace.push({statementType: statementType, statement: statement, varList: varList, varValueList: varValueList, enclosingFunction: enclosingFunction, actualStatement: actualStatement});" +
 						 "return actualStatement;" +
 					   "}";
