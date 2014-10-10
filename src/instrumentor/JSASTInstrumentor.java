@@ -49,28 +49,24 @@ import core.DOMConstraint;
 import core.ElementTypeVariable;
 
 
-/*
- * The visitor class extracts all DOM dependent functions and determine different paths in those functions.
- * It generates a constraints table as well as DOM elements table to be used later for translating to xpath and solving them.
- * Generate a QUnit test file for a function (with DOM fixture for common paths in the module setup part, and different test methods for each path)
- * Extracting all DOM element variables (direct and indirect) and generating the constraint table
+/**
+ * This class is used to visit AST nodes of the given JS code. When a node matches a certain condition, it will be instrumentated with a wrapper function.
  */
 
-public abstract class JSASTVisitor implements NodeVisitor{
+public class JSASTInstrumentor implements NodeVisitor{
 
-	protected static final Logger LOGGER = LoggerFactory.getLogger(JSASTVisitor.class.getName());
+	protected static final Logger LOGGER = LoggerFactory.getLogger(JSASTInstrumentor.class.getName());
 
 	private final ArrayList<String> jqueryList=new ArrayList<String>();
 	private final ArrayList<String> jsList=new ArrayList<String>();
 
-	private int m_rootCount = 0;
-
+	private int instrumentedLinesCounter = 0;
 
 	private CompilerEnvirons compilerEnvirons = new CompilerEnvirons();
 	private String scopeName = null;	// Contains the scopename of the AST we are visiting. Generally this will be the filename
 	protected String jsName = null;		//To store js corresponding name
 
-	public JSASTVisitor(){
+	public JSASTInstrumentor(){
 		jqueryList.add("addClass");
 		jqueryList.add("removeClass");
 		jqueryList.add("removeAttr");
@@ -515,19 +511,9 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 		FunctionCall fcall = (FunctionCall) node;
 		AstNode targetNode = fcall.getTarget(); // node evaluating to the function to call. E.g document.getElemenyById(x)
-		String targetBody = targetNode.toSource();
-		AstNode parentNode = node.getParent();
 
 		//if (!fcall.getTarget().toSource().contains("confixWrapper"))
 		//	System.out.println("fcall.getTarget().toSource(): " + fcall.getTarget().toSource());
-
-		String functionType = "";  // The called function is either "accessingDOM" or "notAccessingDOM" 
-		String argument = "";
-		String argumentShortName = "";
-		String enclosingFunctionName = "";
-		// to store the var in the JS code that a DOM element is assigned to
-		String DOMJSVariable = "";
-		//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); 
 
 		// avoid instrumenting wrapper function calls!
 		if (fcall.getParent().toSource().contains("confixWrapper")){
@@ -535,24 +521,8 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			return;
 		}
 
-		// e.g. var x = document.getElemenyById('id1')
-		if (parentNode.shortName().equals("VariableInitializer")){
-			VariableInitializer vi = (VariableInitializer)parentNode;
-			Name varName = (Name) vi.getTarget();
-			AstNode varLiteral = vi.getInitializer();
-			DOMJSVariable = varName.toSource();
-			//System.out.println("parentNode.getChildBefore(ASTNode).getString() :" + parentNode.getChildBefore(ASTNode).getString());
-			System.out.println("VariableInitializer - varName: " + varName.toSource());
-			System.out.println("VariableInitializer - varLiteral: " + varLiteral.toSource());
-		}else 
-			// e.g. x = document.getElemenyById('id2')
-			if (parentNode.shortName().equals("Assignment")){
-				Assignment asmt = (Assignment)parentNode;
-				DOMJSVariable = asmt.getLeft().toSource();
-			}
-
 		// e.g. Replacing functionCall: document.getElementById(x) with wrapperFunCall: confixWrapper("functionCall", "document.getElementById(x)", ["x"], [x], document.getElementById(x))
-		List<AstNode> args = new ArrayList(fcall.getArguments());
+		List<AstNode> args = new ArrayList<AstNode>(fcall.getArguments());
 		String wrapperCode = "confixWrapper(\"functionCall\", \""+ fcall.toSource().replace("\"", "\\\"") +"\", [";
 		for (int i=0; i<args.size(); i++)
 			wrapperCode += ("\"" + args.get(i).toSource().replace("\"", "").replace("'", "") + "\",");
@@ -575,21 +545,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	}
 
 	/**
-	 * Creates a node that can be inserted at a certain point in function.
-	 * 
-	 * @param function
-	 *            The function that will enclose the node.
-	 * @param postfix
-	 *            The postfix function name (enter/exit).
-	 * @param lineNo
-	 *            Linenumber where the node will be inserted.
-	 * @return The new node.
-	 */
-	protected abstract AstNode createNode(FunctionNode function, String postfix, int lineNo);
-
-	/**
 	 * Creates a node that can be inserted at a certain point in the AST root.
-	 * Changed by Amin
 	 * 
 	 * @param root
 	 * 			The AST root that will enclose the node.
@@ -601,30 +557,103 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	 * 			Unique integer that identifies the AstRoot
 	 * @return The new node
 	 */
-	protected abstract AstNode createNode(AstRoot root, String postfix, int lineNo, int rootCount);
+	protected AstNode createNode(AstRoot root, String postfix, int lineNo, int rootCount) {
+		// instrumenting out of function
+		// Adds instrumentation code
+		 String code = jsName + "_exec_counter[" + Integer.toString(instrumentedLinesCounter) + "]++;";
+		instrumentedLinesCounter++;
 
-	protected abstract AstNode createFunctionTypeNameTrackingNode(FunctionNode callerFunc, AstNode node);
+		return parse(code);
+	}
+
+	protected AstNode createFunctionTypeNameTrackingNode(FunctionNode callerFunc, AstNode node) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	/**
 	 *  create node for logging variable/function-parameters
 	 */
-	protected abstract AstNode createNode(FunctionNode function, AstNode nodeForVarLog, String statementCategory);
+	protected AstNode createNode(FunctionNode function, AstNode nodeForVarLog, String statementCategory) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	/**
 	 * create node for tracking function calls
 	 */
-	protected abstract AstNode createFunctionTrackingNode(FunctionNode calleeFunction, String callerName);
+	protected AstNode createFunctionTrackingNode(FunctionNode calleeFunction, String callerName) {
+		return null;
+	}	
+
 	/**
 	 * This method is called when the complete AST has been traversed.
 	 * 
 	 * @param node
 	 *            The AST root node.
 	 */
-	public abstract void finish(AstRoot node);
+	public void finish(AstRoot node) {
+		// add header code
+		node.addChildToFront(headerCode());
+		// instrumentedLinesCounter resets to 0 for the next codes
+		instrumentedLinesCounter = 0;
+	}
 
 	/**
 	 * This method is called before the AST is going to be traversed.
 	 */
-	public abstract void start();
+	public void start() {
+		// just to be sure that index start from 0
+		instrumentedLinesCounter = 0;
+	}
+
+	
+	/**
+	 * This will be added to the beginning of the script
+	 * 
+	 * @return The AstNode which contains array.
+	 */
+	private AstNode headerCode() {
+		// statement can be functionCall, assignment, return, condition, etc.
+		String code = "function confixWrapper(statementType, statement, varList, varValueList, enclosingFunction, actualStatement){" +
+						 "trace.push({statementType: statementType, statement: statement, varList: varList, varValueList: varValueList, enclosingFunction: enclosingFunction, actualStatement: actualStatement});" +
+						 "return actualStatement;" +
+					   "}";
+
+		code += "function getConfixTrace(){" +
+				 "return trace;" +
+			   "}";
+		
+		code += "var " + jsName + "_exec_counter = new Array(); " +
+				"for (var i=0;i<" + instrumentedLinesCounter + ";i++)" +
+				"if("+jsName + "_exec_counter[i]== undefined || "+jsName + "_exec_counter[i]== null) "+jsName + "_exec_counter[i]=0;";
+		
+		// instrumentedLinesCounter resets to 0 for the next codes
+		instrumentedLinesCounter = 0;
+		
+		return parse(code);
+	}
+
+	/**
+	 * Creates a node that can be inserted at a certain point within a function.
+	 * 
+	 * @param function
+	 *            The function that will enclose the node.
+	 * @param postfix
+	 *            The postfix function name (enter/exit).
+	 * @param lineNo
+	 *            Linenumber where the node will be inserted.
+	 * @return The new node.
+	 */
+	protected AstNode createNode(FunctionNode function, String postfix, int lineNo) {
+		String name = getFunctionName(function);
+
+		// Adds instrumentation code
+		String code = jsName + "_exec_counter[" + Integer.toString(instrumentedLinesCounter) + "]++;";
+		instrumentedLinesCounter++;
+		
+		return parse(code);
+	}
 
 
 }

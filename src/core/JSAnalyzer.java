@@ -1,6 +1,6 @@
 package core;
 
-import instrumentor.JSASTVisitor;
+import instrumentor.JSASTInstrumentor;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,7 +27,7 @@ public class JSAnalyzer {
 
 	private List<String> excludeFilenamePatterns;
 
-	private JSASTVisitor astVisitor;
+	private JSASTInstrumentor astVisitor;
 	private String outputfolder;
 	private String jsAddress, scopeName;
 	
@@ -39,7 +39,7 @@ public class JSAnalyzer {
 	 * @param scopeName 
 	 * @param jsAddress 
 	 */
-	public JSAnalyzer(JSASTVisitor astVisit, String jsAddress, String scopeName) {
+	public JSAnalyzer(JSASTInstrumentor astVisit, String jsAddress, String scopeName) {
 		this.excludeFilenamePatterns = new ArrayList<String>();
 		this.astVisitor = astVisit;
 		this.jsAddress = jsAddress;
@@ -54,7 +54,7 @@ public class JSAnalyzer {
 	 * @param excludes
 	 *            List with variable patterns to exclude.
 	 */
-	public JSAnalyzer(JSASTVisitor astVisit, List<String> excludes) {
+	public JSAnalyzer(JSASTInstrumentor astVisit, List<String> excludes) {
 		excludeFilenamePatterns = excludes;
 		astVisitor = astVisit;
 	}

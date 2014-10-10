@@ -1,6 +1,6 @@
 package core;
 
-import instrumentor.JSASTInstrumenter;
+import instrumentor.JSASTInstrumentor;
 import instrumentor.JSModifyProxyPlugin;
 import instrumentor.ProxyConfiguration;
 
@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.owasp.webscarab.model.Preferences;
@@ -39,7 +40,7 @@ public class ConcolicEngine {
 		this.scopeName = scopeName;
 		this.functionToTest = functionToTest;
 		this.testSuiteNameToGenerate = testSuiteNameToGenerate;
-		this.codeAnalyzer = new JSAnalyzer(new JSASTInstrumenter(), jsAddress, scopeName);
+		this.codeAnalyzer = new JSAnalyzer(new JSASTInstrumentor(), jsAddress, scopeName);
 		this.traceAnalyzer = new TraceAnalyzer();
 	}
 
@@ -57,7 +58,7 @@ public class ConcolicEngine {
 		 */
 
 		// Instrument the JavaScript code
-		//instrumentDynamically(false);  // No need for dynamic instrumentation at proxy level.
+		instrumentDynamically(false);  // No need for dynamic instrumentation at proxy level.
 		codeAnalyzer.instrumentJavaScript();
 
 		// Dynamic symbolic execution (done in a browser to deal with DOM)
@@ -66,13 +67,13 @@ public class ConcolicEngine {
 		codeAnalyzer.generateHTMLTestFile(htmlTestFile);
 
 		
-		/*
+		
 		do {
 			// Loading the htmlTestFile and reset the fixture
 			loadPage(htmlTestFile);
 
 			// Apply the new fixture on htmlTestFile
-			((JavascriptExecutor) driver).executeScript("$(\"#confixTestFixture\").append('" + fixture + "');");
+			//((JavascriptExecutor) driver).executeScript("$(\"#confixTestFixture\").append('" + fixture + "');");
 
 			// Execute the function under test according to the user input value
 			((JavascriptExecutor) driver).executeScript(functionToTest + ";");
@@ -116,7 +117,7 @@ public class ConcolicEngine {
 	
 	
 		generateTestSuite();
-		*/
+		
 		
 	}
 
@@ -139,8 +140,15 @@ public class ConcolicEngine {
 			runProxy(prox);
 			driverSetup(prox);
 		}else{
+			
+			
+			FirefoxBinary binary = new FirefoxBinary(new File("/Applications/Firefox 2.app/Contents/MacOS/firefox"));
+			FirefoxProfile profile = new FirefoxProfile();
+			driver = new FirefoxDriver(binary, profile);
+			
+			
 			// setting the webdriver without proxy
-			driver = new FirefoxDriver();
+			//driver = new FirefoxDriver();
 			driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
 		}
 	}
@@ -160,7 +168,7 @@ public class ConcolicEngine {
 
 	private void runProxy(ProxyConfiguration prox) {
 		prox.setPort(3128);
-		JSModifier = new JSModifyProxyPlugin(new JSASTInstrumenter());
+		JSModifier = new JSModifyProxyPlugin(new JSASTInstrumentor());
 		//JSModifyProxyPlugin modifier = new JSModifyProxyPlugin("TEMP");  // output forlder name
 		JSModifier.excludeDefaults();
 		Framework framework = new Framework();

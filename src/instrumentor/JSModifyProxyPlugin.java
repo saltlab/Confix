@@ -34,7 +34,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 
 	private List<String> excludeFilenamePatterns;
 
-	private JSASTVisitor astVisitor;
+	private JSASTInstrumentor astVisitor;
 	private String outputfolder;
 	private List<String> xpathsToSolve = new ArrayList<String>();
 //	private HashSet<String> DOMDependentFunctionsList = new HashSet<String>();
@@ -45,7 +45,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 	 * @param astVisit
 	 *            The JSASTVisitor to run over all JavaScript.
 	 */
-	public JSModifyProxyPlugin(JSASTVisitor astVisit) {
+	public JSModifyProxyPlugin(JSASTInstrumentor astVisit) {
 		excludeFilenamePatterns = new ArrayList<String>();
 		astVisitor = astVisit;
 	}
@@ -58,7 +58,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 	 * @param excludes
 	 *            List with variable patterns to exclude.
 	 */
-	public JSModifyProxyPlugin(JSASTVisitor astVisit, List<String> excludes) {
+	public JSModifyProxyPlugin(JSASTInstrumentor astVisit, List<String> excludes) {
 		excludeFilenamePatterns = excludes;
 		astVisitor = astVisit;
 	}

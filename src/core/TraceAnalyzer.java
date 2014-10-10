@@ -2,7 +2,7 @@ package core;
 
 import instrumentor.ASTNodeUtility;
 import instrumentor.ConsoleErrorReporter;
-import instrumentor.JSASTVisitor;
+import instrumentor.JSASTInstrumentor;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,7 +32,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 
-
+/**
+ * This class is used to visit analyze the trace generated during a function execution. It extracts all 
+ * DOM dependent functions, and generates a constraints table as well as DOM elements table to be used later 
+ * for translating to xpath and solving them.
+ */
 
 public class TraceAnalyzer {
 
@@ -125,11 +129,23 @@ public class TraceAnalyzer {
 	 */
 
 
-
-
-
 	private void analyseVariableInitializerNode(Map<String, String> map) {
-		// TODO Auto-generated method stub
+		System.out.println("=== analyseVariableInitializerNode ===");
+
+		AstNode generatedNode = parse(map.get("statement"));
+		VariableInitializer vi = (VariableInitializer)((AstNode) generatedNode.getFirstChild());
+		
+		// to store the var in the JS code that a DOM element is assigned to
+		String DOMJSVariable = "";
+		//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); 
+
+		// if a DOM element is assigned to a variable, e.g. var x = document.getElemenyById('id1')
+		Name varName = (Name) vi.getTarget();
+		AstNode varLiteral = vi.getInitializer();
+		DOMJSVariable = varName.toSource();
+		//System.out.println("parentNode.getChildBefore(ASTNode).getString() :" + parentNode.getChildBefore(ASTNode).getString());
+		System.out.println("VariableInitializer - varName: " + varName.toSource());
+		System.out.println("VariableInitializer - varLiteral: " + varLiteral.toSource());
 
 	}
 
@@ -137,7 +153,6 @@ public class TraceAnalyzer {
 	private void analyseFunctionCallNode(Map<String, String> map) {
 		System.out.println("=== analyseFunctionCallNode ===");
 		/*  Detecting DOM accessing function calls
-		The following methods can be used on HTML documents:
 		document.getElementById() 			Returns the element that has the ID attribute with the specified value
 		document.getElementsByClassName() 	Returns a NodeList containing all elements with the specified class name
 		document.getElementsByName() 		Accesses all elements with a specified name
@@ -349,6 +364,14 @@ public class TraceAnalyzer {
 		IfStatement is = (IfStatement) node;
 		AstNode conditionNode = is.getCondition();
 
+		/*
+		    // e.g. x = document.getElemenyById('id2')
+				Assignment asmt = (Assignment)parentNode;
+				DOMJSVariable = asmt.getLeft().toSource();
+
+		 */
+
+
 		ArrayList<DOMConstraint> pathCondition = new ArrayList<DOMConstraint>(); 
 
 		FunctionNode func=node.getEnclosingFunction();
@@ -501,9 +524,9 @@ public class TraceAnalyzer {
 		System.out.println("Operator: " + oprator);
 		System.out.println("Right: " + right);			
 
-		
+
 		// TODO
-		
+
 		/*
 		if (oprator.equals("GETPROP")){  // -> nodeName: PropertyGet, e.g. Left: $("p").innerHTML
 			if (right.equals("innerHTML")){
@@ -683,7 +706,7 @@ public class TraceAnalyzer {
 
 		}
 		//TODO: considering other comparison operators
-	*/
+		 */
 
 
 		/*
