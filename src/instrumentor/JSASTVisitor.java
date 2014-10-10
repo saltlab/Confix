@@ -91,144 +91,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		jsList.add("setAttribute");
 		jsList.add("getAttribute");
 		jsList.add("removeAttribute");
-
-		/*
-		 * Amin: DOM accessor
-
-			// Changing the Value of an Attribute: document.getElementById(id).attribute=new value
-			document.getElementById("myImage").src = "landscape.jpg";
-
-			//The following example collects the node value of an <h1> element and copies it into a <p> element:
-			//<h1 id="intro">My First Page</h1>
-			//<p id="demo">Hello!</p>
-
-			var myText = document.getElementById("intro").childNodes[0].nodeValue;
-			document.getElementById("demo").innerHTML = myText;
-
-			//Using the firstChild property is the same as using childNodes[0]:
-			myText = document.getElementById("intro").firstChild.nodeValue;
-
-
-			The nodeName property specifies the name of a node.
-		    nodeName is read-only
-		    nodeName of an element node is the same as the tag name
-		    nodeName of an attribute node is the attribute name
-		    nodeName of a text node is always #text
-		    nodeName of the document node is always #document
-			Note: nodeName always contains the uppercase tag name of an HTML element.
-
-
-			The nodeValue property specifies the value of a node.
-		    nodeValue for element nodes is undefined
-		    nodeValue for text nodes is the text itself
-		    nodeValue for attribute nodes is the attribute value
-
-			The nodeType property returns the type of node. nodeType is read only.
-			The most important node types are:
-			Element type 	NodeType
-			Element 		1
-			Attribute 		2
-			Text 			3
-			Comment 		8
-			Document 		9
-
-
-
-	function myFunction() {
-		    var obj = document.getElementById("h01");
-		    obj.innerHTML = "Hello jQuery";
-		}
-
-		The jQuery Way:
-		    $("#h01").html("Hello jQuery");
-
-	    $("#h01").attr("style", "color:red").html("Hello jQuery")
-
-
-
-		//<button id="btn1" name="subject" type="submit" value="fav_HTML">HTML</button>
-		var x = document.getElementById("btn1").value;
-
-		//<form id="form1">
-		//<button id="btn1" type="button">HTML</button>
-		//</form>
-		var x = document.getElementById("btn1").form.id;
-
-		//<form id="frm1" action="form_action.asp">
-		//First name: <input type="text" name="fname"><br>
-		//Last name: <input type="text" name="lname"><br><br>
-		//<input type="button" onclick="myFunction()" value="Submit">
-		//</form>
-		document.getElementById("frm1").submit();
-      	document.getElementById("frm1").reset();
-
-
-		The following methods can be used on all HTML elements:
-		element.appendChild() 	Adds a new child node, to an element, as the last child node
-		element.getAttribute() 	Returns the specified attribute value of an element node
-		element.getAttributeNode() 	Returns the specified attribute node
-		element.getElementsByClassName() 	Returns a collection of all child elements with the specified class name
-		element.getElementsByTagName() 	Returns a collection of all child elements with the specified tagname
-		element.hasAttribute() 	Returns true if an element has the specified attribute, otherwise false
-		element.hasAttributes() 	Returns true if an element has any attributes, otherwise false
-		element.hasChildNodes() 	Returns true if an element has any child nodes, otherwise false
-		element.insertBefore() 	Inserts a new child node before a specified, existing, child node
-		element.removeAttribute() 	Removes a specified attribute from an element
-		element.removeAttributeNode() 	Removes a specified attribute node, and returns the removed node
-		element.removeChild() 	Removes a child node from an element
-		element.replaceChild() 	Replaces a child node in an element
-		element.removeEventListener() 	Removes an event handler that has been attached with the addEventListener() method
-		element.setAttribute() 	Sets or changes the specified attribute, to the specified value
-		element.setAttributeNode() 	Sets or changes the specified attribute node
-		element.setIdAttribute() 	
-		element.setIdAttributeNode() 	
-
-
-
-		nodelist.length 	Returns the number of nodes in a NodeList
-
-
-
-		Properties and Methods
-		attr.isId 	Returns true if the attribute is of type Id, otherwise it returns false
-		attr.name 	Returns the name of an attribute
-		attr.value 	Sets or returns the value of the attribute
-		attr.specified 	Returns true if the attribute has been specified, otherwise it returns false
-
-		nodemap.getNamedItem() 	Returns a specified attribute node from a NamedNodeMap.
-		nodemap.item() 	Returns the node at a specified index in a NamedNodeMap
-		nodemap.length 	Returns the number of nodes in a NamedNodeMap
-		nodemap.removeNamedItem() 	Removes a specified attribute node
-		nodemap.setNamedItem() 	Sets the specified attribute node (by name)
-
-
-		<a id="myAnchor" href="http://www.microsoft.com">Microsoft</a>
-		document.getElementById('myAnchor').innerHTML="W3Schools";
-		document.getElementById('myAnchor').href="http://www.w3schools.com";
-		document.getElementById('myAnchor').target="_blank";
-
-
-		 *     var x = document.getElementsByName("x");
-		 *		document.getElementById("demo").innerHTML = x.length;   => How many elements named x?
-
-	    document.anchors.length  => Number of anchors
-	    document.getElementById("demo").innerHTML =
-	    document.anchors[0].innerHTML;
-	    "Number of links: " + document.links.length
-	    "The href of the first link is " + document.links[0].href;
-	    "Number of forms: " + document.forms.length
-	    "The name of the first for is " + document.forms[0].name
-	    "Number of images: " + document.images.length
-
-	    document.getElementById("demo").innerHTML =
-		"The id of the first image is " + document.images[0].id
-
-		document.getElementById('p1').style.visibility='visible'"
-		 */
 	}
-
-
-
 
 	/**
 	 * @param scopeName
@@ -383,6 +246,10 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	private void instrumentReturnStatementNode(AstNode node) {
 		System.out.println("=== instrumentReturnStatementNode ===");
+		String enclosingFunction = "";
+		if (node.getEnclosingFunction()!=null)
+			enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
+		
 		ReturnStatement rs = (ReturnStatement) node;
 		System.out.println("ra.toSource(): " + rs.toSource());
 		if (rs.getReturnValue()!=null){
@@ -391,7 +258,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			String originalSource = rs.toSource().replace("\"", "\\\"");		
 			originalSource = originalSource.replace("\n", "").replace("\r", ""); // if it contains a function body		
 			// e.g. return a; -> return confixWrapper("return", "a", [""], [], a);
-			String wrapperCode = "function temp(){ return confixWrapper(\"return\", \""+ originalSource +"\", [\"\"], [], " + rs.getReturnValue().toSource() + ") }";
+			String wrapperCode = "function temp(){ return confixWrapper(\"return\", \""+ originalSource +"\", [\"\"], [], \"" + enclosingFunction + "\", " + rs.getReturnValue().toSource() + ") }";
 			System.out.println("wrapperCode : " + wrapperCode );
 			AstNode wrapperNode = parse(wrapperCode);
 			System.out.println(wrapperNode.toSource());
@@ -408,6 +275,11 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	private void instrumentVariableInitializerNode(AstNode node) {
 		System.out.println("=== instrumentVariableInitializerNode ===");
+		
+		String enclosingFunction = "";
+		if (node.getEnclosingFunction()!=null)
+			enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
+
 		VariableInitializer vi = (VariableInitializer) node;
 
 		Name varName = (Name) vi.getTarget();
@@ -424,7 +296,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		String originalSource = vi.toSource().replace("\"", "\\\"");		
 		originalSource = originalSource.replace("\n", "").replace("\r", ""); // if it contains a function body		
 		// e.g. var a = b -> a = confixWrapper("infix", "var a=b", [""], [], b)
-		String wrapperCode = "var " + left + " = confixWrapper(\"initvar\", \"var "+ originalSource +"\", [\"\"], [], " + right + ")";
+		String wrapperCode = "var " + left + " = confixWrapper(\"initvar\", \"var "+ originalSource +"\", [\"\"], [], \"" + enclosingFunction + "\", " + right + ")";
 		System.out.println("wrapperCode : " + wrapperCode );
 		AstNode wrapperNode = parse(wrapperCode);
 		System.out.println(wrapperNode.toSource());
@@ -445,13 +317,13 @@ public abstract class JSASTVisitor implements NodeVisitor{
 	}
 
 
-
-
 	private void instrumentInfixExpressionNode(AstNode node) {
 		System.out.println("=== instrumentInfixExpressionNode ===");
+		String enclosingFunction = "";
+		if (node.getEnclosingFunction()!=null)
+			enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
+
 		InfixExpression infex = (InfixExpression) node;
-
-
 		String left = infex.getLeft().toSource();
 		String oprator = ASTNodeUtility.operatorToString(infex.getOperator());
 		String right = infex.getRight().toSource();
@@ -467,7 +339,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		originalSource = originalSource.replace("\n", "").replace("\r", ""); // if it contains a function body		
 		if (oprator.equals("=")){
 			// e.g. a = b -> a = confixWrapper("infix", "a=b", [""], [], b)
-			String wrapperCode = left + " = confixWrapper(\"infix\", \""+ originalSource +"\", [\"\"], [], " + right + ")";
+			String wrapperCode = left + " = confixWrapper(\"infix\", \""+ originalSource +"\", [\"\"], [], \"" + enclosingFunction + "\", " + right + ")";
 			System.out.println("wrapperCode : " + wrapperCode );
 			AstNode wrapperNode = parse(wrapperCode);
 			System.out.println(wrapperNode.toSource());
@@ -480,16 +352,22 @@ public abstract class JSASTVisitor implements NodeVisitor{
 			infex.setOperator(tempInf.getOperator());
 			infex.setRight(tempInf.getRight());
 			System.out.println("New infix is: " + infex.toSource());	
-
-		}		
+		}else if (oprator.equals("GETPROP")){	
+			//TODO
+			// e.g. document.getElementById -> a = confixWrapper("infix", "a=b", [""], [], b)
+			// -> nodeName: PropertyGet, e.g. Left: $("p").innerHTML
+			// consider the parent node until there is no more GETPROP
+		}
 
 	}
 
 
 	private void instrumentIfStatementNode(AstNode node) {
 		System.out.println("=== instrumentIfStatementNode ===");
+		String enclosingFunction = "";
+		if (node.getEnclosingFunction()!=null)
+			enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
 
-		FunctionNode func=node.getEnclosingFunction();  // TODO: Add this to the wrapper function later
 		IfStatement is = (IfStatement) node;
 		AstNode conditionNode = is.getCondition();
 
@@ -504,7 +382,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		// instrumenting the condition
 		String originalCondition = conditionNode.toSource().replace("\"", "\\\"");		
 		// e.g. if(x>5) -> confixWrapper("condition", "x>5", ["x"], [x], x>5)
-		String wrapperCode = "if (confixWrapper(\"condition\", \""+ originalCondition +"\", [\"\"], [], " + conditionNode.toSource() + ")) temp;";
+		String wrapperCode = "if (confixWrapper(\"condition\", \""+ originalCondition +"\", [\"\"], [], \"" + enclosingFunction + "\", " + conditionNode.toSource() + ")) temp;";
 		System.out.println("wrapperCode : " + wrapperCode );
 		AstNode wrapperNode = parse(wrapperCode);
 		//System.out.println(wrapperNode.toSource());
@@ -624,6 +502,14 @@ public abstract class JSASTVisitor implements NodeVisitor{
 
 	private void instrumentFunctionCallNode(AstNode node) {
 		System.out.println("=== instrumentFunctionCallNode ===");
+		// getting the enclosing function name
+		String enclosingFunction = "";
+		if (node.getEnclosingFunction()!=null)
+			if (node.getEnclosingFunction().getFunctionName()!=null)
+				enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
+
+		//System.out.println("enclosingFunction: " + enclosingFunction);
+		
 		if (node.shortName().equals("NewExpression"))
 			return;
 
@@ -647,13 +533,6 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		if (fcall.getParent().toSource().contains("confixWrapper")){
 			//System.out.println("Not instrumenting because of: " + fcall.getParent().toSource());
 			return;
-		}
-
-		// getting the enclosing function name
-		FunctionNode func=node.getEnclosingFunction();
-		if (func.getFunctionName()!=null){
-			enclosingFunctionName = func.getFunctionName().getIdentifier();
-			System.out.println("enclosingFunctionName = " + enclosingFunctionName);
 		}
 
 		// e.g. var x = document.getElemenyById('id1')
@@ -680,7 +559,7 @@ public abstract class JSASTVisitor implements NodeVisitor{
 		wrapperCode += "], [";
 		for (int i=0; i<args.size(); i++)
 			wrapperCode += args.get(i).toSource() + ",";
-		wrapperCode += "], "+ fcall.toSource() + ")";
+		wrapperCode += "], \"" + enclosingFunction + "\", " + fcall.toSource() + ")";
 		System.out.println("wrapperCode : " + wrapperCode );
 
 		AstNode wrapperNode = parse(wrapperCode);

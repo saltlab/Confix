@@ -24,8 +24,8 @@ public class JSASTInstrumenter extends JSASTVisitor {
 	 */
 	private AstNode jsLineExectutionCounter() {
 		// statement can be functionCall, assignment, return, condition, etc.
-		String code = "function confixWrapper(statementType, statement, varList, varValueList, actualStatement){" +
-						 "trace.push({statementType: statementType, statement: statement, varList: varList, varValueList: varValueList, actualStatement: actualStatement});" +
+		String code = "function confixWrapper(statementType, statement, varList, varValueList, enclosingFunction, actualStatement){" +
+						 "trace.push({statementType: statementType, statement: statement, varList: varList, varValueList: varValueList, enclosingFunction: enclosingFunction, actualStatement: actualStatement});" +
 						 "return actualStatement;" +
 					   "}";
 

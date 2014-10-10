@@ -39,18 +39,18 @@ public class TraceAnalyzer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TraceAnalyzer.class.getName());
 
 	private CompilerEnvirons compilerEnvirons = new CompilerEnvirons();
-	
+
 	private List<String> xpathsToSolve = new ArrayList<String>();
 	private List<String> DOMDependentFunctionsList = new ArrayList<String>();
 	public static HashSet<String> DomDependentFunctions = new HashSet<String>();
 	private List<ArrayList<DOMConstraint>> pathConditions = new ArrayList<ArrayList<DOMConstraint>>();
 	private static HashSet<DOMConstraint> DOMConstraintList = new HashSet<DOMConstraint>();
 
-	
+
 	private static String xpath="";
 	private static int numOfDOMElementsInFixture = 0;
 
-	
+
 	public TraceAnalyzer(){
 		// adding the initial "document" node to be used for xpath generation
 		ElementTypeVariable DOMElement = new ElementTypeVariable();
@@ -60,14 +60,14 @@ public class TraceAnalyzer {
 
 	}
 
-	
+
 	public void analyzeTrace(Map<String, String> map) {
 		System.out.printf("statementType: %s\n", map.get("statementType"));
 		System.out.printf("statement: %s\n", map.get("statement"));
 		System.out.printf("varList: %s\n", map.get("varList"));
 		System.out.printf("varValueList: %s\n", map.get("varValueList"));
 		System.out.printf("actualStatement: %s\n", map.get("actualStatement"));
-		
+
 		// parsing the original statement for analysis
 		if (map.get("statementType").equals("functionCall"))
 			analyseFunctionCallNode(map);		
@@ -75,12 +75,14 @@ public class TraceAnalyzer {
 			analyseIfStatementNode(map);
 		else if (map.get("statementType").equals("infix"))
 			analyseInfixExpressionNode(map);
+		else if (map.get("statementType").equals("initvar"))
+			analyseVariableInitializerNode(map);
 		else if (map.get("statementType").equals("return"))
-			analyseReturnNode(map);
+			analyseReturnNode(map);		
 	}
 
 
-	
+
 	/*
 
 	The following properties can be used on all HTML elements:
@@ -122,27 +124,26 @@ public class TraceAnalyzer {
 
 	 */
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	/*  Detecting DOM accessing function calls
-	The following methods can be used on HTML documents:
-	document.getElementById() 			Returns the element that has the ID attribute with the specified value
-	document.getElementsByClassName() 	Returns a NodeList containing all elements with the specified class name
-	document.getElementsByName() 		Accesses all elements with a specified name
-	document.getElementsByTagName() 	Returns a NodeList containing all elements with the specified tagname
-	$()									(jQuery) : Find an element by element id
-	 */
+
+
+
+
+	private void analyseVariableInitializerNode(Map<String, String> map) {
+		// TODO Auto-generated method stub
+
+	}
+
+
 	private void analyseFunctionCallNode(Map<String, String> map) {
 		System.out.println("=== analyseFunctionCallNode ===");
-		
+		/*  Detecting DOM accessing function calls
+		The following methods can be used on HTML documents:
+		document.getElementById() 			Returns the element that has the ID attribute with the specified value
+		document.getElementsByClassName() 	Returns a NodeList containing all elements with the specified class name
+		document.getElementsByName() 		Accesses all elements with a specified name
+		document.getElementsByTagName() 	Returns a NodeList containing all elements with the specified tagname
+		$()									(jQuery) : Find an element by element id
+		 */		
 		AstNode generatedNode = parse(map.get("statement"));
 		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
 		AstNode node = es.getExpression();
@@ -336,7 +337,7 @@ public class TraceAnalyzer {
 
 	private void analyseReturnNode(Map<String, String> map) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	private void analyseIfStatementNode(Map<String, String> map) {
@@ -360,7 +361,7 @@ public class TraceAnalyzer {
 		System.out.println("conditionNode.getAstRoot() : " + conditionNode.getAstRoot());
 		System.out.println("conditionNode.debugPrint() : \n" + conditionNode.debugPrint());
 
-		
+
 		String conditionShortName = conditionNode.shortName();
 
 		if (conditionShortName.equals("InfixExpression")){	// e.g. if (x<5)
@@ -484,16 +485,12 @@ public class TraceAnalyzer {
 		pathConditions.add(pathCondition);
 
 	}
-	
+
 	private void analyseInfixExpressionNode(Map<String, String> map) {
 		System.out.println("=== analyseInfixExpressionNode ===");
-		AstNode node;  //TODO: get from trace
-		
-		
-		
 
-		/*
-		
+		AstNode generatedNode = parse(map.get("statement"));
+		AstNode node = (AstNode) generatedNode.getFirstChild();
 		InfixExpression infix = (InfixExpression) node;
 
 		String left = infix.getLeft().toSource();
@@ -504,6 +501,10 @@ public class TraceAnalyzer {
 		System.out.println("Operator: " + oprator);
 		System.out.println("Right: " + right);			
 
+		
+		// TODO
+		
+		/*
 		if (oprator.equals("GETPROP")){  // -> nodeName: PropertyGet, e.g. Left: $("p").innerHTML
 			if (right.equals("innerHTML")){
 				AstNode parentNode = node.getParent();
@@ -682,8 +683,8 @@ public class TraceAnalyzer {
 
 		}
 		//TODO: considering other comparison operators
+	*/
 
-		*/
 
 		/*
 			The following properties can be used on HTML documents:
@@ -718,7 +719,7 @@ public class TraceAnalyzer {
 
 	}
 
-	
+
 	public List<String> generateXpathConstraints() {	
 		// setting the xpathToSolve for each function
 		HashSet<String> fList = getDOMDependentFunctionsList();
@@ -810,16 +811,16 @@ public class TraceAnalyzer {
 	public static HashSet<String> getDOMDependentFunctionsList() {
 		return DomDependentFunctions;
 	}
-	
+
 	public List<String> getDOMDependentFunctions() {
 		return DOMDependentFunctionsList;
 	}
-	
+
 	public HashSet<DOMConstraint> getDOMConstraintList() {
 		return DOMConstraintList;
 	}
 
-	
+
 	/**
 	 * Parse some JavaScript to a simple AST.
 	 * 
@@ -838,3 +839,138 @@ public class TraceAnalyzer {
 	}
 
 }
+
+
+/*
+ * Amin: DOM accessor
+
+	// Changing the Value of an Attribute: document.getElementById(id).attribute=new value
+	document.getElementById("myImage").src = "landscape.jpg";
+
+	//The following example collects the node value of an <h1> element and copies it into a <p> element:
+	//<h1 id="intro">My First Page</h1>
+	//<p id="demo">Hello!</p>
+
+	var myText = document.getElementById("intro").childNodes[0].nodeValue;
+	document.getElementById("demo").innerHTML = myText;
+
+	//Using the firstChild property is the same as using childNodes[0]:
+	myText = document.getElementById("intro").firstChild.nodeValue;
+
+
+	The nodeName property specifies the name of a node.
+    nodeName is read-only
+    nodeName of an element node is the same as the tag name
+    nodeName of an attribute node is the attribute name
+    nodeName of a text node is always #text
+    nodeName of the document node is always #document
+	Note: nodeName always contains the uppercase tag name of an HTML element.
+
+
+	The nodeValue property specifies the value of a node.
+    nodeValue for element nodes is undefined
+    nodeValue for text nodes is the text itself
+    nodeValue for attribute nodes is the attribute value
+
+	The nodeType property returns the type of node. nodeType is read only.
+	The most important node types are:
+	Element type 	NodeType
+	Element 		1
+	Attribute 		2
+	Text 			3
+	Comment 		8
+	Document 		9
+
+
+
+function myFunction() {
+    var obj = document.getElementById("h01");
+    obj.innerHTML = "Hello jQuery";
+}
+
+The jQuery Way:
+    $("#h01").html("Hello jQuery");
+
+$("#h01").attr("style", "color:red").html("Hello jQuery")
+
+
+
+//<button id="btn1" name="subject" type="submit" value="fav_HTML">HTML</button>
+var x = document.getElementById("btn1").value;
+
+//<form id="form1">
+//<button id="btn1" type="button">HTML</button>
+//</form>
+var x = document.getElementById("btn1").form.id;
+
+//<form id="frm1" action="form_action.asp">
+//First name: <input type="text" name="fname"><br>
+//Last name: <input type="text" name="lname"><br><br>
+//<input type="button" onclick="myFunction()" value="Submit">
+//</form>
+document.getElementById("frm1").submit();
+	document.getElementById("frm1").reset();
+
+
+The following methods can be used on all HTML elements:
+element.appendChild() 	Adds a new child node, to an element, as the last child node
+element.getAttribute() 	Returns the specified attribute value of an element node
+element.getAttributeNode() 	Returns the specified attribute node
+element.getElementsByClassName() 	Returns a collection of all child elements with the specified class name
+element.getElementsByTagName() 	Returns a collection of all child elements with the specified tagname
+element.hasAttribute() 	Returns true if an element has the specified attribute, otherwise false
+element.hasAttributes() 	Returns true if an element has any attributes, otherwise false
+element.hasChildNodes() 	Returns true if an element has any child nodes, otherwise false
+element.insertBefore() 	Inserts a new child node before a specified, existing, child node
+element.removeAttribute() 	Removes a specified attribute from an element
+element.removeAttributeNode() 	Removes a specified attribute node, and returns the removed node
+element.removeChild() 	Removes a child node from an element
+element.replaceChild() 	Replaces a child node in an element
+element.removeEventListener() 	Removes an event handler that has been attached with the addEventListener() method
+element.setAttribute() 	Sets or changes the specified attribute, to the specified value
+element.setAttributeNode() 	Sets or changes the specified attribute node
+element.setIdAttribute() 	
+element.setIdAttributeNode() 	
+
+
+
+nodelist.length 	Returns the number of nodes in a NodeList
+
+
+
+Properties and Methods
+attr.isId 	Returns true if the attribute is of type Id, otherwise it returns false
+attr.name 	Returns the name of an attribute
+attr.value 	Sets or returns the value of the attribute
+attr.specified 	Returns true if the attribute has been specified, otherwise it returns false
+
+nodemap.getNamedItem() 	Returns a specified attribute node from a NamedNodeMap.
+nodemap.item() 	Returns the node at a specified index in a NamedNodeMap
+nodemap.length 	Returns the number of nodes in a NamedNodeMap
+nodemap.removeNamedItem() 	Removes a specified attribute node
+nodemap.setNamedItem() 	Sets the specified attribute node (by name)
+
+
+<a id="myAnchor" href="http://www.microsoft.com">Microsoft</a>
+document.getElementById('myAnchor').innerHTML="W3Schools";
+document.getElementById('myAnchor').href="http://www.w3schools.com";
+document.getElementById('myAnchor').target="_blank";
+
+
+ *     var x = document.getElementsByName("x");
+ *		document.getElementById("demo").innerHTML = x.length;   => How many elements named x?
+
+document.anchors.length  => Number of anchors
+document.getElementById("demo").innerHTML =
+document.anchors[0].innerHTML;
+"Number of links: " + document.links.length
+"The href of the first link is " + document.links[0].href;
+"Number of forms: " + document.forms.length
+"The name of the first for is " + document.forms[0].name
+"Number of images: " + document.images.length
+
+document.getElementById("demo").innerHTML =
+"The id of the first image is " + document.images[0].id
+
+document.getElementById('p1').style.visibility='visible'"
+ */
