@@ -24,6 +24,7 @@ import org.mozilla.javascript.ast.InfixExpression;
 import org.mozilla.javascript.ast.Name;
 import org.mozilla.javascript.ast.PropertyGet;
 import org.mozilla.javascript.ast.UnaryExpression;
+import org.mozilla.javascript.ast.VariableDeclaration;
 import org.mozilla.javascript.ast.VariableInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +67,10 @@ public class TraceAnalyzer {
 
 
 	public void analyzeTrace(Map<String, String> map) {
+		
+		System.out.println("****** Analyzing a new trace ******");
+		System.out.println("map: " + map);
+
 		System.out.printf("statementType: %s\n", map.get("statementType"));
 		System.out.printf("statement: %s\n", map.get("statement"));
 		System.out.printf("varList: %s\n", map.get("varList"));
@@ -133,8 +138,12 @@ public class TraceAnalyzer {
 		System.out.println("=== analyseVariableInitializerNode ===");
 
 		AstNode generatedNode = parse(map.get("statement"));
-		VariableInitializer vi = (VariableInitializer)((AstNode) generatedNode.getFirstChild());
 		
+		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
+		System.out.println("ES: " + es.toSource());
+		VariableDeclaration vd = (VariableDeclaration) (AstNode) es.getExpression();
+		VariableInitializer vi = (VariableInitializer) (AstNode) vd.getVariables().get(0);
+
 		// to store the var in the JS code that a DOM element is assigned to
 		String DOMJSVariable = "";
 		//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); 
@@ -175,13 +184,6 @@ public class TraceAnalyzer {
 		// to store the var in the JS code that a DOM element is assigned to
 		String DOMJSVariable = "";
 		//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); 
-
-		// getting the enclosing function name
-		FunctionNode func=node.getEnclosingFunction();
-		if (func.getFunctionName()!=null){
-			enclosingFunctionName = func.getFunctionName().getIdentifier();
-			System.out.println("enclosingFunctionName = " + enclosingFunctionName);
-		}
 
 		// e.g. var x = document.getElemenyById('id1')
 		if (parentNode.shortName().equals("VariableInitializer")){
@@ -360,9 +362,11 @@ public class TraceAnalyzer {
 		System.out.println("=== analyseIfStatementNode ===");
 
 		AstNode generatedNode = parse(map.get("statement"));
-		AstNode node = (AstNode) generatedNode.getFirstChild();
-		IfStatement is = (IfStatement) node;
-		AstNode conditionNode = is.getCondition();
+		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
+		AstNode conditionNode = es.getExpression();
+
+		//IfStatement is = (IfStatement) node;
+		//AstNode conditionNode = is.getCondition();
 
 		/*
 		    // e.g. x = document.getElemenyById('id2')
@@ -374,7 +378,7 @@ public class TraceAnalyzer {
 
 		ArrayList<DOMConstraint> pathCondition = new ArrayList<DOMConstraint>(); 
 
-		FunctionNode func=node.getEnclosingFunction();
+		//FunctionNode func=node.getEnclosingFunction();
 
 		System.out.println("conditionNode.shortName() : " + conditionNode.shortName());
 		System.out.println("conditionNode.depth() : " + conditionNode.depth());
@@ -513,8 +517,10 @@ public class TraceAnalyzer {
 		System.out.println("=== analyseInfixExpressionNode ===");
 
 		AstNode generatedNode = parse(map.get("statement"));
-		AstNode node = (AstNode) generatedNode.getFirstChild();
-		InfixExpression infix = (InfixExpression) node;
+		
+		
+		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
+		InfixExpression infix = (InfixExpression) es.getExpression();
 
 		String left = infix.getLeft().toSource();
 		String oprator = ASTNodeUtility.operatorToString(infix.getOperator());

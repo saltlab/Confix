@@ -13,6 +13,7 @@ public class ConfixRunner {
 
 		ConcolicEngine ce = new ConcolicEngine(jsAdderess, scopeName, functionToTest, testSuiteNameToGenerate);
 		ce.run();
+		ce.generateTestSuite();
 	}
 
 

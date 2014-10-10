@@ -65,11 +65,11 @@ public class ConcolicEngine {
 		String htmlTestFile = (System.getProperty("user.dir")+"/"+jsAddress).replace(scopeName, "concolic.htm");
 		//System.out.println(htmlTestFile);
 		codeAnalyzer.generateHTMLTestFile(htmlTestFile);
-		
+
 		htmlTestFile = "file:///" + htmlTestFile;
-		
-		fixture = " <div id=\"rateStatus\"/>  <div id=\"indicator\"/>";
-		
+
+		//fixture = " <div id=\"rateStatus\"/>  <div id=\"indicator\"/>";
+
 		do {
 			// Loading the htmlTestFile and reset the fixture
 			loadPage(htmlTestFile);
@@ -77,30 +77,21 @@ public class ConcolicEngine {
 			// Apply the new fixture on htmlTestFile
 			((JavascriptExecutor) driver).executeScript("$(\"#confixTestFixture\").append('" + fixture + "');");
 
-			// Execute the function under test according to the user input value
-			((JavascriptExecutor) driver).executeScript(functionToTest + ";");
+			try{
+				// Execute the function under test according to the user input value
+				((JavascriptExecutor) driver).executeScript(functionToTest + ";");
+			}
+			catch(Exception e){
+				System.out.println(e);
+			}
 			// Get the execution trace
-
 			ArrayList traceList = (ArrayList)((JavascriptExecutor) driver).executeScript("return getConfixTrace();");
 			System.out.println("traceList: " + traceList);
 			Map<String,String> map;
 			for (int i=0; i<traceList.size(); i++){
 				map = (Map<String,String>)(traceList.get(i));
-				System.out.println("map: " + map);
 				traceAnalyzer.analyzeTrace(map);
 			}
-		
-			//Map<String,String> map = (Map<String,String>)((JavascriptExecutor) driver).executeScript("return getConfixTrace();");
-			//for(String key : map.keySet()) {
-			//	String value = map.get(key);
-			//	System.out.printf("%s: %s\n", key, value);
-			//}
-
-
-			//Map<String, Integer> map = (Map<String, Integer>)  ((JavascriptExecutor) driver).executeScript("return {foo: 1, bar: 2}");
-			//System.out.printf("foo: %d\n", map.get("foo"));
-			//System.out.printf("bar: %d\n", map.get("bar"));
-
 
 
 			// Generate DOM constraints from the trace
@@ -114,27 +105,15 @@ public class ConcolicEngine {
 
 			// Generate a new fixture to execute another path. If all paths were exercised, fixture will be set to "" to terminate the loop
 			fixture = "";
+			//System.in.read()
 
 		} while (fixture!="");
 
 		quitDriver();
-	
-	
-		generateTestSuite();
-		
-		
+
 	}
 
 
-	private void generateTestSuite() throws Exception {
-		List<String> functionsList = getDOMDependentFunctions();
-		List<List<String>> attributeConstraintList = getAttributeConstraintList(functionsList);
-		List<String> DOMFixtureList = getDOMFixtureList(functionsList);
-		
-		// Generate a QUnit test file for a DOM-dependent function with DOM fixture
-		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixtureList, functionsList, attributeConstraintList);
-		tsg.generateTestSuite();
-	}
 
 
 	private void instrumentDynamically(boolean useproxy) throws Exception {
@@ -144,13 +123,13 @@ public class ConcolicEngine {
 			runProxy(prox);
 			driverSetup(prox);
 		}else{
-			
-			
+
+
 			FirefoxBinary binary = new FirefoxBinary(new File("/Applications/Firefox 2.app/Contents/MacOS/firefox"));
 			FirefoxProfile profile = new FirefoxProfile();
 			driver = new FirefoxDriver(binary, profile);
-			
-			
+
+
 			// setting the webdriver without proxy
 			//driver = new FirefoxDriver();
 			driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
@@ -196,9 +175,18 @@ public class ConcolicEngine {
 		driver.get(htmlTestFile);
 	}
 
-	public List<String> getDOMDependentFunctions() {
-		return traceAnalyzer.getDOMDependentFunctions();
+
+
+	public void generateTestSuite() throws Exception {
+		List<String> functionsList = traceAnalyzer.getDOMDependentFunctions();
+		List<List<String>> attributeConstraintList = getAttributeConstraintList(functionsList);
+		List<String> DOMFixtureList = getDOMFixtureList(functionsList);
+
+		// Generate a QUnit test file for a DOM-dependent function with DOM fixture
+		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixtureList, functionsList, attributeConstraintList);
+		tsg.generateTestSuite();
 	}
+
 
 	public List<List<String>> getAttributeConstraintList(List<String> functionsList) {
 		List<List<String>> attributeConstraintList = new ArrayList<List<String>>();

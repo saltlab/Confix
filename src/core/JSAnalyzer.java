@@ -151,7 +151,7 @@ public class JSAnalyzer {
 		String instrumentedFileName = scopeName.replace(".js", "_instrumented.js");
 		FileOutputStream outputStream = new FileOutputStream(htmlTestFile);
 		String htmlTestContent = "<!DOCTYPE html> <html> <head> <script src=\"" + instrumentedFileName + "\"> </script> " +
-				"<script src=\"http://code.jquery.com/jquery-1.11.0.min.js\"></script>" +
+				"<script src=\"jquery-1.11.0.min.js\"></script>" +
 				"</head> <body> <div id=\"confixTestFixture\"> </div> </body> </html>";
 		
 		try {
