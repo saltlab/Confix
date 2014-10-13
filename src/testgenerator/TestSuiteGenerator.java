@@ -59,11 +59,14 @@ public class TestSuiteGenerator {
 	public void generateTestSuite() {
 
 		ArrayList<TestFunction> testFunctions = new ArrayList<TestFunction>();
-		int counter = 0;
+		int counter = 0, numOfPathsInFunction = 0;
 
 		for (int i=0; i< functionsNameList.size(); i++) {
 
-			int numOfPathsInFunction = attributeConstraintsStatements.get(i).size();
+			if (attributeConstraintsStatements.size()>0)
+				numOfPathsInFunction = attributeConstraintsStatements.get(i).size();
+
+			System.out.println("numOfPathsInFunction: " + numOfPathsInFunction);
 			//For each path in a function
 			for (int j=0; j < numOfPathsInFunction; j++){
 				TestFunction testFunction = new TestFunction("Testing function " + functionsNameList.get(i) + " for path " + (j+1));

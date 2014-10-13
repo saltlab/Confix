@@ -241,6 +241,11 @@ public class JSASTInstrumentor implements NodeVisitor{
 
 
 	private void instrumentReturnStatementNode(AstNode node) {
+		if (true)
+			return;
+		
+		
+		
 		System.out.println("=== instrumentReturnStatementNode ===");
 		String enclosingFunction = "";
 		if (node.getEnclosingFunction()!=null)
@@ -517,7 +522,7 @@ public class JSASTInstrumentor implements NodeVisitor{
 
 		// avoid instrumenting wrapper function calls!
 		if (fcall.getParent().toSource().contains("confixWrapper")){
-			//System.out.println("Not instrumenting because of: " + fcall.getParent().toSource());
+			System.out.println("Not instrumenting " + fcall.getTarget().toSource() + ", because of: " + fcall.getParent().toSource());
 			return;
 		}
 

@@ -46,8 +46,7 @@ public class TraceAnalyzer {
 	private CompilerEnvirons compilerEnvirons = new CompilerEnvirons();
 
 	private List<String> xpathsToSolve = new ArrayList<String>();
-	private List<String> DOMDependentFunctionsList = new ArrayList<String>();
-	public static HashSet<String> DomDependentFunctions = new HashSet<String>();
+	public HashSet<String> DOMDependentFunctions = new HashSet<String>();
 	private List<ArrayList<DOMConstraint>> pathConditions = new ArrayList<ArrayList<DOMConstraint>>();
 	private static HashSet<DOMConstraint> DOMConstraintList = new HashSet<DOMConstraint>();
 
@@ -67,11 +66,12 @@ public class TraceAnalyzer {
 
 
 	public void analyzeTrace(Map<String, String> map) {
-		
+
 		System.out.println("****** Analyzing a new trace ******");
 		System.out.println("map: " + map);
 
 		System.out.printf("statementType: %s\n", map.get("statementType"));
+		System.out.printf("enclosingFunction: %s\n", map.get("enclosingFunction"));
 		System.out.printf("statement: %s\n", map.get("statement"));
 		System.out.printf("varList: %s\n", map.get("varList"));
 		System.out.printf("varValueList: %s\n", map.get("varValueList"));
@@ -138,9 +138,9 @@ public class TraceAnalyzer {
 		System.out.println("=== analyseVariableInitializerNode ===");
 
 		AstNode generatedNode = parse(map.get("statement"));
-		
+
 		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
-		System.out.println("ES: " + es.toSource());
+		//System.out.println("ES: " + es.toSource());
 		VariableDeclaration vd = (VariableDeclaration) (AstNode) es.getExpression();
 		VariableInitializer vi = (VariableInitializer) (AstNode) vd.getVariables().get(0);
 
@@ -153,8 +153,7 @@ public class TraceAnalyzer {
 		AstNode varLiteral = vi.getInitializer();
 		DOMJSVariable = varName.toSource();
 		//System.out.println("parentNode.getChildBefore(ASTNode).getString() :" + parentNode.getChildBefore(ASTNode).getString());
-		System.out.println("VariableInitializer - varName: " + varName.toSource());
-		System.out.println("VariableInitializer - varLiteral: " + varLiteral.toSource());
+		System.out.println("Variable:" + varName.toSource() + " initialized to: " + varLiteral.toSource());
 
 	}
 
@@ -180,7 +179,7 @@ public class TraceAnalyzer {
 		String functionType = "";  // The called function is either "accessingDOM" or "notAccessingDOM" 
 		String argument = "";
 		String argumentShortName = "";
-		String enclosingFunctionName = "";
+		String enclosingFunctionName = 	map.get("enclosingFunction");
 		// to store the var in the JS code that a DOM element is assigned to
 		String DOMJSVariable = "";
 		//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); 
@@ -192,8 +191,7 @@ public class TraceAnalyzer {
 			AstNode varLiteral = vi.getInitializer();
 			DOMJSVariable = varName.toSource();
 			//System.out.println("parentNode.getChildBefore(ASTNode).getString() :" + parentNode.getChildBefore(ASTNode).getString());
-			System.out.println("VariableInitializer - varName: " + varName.toSource());
-			System.out.println("VariableInitializer - varLiteral: " + varLiteral.toSource());
+			System.out.println("Variable:" + varName.toSource() + " initialized to: " + varLiteral.toSource());
 		}else 
 			// e.g. x = document.getElemenyById('id2')
 			if (parentNode.shortName().equals("Assignment")){
@@ -204,7 +202,7 @@ public class TraceAnalyzer {
 		// getting the argument (id, class, tag, etc.) based on which DOM element is selected
 		if (fcall.getArguments().size()>0){
 			argument = fcall.getArguments().get(0).toSource();
-			//argument = argument.replace("'", "");
+			argument = argument.replace("'", "");
 			argumentShortName = fcall.getArguments().get(0).shortName();
 			System.out.println("argument: " + argument + " - argumentShortName: " + argumentShortName);
 		}
@@ -233,13 +231,13 @@ public class TraceAnalyzer {
 			if (argumentShortName.equals("StringLiteral")){   
 
 				// Adding the enclosingFunctionName to the list of DDF during static instrumentation. DDF can increase during dynamic execution if a function calls a DDF   
-				DomDependentFunctions.add(enclosingFunctionName);
+				DOMDependentFunctions.add(enclosingFunctionName);
 				ElementTypeVariable DOMElement = new ElementTypeVariable();
 				DOMElement.setParentElementJSVariable(pg.getLeft().toSource());
 				// adding the child node to the list for the parent
 				for (DOMConstraint d: DOMConstraintList){
-					if (d.getDOMElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
-						System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+					if (d.getElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
+						System.out.println(d.getElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
 				}
 
 				DOMElement.setDOMJSVariable(DOMJSVariable);
@@ -267,13 +265,13 @@ public class TraceAnalyzer {
 					// set the id_attributeVariable to argument
 					// if argument is an input of a function then assign id to "TheIDShouldBeSetFromFunctionInput"
 
-					DomDependentFunctions.add(enclosingFunctionName);
+					DOMDependentFunctions.add(enclosingFunctionName);
 					ElementTypeVariable DOMElement = new ElementTypeVariable();
 					DOMElement.setParentElementJSVariable(pg.getLeft().toSource());
 					// adding the child node to the list for the parent
 					for (DOMConstraint d: DOMConstraintList){
-						if (d.getDOMElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
-							System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+						if (d.getElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
+							System.out.println(d.getElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
 					}
 
 					DOMElement.setDOMJSVariable(DOMJSVariable);
@@ -307,7 +305,7 @@ public class TraceAnalyzer {
 			if(targetBody.equals("$") || targetBody.equals("jQuery")){
 
 				if (argumentShortName.equals("StringLiteral")){   // e.g. $('id')
-					DomDependentFunctions.add(enclosingFunctionName);
+					DOMDependentFunctions.add(enclosingFunctionName);
 					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + targetBody + "(" + argument + ")");
 
 					ElementTypeVariable DOMElement = new ElementTypeVariable();
@@ -315,8 +313,8 @@ public class TraceAnalyzer {
 					DOMElement.setParentElementJSVariable("document");
 					// adding the child node to the list for the parent
 					for (DOMConstraint d: DOMConstraintList){
-						if (d.getDOMElementTypeVariable().getDOMJSVariable().equals("document"))
-							System.out.println(d.getDOMElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+						if (d.getElementTypeVariable().getDOMJSVariable().equals("document"))
+							System.out.println(d.getElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
 					}
 
 					DOMElement.setDOMJSVariable(DOMJSVariable);
@@ -365,47 +363,39 @@ public class TraceAnalyzer {
 		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
 		AstNode conditionNode = es.getExpression();
 
-		//IfStatement is = (IfStatement) node;
-		//AstNode conditionNode = is.getCondition();
-
 		/*
 		    // e.g. x = document.getElemenyById('id2')
 				Assignment asmt = (Assignment)parentNode;
 				DOMJSVariable = asmt.getLeft().toSource();
-
 		 */
-
 
 		ArrayList<DOMConstraint> pathCondition = new ArrayList<DOMConstraint>(); 
 
-		//FunctionNode func=node.getEnclosingFunction();
-
 		System.out.println("conditionNode.shortName() : " + conditionNode.shortName());
-		System.out.println("conditionNode.depth() : " + conditionNode.depth());
-		System.out.println("conditionNode.getLineno() : " + (conditionNode.getLineno()+1));
+		//System.out.println("conditionNode.depth() : " + conditionNode.depth());
+		//System.out.println("conditionNode.getLineno() : " + (conditionNode.getLineno()+1));
 		System.out.println("conditionNode.toSource() : \n" + conditionNode.toSource());
-		System.out.println("conditionNode.getType() : " + conditionNode.getType());
-		System.out.println("conditionNode.getAstRoot() : " + conditionNode.getAstRoot());
 		System.out.println("conditionNode.debugPrint() : \n" + conditionNode.debugPrint());
-
 
 		String conditionShortName = conditionNode.shortName();
 
 		if (conditionShortName.equals("InfixExpression")){	// e.g. if (x<5)
 			System.out.println("*** InfixExpression found in the condition ***");
-			InfixExpression ie = (InfixExpression) conditionNode;
-			String left = ie.getLeft().toSource();
-			String oprator = ASTNodeUtility.operatorToString(ie.getOperator());
-			String right = ie.getRight().toSource();
+			InfixExpression infix = (InfixExpression) conditionNode;
+			String leftOperand = infix.getLeft().toSource();
+			String oprator = ASTNodeUtility.operatorToString(infix.getOperator());
+			String rightOperand = infix.getRight().toSource();
 
-			System.out.println("Left: " + left);
+			System.out.println("Left: " + leftOperand);
 			System.out.println("Operator: " + oprator);
-			System.out.println("Right: " + right);	
+			System.out.println("Right: " + rightOperand);	
 
-			// check if the path condition is on a DOM element
+			
+			// TODO: check if the path condition is on a DOM element
 
+			/*
 			// adding the pathCondition to the 
-			/*DOMElementTypeVariable DOMElement = new DOMElementTypeVariable();
+			ElementTypeVariable DOMElement = new ElementTypeVariable();
 			System.out.println("parentNodeElement: document");
 			DOMElement.setParentElementJSVariable("document");
 			// adding the child node to the list for the parent
@@ -418,81 +408,82 @@ public class TraceAnalyzer {
 
 			DOMElement.setId_attribute(argument);
 			DOMConstraint dc = new DOMConstraint(DOMElement);
-			 */
+			*/
 
-			// considering multiple constraints
 			if (oprator.equals("&&") || oprator.equals("||")){
-
+				// TODO: Considering multiple constraints
+				
 			}if (oprator.equals("==") || oprator.equals("===")){  
-				if (ie.getLeft() instanceof Name){  // e.g. if we have a = $('id') or a = $('id').html()  and then if (a == X)
+				if (infix.getLeft() instanceof Name){  // e.g. if (a == ...)
 					// search among JSVariables
-					for (DOMConstraint dc: DOMConstraintList){
-						if (dc.getDOMElementTypeVariable().getDOMJSVariable().equals(ie.getLeft().toSource())){
-							System.out.println(dc.getDOMElementTypeVariable().getDOMJSVariable() + " variable which refers to a DOM element is used in a condition");
+					for (DOMConstraint dc: DOMConstraintList){ // e.g. if we have a = $('id') or a = $('id').html()  and then if (a == X)
+						
+						System.out.println("dc.getElementTypeVariable(): " + dc.getElementTypeVariable());
+						
+						ElementTypeVariable etv = dc.getElementTypeVariable();
+						if (etv.getDOMJSVariable().equals(leftOperand)){
+							System.out.println(etv.getDOMJSVariable() + " variable which refers to a DOM element is used in a condition");
 							break;
-						}else if (dc.getDOMElementTypeVariable().getId_attributeVariable().equals(ie.getLeft().toSource())){
-							System.out.println(dc.getDOMElementTypeVariable().getId_attributeVariable() + " variable which refers to an id attribute of a DOM element is used in a condition");
+						}else if (etv.getId_attributeVariable().equals(leftOperand)){
+							System.out.println(etv.getId_attributeVariable() + " variable which refers to an id attribute of a DOM element is used in a condition");
 							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
 							String condition = conditionNode.toSource();
-							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".id");
-							//System.out.println("condition after replacement: " + condition);
+							condition = condition.replace(leftOperand, dc.getElementTypeVariable().getOriginalAccessCode() + ".id");
+							System.out.println("condition after replacement: " + condition);
 							dc.addConstraint(condition, true);
 							break;
-						}else if (dc.getDOMElementTypeVariable().getType_attributeVariable().equals(ie.getLeft().toSource())){
-							System.out.println(dc.getDOMElementTypeVariable().getType_attributeVariable() + " variable which refers to a type attribute of a DOM element is used in a condition");
+						}else if (etv.getType_attributeVariable().equals(leftOperand)){
+							System.out.println(etv.getType_attributeVariable() + " variable which refers to a type attribute of a DOM element is used in a condition");
 							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
 							String condition = conditionNode.toSource();
-							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".type");
-							//System.out.println("condition after replacement: " + condition);
+							condition = condition.replace(leftOperand, dc.getElementTypeVariable().getOriginalAccessCode() + ".type");
+							System.out.println("condition after replacement: " + condition);
 							dc.addConstraint(condition, true);
 							break;
-						}else if (dc.getDOMElementTypeVariable().getName_attributeVariable().equals(ie.getLeft().toSource())){
-							System.out.println(dc.getDOMElementTypeVariable().getName_attributeVariable() + " variable which refers to a name attribute of a DOM element is used in a condition");
+						}else if (etv.getName_attributeVariable().equals(leftOperand)){
+							System.out.println(etv.getName_attributeVariable() + " variable which refers to a name attribute of a DOM element is used in a condition");
 							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
 							String condition = conditionNode.toSource();
-							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".name");
-							//System.out.println("condition after replacement: " + condition);
+							condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".name");
+							System.out.println("condition after replacement: " + condition);
 							dc.addConstraint(condition, true);
 							break;
-						}else if (dc.getDOMElementTypeVariable().getClass_attributeVariable().equals(ie.getLeft().toSource())){
-							System.out.println(dc.getDOMElementTypeVariable().getClass_attributeVariable() + " variable which refers to a class attribute of a DOM element is used in a condition");
+						}else if (etv.getClass_attributeVariable().equals(leftOperand)){
+							System.out.println(etv.getClass_attributeVariable() + " variable which refers to a class attribute of a DOM element is used in a condition");
 							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
 							String condition = conditionNode.toSource();
-							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".class");
-							//System.out.println("condition after replacement: " + condition);
+							condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".class");
+							System.out.println("condition after replacement: " + condition);
 							dc.addConstraint(condition, true);
 							break;
-						}else if (dc.getDOMElementTypeVariable().getValue_attributeVariable().equals(ie.getLeft().toSource())){
-							System.out.println(dc.getDOMElementTypeVariable().getValue_attributeVariable() + " variable which refers to a value attribute of a DOM element is used in a condition");
+						}else if (etv.getValue_attributeVariable().equals(leftOperand)){
+							System.out.println(etv.getValue_attributeVariable() + " variable which refers to a value attribute of a DOM element is used in a condition");
 							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
 							String condition = conditionNode.toSource();
-							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".value");
-							//System.out.println("condition after replacement: " + condition);
+							condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".value");
+							System.out.println("condition after replacement: " + condition);
 							dc.addConstraint(condition, true);
 							break;
-						}else if (dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable().equals(ie.getLeft().toSource())){
-							System.out.println(dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable() + " variable which refers to an innerHTML attribute of a DOM element is used in a condition");
+						}else if (etv.getInnerHTML_attributeVariable().equals(leftOperand)){
+							System.out.println(etv.getInnerHTML_attributeVariable() + " variable which refers to an innerHTML attribute of a DOM element is used in a condition");
 							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
 							String condition = conditionNode.toSource();
-							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".innerHTML");
-							//System.out.println("condition after replacement: " + condition);
+							condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".innerHTML");
+							System.out.println("condition after replacement: " + condition);
 							dc.addConstraint(condition, true);
 							break;
-						}else if (dc.getDOMElementTypeVariable().getSrc_attributeVariable().equals(ie.getLeft().toSource())){
-							System.out.println(dc.getDOMElementTypeVariable().getSrc_attributeVariable() + " variable which refers to an src attribute of a DOM element is used in a condition");
+						}else if (etv.getSrc_attributeVariable().equals(leftOperand)){
+							System.out.println(etv.getSrc_attributeVariable() + " variable which refers to an src attribute of a DOM element is used in a condition");
 							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
 							String condition = conditionNode.toSource();
-							condition = condition.replace(ie.getLeft().toSource(), dc.getDOMElementTypeVariable().getOriginalAccessCode() + ".src");
-							//System.out.println("condition after replacement: " + condition);
+							condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".src");
+							System.out.println("condition after replacement: " + condition);
 							dc.addConstraint(condition, true);
 							break;
 						}
-
 					}
 				}
-
 			}
-
 		}else if (conditionShortName.equals("Name")){	// e.g. if (t)  -> variable should be true to go in
 			Name varName = (Name) conditionNode;
 			System.out.println("varName.toSource(): " + varName.toSource());
@@ -513,12 +504,13 @@ public class TraceAnalyzer {
 
 	}
 
+
 	private void analyseInfixExpressionNode(Map<String, String> map) {
 		System.out.println("=== analyseInfixExpressionNode ===");
 
 		AstNode generatedNode = parse(map.get("statement"));
-		
-		
+
+
 		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
 		InfixExpression infix = (InfixExpression) es.getExpression();
 
@@ -751,12 +743,10 @@ public class TraceAnalyzer {
 
 	public List<String> generateXpathConstraints() {	
 		// setting the xpathToSolve for each function
-		HashSet<String> fList = getDOMDependentFunctionsList();
-		DOMDependentFunctionsList.addAll(fList); 
-		HashSet<DOMConstraint> dList = getDOMConstraintList();
-		DOMConstraintList.addAll(dList); 
+		//HashSet<DOMConstraint> dList = getDOMConstraintList();
+		//DOMConstraintList.addAll(dList); 
 
-		for (String DDF: DOMDependentFunctionsList){
+		for (String DDF: DOMDependentFunctions){
 			System.out.println("****** Generating xpath for DOM constraints in DDF: " + DDF);
 			String xpathToSolve = generateXpathConstraint(DDF);
 			resetXpath();
@@ -773,14 +763,15 @@ public class TraceAnalyzer {
 
 	public static String generateXpathConstraint(String enclosingFunctionName) {
 		xpath = "select(\"document[";
-		List<String> JSDOMVars = new ArrayList<String>();
+		//List<String> JSDOMVars = new ArrayList<String>();
+
 		// Transform constraints to xpath
 		for (DOMConstraint dc : DOMConstraintList){
 			if (dc.isAddedToTheXpath())
 				continue;
 			//dc.setAddedToTheXpath(true); // this is to consider each constraint only once -> this is done in the recursive function generateSubXpath
 
-			if (dc.getDOMElementTypeVariable().getDOMJSVariable().equals("document")) // ignore the first node
+			if (dc.getElementTypeVariable().getDOMJSVariable().equals("document")) // ignore the first node
 				continue;
 
 			// for each node consider all its children nodes
@@ -795,13 +786,13 @@ public class TraceAnalyzer {
 
 	private static void generateSubXpath(DOMConstraint currentConstraint, String enclosingFunctionName){
 		// generate xpath for currentConstraint first (id+attributes) and then add its children
-		String id = currentConstraint.getDOMElementTypeVariable().getId_attribute();
-		String tag = currentConstraint.getDOMElementTypeVariable().getTag_attribute();
-		String type = currentConstraint.getDOMElementTypeVariable().getType_attribute();
-		String name = currentConstraint.getDOMElementTypeVariable().getName_attribute();
-		String Class = currentConstraint.getDOMElementTypeVariable().getClass_attribute();
-		String value = currentConstraint.getDOMElementTypeVariable().getValue_attribute();
-		String src = currentConstraint.getDOMElementTypeVariable().getSrc_attribute();
+		String id = currentConstraint.getElementTypeVariable().getId_attribute();
+		String tag = currentConstraint.getElementTypeVariable().getTag_attribute();
+		String type = currentConstraint.getElementTypeVariable().getType_attribute();
+		String name = currentConstraint.getElementTypeVariable().getName_attribute();
+		String Class = currentConstraint.getElementTypeVariable().getClass_attribute();
+		String value = currentConstraint.getElementTypeVariable().getValue_attribute();
+		String src = currentConstraint.getElementTypeVariable().getSrc_attribute();
 		if (numOfDOMElementsInFixture>0)
 			xpath += " and child::";
 		xpath += (tag + "_" + Integer.toString(numOfDOMElementsInFixture++) + "[");  // e.g. div_0[, p_1[, img_2[, ...
@@ -821,9 +812,9 @@ public class TraceAnalyzer {
 		currentConstraint.setAddedToTheXpath(true); // this is to consider each constraint only once
 
 		for (DOMConstraint dc : DOMConstraintList){
-			if (dc.getDOMElementTypeVariable().getDOMJSVariable().equals("document")) // ignore the first node
+			if (dc.getElementTypeVariable().getDOMJSVariable().equals("document")) // ignore the first node
 				continue;
-			if(dc.getDOMElementTypeVariable().getParentElementJSVariable().equals(currentConstraint.getDOMElementTypeVariable().getDOMJSVariable())){
+			if(dc.getElementTypeVariable().getParentElementJSVariable().equals(currentConstraint.getElementTypeVariable().getDOMJSVariable())){
 				//xpath += " and child::";
 				if (dc.getEnclosingFunctionName().equals(enclosingFunctionName))
 					generateSubXpath(dc, enclosingFunctionName);
@@ -837,13 +828,10 @@ public class TraceAnalyzer {
 	}
 
 
-	public static HashSet<String> getDOMDependentFunctionsList() {
-		return DomDependentFunctions;
+	public HashSet<String> getDOMDependentFunctions() {
+		return DOMDependentFunctions;
 	}
 
-	public List<String> getDOMDependentFunctions() {
-		return DOMDependentFunctionsList;
-	}
 
 	public HashSet<DOMConstraint> getDOMConstraintList() {
 		return DOMConstraintList;
