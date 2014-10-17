@@ -61,6 +61,7 @@ public class JSASTInstrumentor implements NodeVisitor{
 	private final ArrayList<String> jsList=new ArrayList<String>();
 
 	private int instrumentedLinesCounter = 0;
+	private boolean instrumentFunctionCall = false;
 
 	private CompilerEnvirons compilerEnvirons = new CompilerEnvirons();
 	private String scopeName = null;	// Contains the scopename of the AST we are visiting. Generally this will be the filename
@@ -218,22 +219,28 @@ public class JSASTInstrumentor implements NodeVisitor{
 		System.out.println("node.getType() : " + node.getType());
 		System.out.println("node.debugPrint() : \n" + node.debugPrint());
 		 */
-		if (node instanceof Name)
-			instrumentNameNode(node);
-		else if (node instanceof IfStatement)
-			instrumentIfStatementNode(node);
-		else if (node instanceof FunctionNode)
-			instrumentFunctionNode(node);
-		else if (node instanceof FunctionCall)
-			instrumentFunctionCallNode(node);
-		else if (node instanceof SwitchCase)
-			instrumentSwitchCaseNode(node);
-		else if (node instanceof InfixExpression)
-			instrumentInfixExpressionNode(node);
-		else if (node instanceof VariableInitializer)
-			instrumentVariableInitializerNode(node);
-		else if (node instanceof ReturnStatement)
-			instrumentReturnStatementNode(node);
+
+		if (isInstrumentFunctionCall()){
+			if (node instanceof FunctionCall)
+				instrumentFunctionCallNode(node);
+		}else{
+			if (node instanceof Name)
+				instrumentNameNode(node);
+			else if (node instanceof IfStatement)
+				instrumentIfStatementNode(node);
+			else if (node instanceof FunctionNode)
+				instrumentFunctionNode(node);
+			//else if (node instanceof FunctionCall && isInstrumentFunctionCall())
+			//	instrumentFunctionCallNode(node);
+			else if (node instanceof SwitchCase)
+				instrumentSwitchCaseNode(node);
+			else if (node instanceof InfixExpression)
+				instrumentInfixExpressionNode(node);
+			else if (node instanceof VariableInitializer)
+				instrumentVariableInitializerNode(node);
+			else if (node instanceof ReturnStatement)
+				instrumentReturnStatementNode(node);
+		}
 
 		/* have a look at the children of this node */
 		return true;
@@ -241,25 +248,23 @@ public class JSASTInstrumentor implements NodeVisitor{
 
 
 	private void instrumentReturnStatementNode(AstNode node) {
-		if (true)
-			return;
-		
-		
-		
+
 		System.out.println("=== instrumentReturnStatementNode ===");
 		String enclosingFunction = "";
 		if (node.getEnclosingFunction()!=null)
 			enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
-		
+
 		ReturnStatement rs = (ReturnStatement) node;
-		System.out.println("ra.toSource(): " + rs.toSource());
+		System.out.println("rs.toSource(): " + rs.toSource());
 		if (rs.getReturnValue()!=null){
-			System.out.println("ra.getReturnValue().toSource(): " + rs.getReturnValue().toSource());
+			System.out.println("rs.getReturnValue().toSource(): " + rs.getReturnValue().toSource());
 
 			String originalSource = rs.toSource().replace("\"", "\\\"");		
 			originalSource = originalSource.replace("\n", "").replace("\r", ""); // if it contains a function body		
 			// e.g. return a; -> return confixWrapper("return", "a", [""], [], a);
 			String wrapperCode = "function temp(){ return confixWrapper(\"return\", \""+ originalSource +"\", [\"\"], [], \"" + enclosingFunction + "\", " + rs.getReturnValue().toSource() + ") }";
+			System.out.println("wrapperCode before: " + wrapperCode );
+			wrapperCode = wrapperCode.replace("\\\\\"", "\\\"");
 			System.out.println("wrapperCode : " + wrapperCode );
 			AstNode wrapperNode = parse(wrapperCode);
 			System.out.println(wrapperNode.toSource());
@@ -276,7 +281,7 @@ public class JSASTInstrumentor implements NodeVisitor{
 
 	private void instrumentVariableInitializerNode(AstNode node) {
 		System.out.println("=== instrumentVariableInitializerNode ===");
-		
+
 		String enclosingFunction = "";
 		if (node.getEnclosingFunction()!=null)
 			enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
@@ -341,6 +346,8 @@ public class JSASTInstrumentor implements NodeVisitor{
 		if (oprator.equals("=")){
 			// e.g. a = b -> a = confixWrapper("infix", "a=b", [""], [], b)
 			String wrapperCode = left + " = confixWrapper(\"infix\", \""+ originalSource +"\", [\"\"], [], \"" + enclosingFunction + "\", " + right + ")";
+			System.out.println("wrapperCode before: " + wrapperCode );
+			wrapperCode = wrapperCode.replace("\\\\\"", "\\\"");
 			System.out.println("wrapperCode : " + wrapperCode );
 			AstNode wrapperNode = parse(wrapperCode);
 			System.out.println(wrapperNode.toSource());
@@ -353,12 +360,14 @@ public class JSASTInstrumentor implements NodeVisitor{
 			infex.setOperator(tempInf.getOperator());
 			infex.setRight(tempInf.getRight());
 			System.out.println("New infix is: " + infex.toSource());	
-		}else if (oprator.equals("GETPROP")){	
+		}
+		// No need for other instrumentation at this point
+		//else if (oprator.equals("GETPROP")){	
 			//TODO
-			// e.g. document.getElementById -> a = confixWrapper("infix", "a=b", [""], [], b)
+			// e.g. document.getElementById -> a = confixWrapper("infix", "document.getElementById", [""], [], getElementById)
 			// -> nodeName: PropertyGet, e.g. Left: $("p").innerHTML
 			// consider the parent node until there is no more GETPROP
-		}
+		//}
 
 	}
 
@@ -384,6 +393,8 @@ public class JSASTInstrumentor implements NodeVisitor{
 		String originalCondition = conditionNode.toSource().replace("\"", "\\\"");		
 		// e.g. if(x>5) -> confixWrapper("condition", "x>5", ["x"], [x], x>5)
 		String wrapperCode = "if (confixWrapper(\"condition\", \""+ originalCondition +"\", [\"\"], [], \"" + enclosingFunction + "\", " + conditionNode.toSource() + ")) temp;";
+		System.out.println("wrapperCode before: " + wrapperCode );
+		wrapperCode = wrapperCode.replace("\\\\\"", "\\\"");
 		System.out.println("wrapperCode : " + wrapperCode );
 		AstNode wrapperNode = parse(wrapperCode);
 		//System.out.println(wrapperNode.toSource());
@@ -510,7 +521,7 @@ public class JSASTInstrumentor implements NodeVisitor{
 				enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
 
 		//System.out.println("enclosingFunction: " + enclosingFunction);
-		
+
 		if (node.shortName().equals("NewExpression"))
 			return;
 
@@ -565,7 +576,7 @@ public class JSASTInstrumentor implements NodeVisitor{
 	protected AstNode createNode(AstRoot root, String postfix, int lineNo, int rootCount) {
 		// instrumenting out of function
 		// Adds instrumentation code
-		 String code = jsName + "_exec_counter[" + Integer.toString(instrumentedLinesCounter) + "]++;";
+		String code = jsName + "_exec_counter[" + Integer.toString(instrumentedLinesCounter) + "]++;";
 		instrumentedLinesCounter++;
 
 		return parse(code);
@@ -612,7 +623,7 @@ public class JSASTInstrumentor implements NodeVisitor{
 		instrumentedLinesCounter = 0;
 	}
 
-	
+
 	/**
 	 * This will be added to the beginning of the script
 	 * 
@@ -621,23 +632,23 @@ public class JSASTInstrumentor implements NodeVisitor{
 	private AstNode headerCode() {
 		// statement can be functionCall, assignment, return, condition, etc.
 		String code = "trace = [];";
-		
+
 		code += "function confixWrapper(statementType, statement, varList, varValueList, enclosingFunction, actualStatement){" +
-						 "trace.push({statementType: statementType, statement: statement, varList: varList, varValueList: varValueList, enclosingFunction: enclosingFunction, actualStatement: actualStatement});" +
-						 "return actualStatement;" +
-					   "}";
+				"trace.push({statementType: statementType, statement: statement, varList: varList, varValueList: varValueList, enclosingFunction: enclosingFunction, actualStatement: actualStatement});" +
+				"return actualStatement;" +
+				"}";
 
 		code += "function getConfixTrace(){" +
-				 "return trace;" +
-			   "}";
-		
+				"return trace;" +
+				"}";
+
 		code += "var " + jsName + "_exec_counter = new Array(); " +
 				"for (var i=0;i<" + instrumentedLinesCounter + ";i++)" +
 				"if("+jsName + "_exec_counter[i]== undefined || "+jsName + "_exec_counter[i]== null) "+jsName + "_exec_counter[i]=0;";
-		
+
 		// instrumentedLinesCounter resets to 0 for the next codes
 		instrumentedLinesCounter = 0;
-		
+
 		return parse(code);
 	}
 
@@ -658,8 +669,16 @@ public class JSASTInstrumentor implements NodeVisitor{
 		// Adds instrumentation code
 		String code = jsName + "_exec_counter[" + Integer.toString(instrumentedLinesCounter) + "]++;";
 		instrumentedLinesCounter++;
-		
+
 		return parse(code);
+	}
+
+	public boolean isInstrumentFunctionCall() {
+		return instrumentFunctionCall;
+	}
+
+	public void setInstrumentFunctionCall(boolean instrumentFunctionCall) {
+		this.instrumentFunctionCall = instrumentFunctionCall;
 	}
 
 

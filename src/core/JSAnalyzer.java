@@ -111,11 +111,18 @@ public class JSAnalyzer {
 			astVisitor.setScopeName(scopeName);
 			astVisitor.start();
 
+			astVisitor.setInstrumentFunctionCall(true);
 			/* recurse through AST */
 			ast.visit(astVisitor);
 
+			System.out.println("DONE WITH FUNCTION CALLS");
+			astVisitor.setInstrumentFunctionCall(false);
+			/* recurse through AST */
+			ast.visit(astVisitor);
+			
 			astVisitor.finish(ast);
 
+			
 			/* clean up */
 			Context.exit();
 

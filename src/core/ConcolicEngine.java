@@ -36,6 +36,9 @@ public class ConcolicEngine {
 	private String testSuiteNameToGenerate;
 	private String fixture = "";
 
+	private List<String> DOMFixtureList = new ArrayList<String>();
+	private List<String> attributeConstraints = new ArrayList<String>();
+
 	public ConcolicEngine(String jsAdderess, String scopeName, String functionToTest, String testSuiteNameToGenerate){
 		this.jsAddress = jsAdderess;
 		this.scopeName = scopeName;
@@ -66,7 +69,7 @@ public class ConcolicEngine {
 		//System.out.println(htmlTestFile);
 		codeAnalyzer.generateHTMLTestFile(htmlTestFile);
 
-		fixture = " <div id=\"rateStatus\"/>  <div id=\"indicator\"/>";
+		fixture = "<div id=\"rateStatus\"/>";//  <div id=\"indicator\"/>";
 
 		int pathCounter = 1;
 		do {
@@ -94,18 +97,18 @@ public class ConcolicEngine {
 			}
 
 			// Generate DOM constraints from the trace
-			
+
 			//System.out.println("traceAnalyzer.getDOMDependentFunctions(): " + traceAnalyzer.getDOMDependentFunctions());
 
 			List<List<String>> attributeConstraintList = getAttributeConstraintList(traceAnalyzer.getDOMDependentFunctions());
 
 			System.out.println("attributeConstraintList: " + attributeConstraintList);
 
-			
-			List<String> DOMFixtureList = getDOMFixtureList(traceAnalyzer.getDOMDependentFunctions());
+			String DOMFixture = getDOMFixture();
 
-			System.out.println("DOMFixtureList: " + DOMFixtureList);
-			
+			System.out.println("DOMFixture: " + DOMFixture);
+			DOMFixtureList.add(DOMFixture);
+
 			// Transform the DOM constraints in into xpath constraint (xpath rule)
 
 			// Solve xpath constraints and generate corresponding DOMFixture
@@ -113,7 +116,7 @@ public class ConcolicEngine {
 			// Generate a new fixture to execute another path. If all paths were exercised, fixture will be set to "" to terminate the loop
 			fixture = "";
 			System.out.println("=======> Path #" + pathCounter + ": DOM fixture: " + fixture);
-			
+
 		} while (fixture!="");
 
 		quitDriver();
@@ -130,13 +133,9 @@ public class ConcolicEngine {
 			runProxy(prox);
 			driverSetup(prox);
 		}else{
-
-
 			FirefoxBinary binary = new FirefoxBinary(new File("/Applications/Firefox 2.app/Contents/MacOS/firefox"));
 			FirefoxProfile profile = new FirefoxProfile();
 			driver = new FirefoxDriver(binary, profile);
-
-
 			// setting the webdriver without proxy
 			//driver = new FirefoxDriver();
 			driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
@@ -186,9 +185,30 @@ public class ConcolicEngine {
 
 	public void generateTestSuite() throws Exception {
 		// Generate a QUnit test file for a DOM-dependent function with DOM fixture
-		//TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixtureList, functionsList, attributeConstraintList);
-		//tsg.generateTestSuite();
+		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixtureList, functionToTest, attributeConstraints);
+		tsg.generateTestSuite();
 	}
+
+
+
+
+
+
+	/*
+	public List<String> getAttributeConstraintList() {
+		//attributeConstraints
+		List<String> attributeConstraintList = new ArrayList<String>();
+		System.out.println(">>>>>>>> Listing DOM constraints in DOM dependent functionToTest: " + functionToTest);
+		for (DOMConstraint dc: traceAnalyzer.getDOMConstraintList()){
+			System.out.println(dc.getCorrespondingXpath());
+			System.out.println("ATTRIBUTE CONSTRAINTS:" + dc.getConstraints());
+			//attributeList.add(dc.getConstraints());
+			attributeConstraintList.add(dc.getStatementsForAllConstraints());
+			//if (dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable()!="")
+			//System.out.println("**************** InnerHTML_attributeVariable():" + dc.getDOMElementTypeVariable().getInnerHTML_attributeVariable());
+		}
+		return attributeConstraintList;
+	}*/
 
 
 	public List<List<String>> getAttributeConstraintList(HashSet<String> functionsList) {
@@ -210,19 +230,18 @@ public class ConcolicEngine {
 		return attributeConstraintList;
 	}
 
-	public List<String> getDOMFixtureList(HashSet<String> functionsList) throws Exception {
+	public String getDOMFixture() throws Exception {
 		XpathSolver xpathsolver = new XpathSolver();
 		String DOMFixture = "";
-		List<String> DOMFixtureList = new ArrayList<String>();
-		for (String xpathToSolve : traceAnalyzer.generateXpathConstraints()){
-			System.out.println("DOM fixture for function: " + functionToTest);
+		String xpathToSolve = traceAnalyzer.generateXpathConstraints();
+		System.out.println("DOM fixture for function: " + functionToTest);
+		if (!xpathToSolve.equals("select(\"document[]\")")){
 			xpathsolver.setXpath(xpathToSolve);
 			xpathsolver.solve();
 			DOMFixture = xpathsolver.getDOMFixture();
-			DOMFixtureList.add(DOMFixture);
-			System.out.println(DOMFixture);
 		}
-		return DOMFixtureList;
+		System.out.println(DOMFixture);
+		return DOMFixture;
 	}
 
 
@@ -237,7 +256,21 @@ public class ConcolicEngine {
 	}
 
 
-
-
+	// OLD VERSION
+	/*public List<String> getDOMFixtureList(HashSet<String> functionsList) throws Exception {
+		XpathSolver xpathsolver = new XpathSolver();
+		String DOMFixture = "";
+		List<String> DOMFixtureList = new ArrayList<String>();
+		for (String xpathToSolve : traceAnalyzer.generateXpathConstraints()){
+			System.out.println("DOM fixture for function: " + functionToTest);
+			xpathsolver.setXpath(xpathToSolve);
+			xpathsolver.solve();
+			DOMFixture = xpathsolver.getDOMFixture();
+			DOMFixtureList.add(DOMFixture);
+			System.out.println(DOMFixture);
+		}
+		return DOMFixtureList;
+	}
+	 */
 
 }

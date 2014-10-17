@@ -12,9 +12,9 @@ var ss_loaded = false;
 var ss_smaller = false;
 var ss_awaits = 1;
 
-//function document.getElementById(x) {
-//	return document.getElementById(x);
-//}
+function dg(x) {
+	return document.getElementById(x);
+}
 
 function setOpac(cur, strength) {
 	if (cur.style.MozOpacity)
@@ -34,23 +34,23 @@ function DarkenIt(cur, t) {
 }
 
 function toggleInfo(wut) {
-	if (document.getElementById('hin').innerHTML)
+	if (dg('hin').innerHTML)
 	if ((!wut) || (wut == ''))
-		wut = document.getElementById('hin').innerHTML;
+		wut = dg('hin').innerHTML;
 	if (wut == 'Show') {
-		document.getElementById('hin').innerHTML = 'Hide&nbsp;';
-		document.getElementById('photoBoxes').style.display = 'block';
-		document.getElementById('theImage').style.cssFloat = 'left';
-		document.getElementById('theImage').style.styleFloat = 'left';
-		document.getElementById('theImage').style.marginRight = '15px';
+		dg('hin').innerHTML = 'Hide&nbsp;';
+		dg('photoBoxes').style.display = 'block';
+		dg('theImage').style.cssFloat = 'left';
+		dg('theImage').style.styleFloat = 'left';
+		dg('theImage').style.marginRight = '15px';
 		setCookie('hideinfo', 'false');
 	}
 	else {
-		document.getElementById('hin').innerHTML = 'Show';
-		document.getElementById('photoBoxes').style.display = 'none';
-		document.getElementById('theImage').style.cssFloat = 'none';
-		document.getElementById('theImage').style.styleFloat = 'none';
-		document.getElementById('theImage').style.marginRight = '55px';
+		dg('hin').innerHTML = 'Show';
+		dg('photoBoxes').style.display = 'none';
+		dg('theImage').style.cssFloat = 'none';
+		dg('theImage').style.styleFloat = 'none';
+		dg('theImage').style.marginRight = '55px';
 		setCookie('hideinfo', 'true');
 	}
 }
@@ -79,27 +79,27 @@ function rand(x) {
 
 function reshuffle() {
 	var maxRand = 400-75;
-	var n = document.getElementById('thumbscount').value;
+	var n = dg('thumbscount').value;
 	for (var i=0; i<n; i++) {
-		document.getElementById('ThumbInBox'+i).style.top = rand(maxRand)+'px';
-		document.getElementById('ThumbInBox'+i).style.left = rand(maxRand)+'px';
+		dg('ThumbInBox'+i).style.top = rand(maxRand)+'px';
+		dg('ThumbInBox'+i).style.left = rand(maxRand)+'px';
 	}
 }
 
 function updateIndic() {
-	var v = document.getElementById('indicator').innerHTML;
+	var v = dg('indicator').innerHTML;
 	var l = v.length;
 	var neck = 52;
 	if (l > neck)
 		v = v.substring(0, l-3*7)
 	if ((l%3) == 0)
-		document.getElementById('indicator').innerHTML = '&#149;      '+v;
+		dg('indicator').innerHTML = '&#149;      '+v;
 	else
-		document.getElementById('indicator').innerHTML = '&nbsp; '+v;
+		dg('indicator').innerHTML = '&nbsp; '+v;
 	if (isAjaxing)
 		setTimeout("updateIndic();", 500);
 	else
-		document.getElementById('indicator').innerHTML = '';
+		dg('indicator').innerHTML = '';
 }
 
 function alertContents(http_request) {
@@ -110,11 +110,11 @@ function alertContents(http_request) {
 				AjaxVal = AjaxVal.substr(6, AjaxVal.length-13); // to clear <ajax></ajax> tag which was added to save XMLity
 				AjaxValRead = false; // to avoid duplicate the reading of the content
 				if (AjaxVal.substr(0, 4) == 'Done') {
-					document.getElementById('rateStatus').innerHTML = 'Your rating saved!';
-					document.getElementById('sumRate').innerHTML = AjaxVal.substr(4, AjaxVal.length-1);
+					dg('rateStatus').innerHTML = 'Your rating saved!';
+					dg('sumRate').innerHTML = AjaxVal.substr(4, AjaxVal.length-1);
 				}
 				if (AjaxVal.substr(0, 6) == 'FakeWV') {
-					document.getElementById('wvwimg').src = "wv.php?rand="+rand(10000000);
+					dg('wvwimg').src = "wv.php?rand="+rand(10000000);
 					md5 = AjaxVal.substr(6, 27);
 				}
 				if (AjaxVal.substr(0, 6) == 'TrueWV') {
@@ -146,8 +146,17 @@ function makeRequest(url) {
 	http_request.send(null);
 }
 
+
+function NewSaveRating(i,j) {
+	SaveRating(i, j);
+}
+
 function SaveRating(pid, rate) {
-	t = document.getElementById('rateStatus');
+	t = dg('rateStatus');
+	//t.innerHTML = "sth";
+	if (!t.innerHTML){
+		//sth is there!
+	}
 	if (t.children.length > 0){
 		//alert('Select your rate among the other options!');
 	}else{
@@ -163,7 +172,7 @@ function SaveRating(pid, rate) {
 		return;
 	}
 	isAjaxing = true;
-	document.getElementById('rateStatus').innerHTML = 'Saving your rate ';
+	dg('rateStatus').innerHTML = 'Saving your rate ';
 	//updateIndic();
 	//makeRequest("./?cmd=rate&p="+pid+"&rate="+rate+"&r="+Math.round(Math.random()*100000)); // to avoid unwanted caching
 }
@@ -184,39 +193,39 @@ function confirmDelete(x) {
 
 function hideElem(x) {
 	try {
-		document.getElementById(x).style.display = 'none';
+		dg(x).style.display = 'none';
 	} catch(e) {}
 }
 
 function showElem(x) {
 	try {
-		document.getElementById(x).style.display = 'block';
+		dg(x).style.display = 'block';
 	} catch(e) {}
 }
 
 function inlineElem(x) {
 	try {
-		document.getElementById(x).style.display = 'inline';
+		dg(x).style.display = 'inline';
 	} catch(e) {}
 }
 
 function tableRowElem(x) {
 	try {
-		document.getElementById(x).style;
-		document.getElementById(x).style.display = 'table-row';
+		dg(x).style;
+		dg(x).style.display = 'table-row';
 	} catch (e) {
-		if (document.getElementById(x))
-			document.getElementById(x).style.display = 'inline';
+		if (dg(x))
+			dg(x).style.display = 'inline';
 	}
 }
 
 function checkWV() {
 	re = /^\d{5}$/;
-	if (! re.test(document.getElementById('wvinput').value)) {
+	if (! re.test(dg('wvinput').value)) {
 		alert('Word Verification box should have an string of length 5 with digits');
 		return false;
 	}
-	if (document.getElementById('cmntTextArea').value.length == 0) {
+	if (dg('cmntTextArea').value.length == 0) {
 		alert('Empty comment is not allowed!');
 		return false;
 	}
@@ -225,8 +234,8 @@ function checkWV() {
 
 function doReply(x) {
 	x = parseInt(x);
-	document.getElementById('cmntReply').value = x;
-	document.getElementById('viewComment').setAttribute('href', '#'+x);
+	dg('cmntReply').value = x;
+	dg('viewComment').setAttribute('href', '#'+x);
 	if (x == 0)
 		hideElem('ComReplyTR');
 	else
@@ -234,9 +243,9 @@ function doReply(x) {
 }
 
 function toggle(w, c, t) {
-	var block = (document.getElementById(w).style.display == 'block');
-	document.getElementById(w).style.display = (block)?'none':'block';
-	document.getElementById(c).style.display = (!block)?'none':'block';
+	var block = (dg(w).style.display == 'block');
+	dg(w).style.display = (block)?'none':'block';
+	dg(c).style.display = (!block)?'none':'block';
 	t.innerHTML = (!block)?"Hide'em again":"Show'em All";
 }
 
@@ -257,7 +266,7 @@ function ss_update() {
 		hideElem('ss_link2');
 		showElem('ss_theend');
 		ss_cur = ss_date.length;
-		document.getElementById('ss_n').innerHTML = "Final";
+		dg('ss_n').innerHTML = "Final";
 		if (ss_play)
 			ss_playpause();
 	}
@@ -265,19 +274,19 @@ function ss_update() {
 		hideElem('ss_theend');
 		inlineElem('ss_link2');
 
-		ss_loaded = (document.getElementById('ss_photo').src == ss_src[ss_cur]);
+		ss_loaded = (dg('ss_photo').src == ss_src[ss_cur]);
 
 		link = ".?p="+ss_pid[ss_cur];
 		src = ss_src [ss_cur];
 		src = ss_smaller?src_smaller(src):src;
 
-		//document.getElementById('ss_photo')	.src 		= src;
-		document.getElementById('ss_date')	.innerHTML 	= ss_date[ss_cur];
-		document.getElementById('ss_title')	.innerHTML 	= ss_ttl [ss_cur];
-		document.getElementById('ss_desc')	.innerHTML 	= ss_desc[ss_cur];
-		document.getElementById('ss_n')		.innerHTML  = 1+ss_cur;
-		document.getElementById('ss_link1').setAttribute('href', link);
-		document.getElementById('ss_link2').setAttribute('href', link);
+		//dg('ss_photo')	.src 		= src;
+		dg('ss_date')	.innerHTML 	= ss_date[ss_cur];
+		dg('ss_title')	.innerHTML 	= ss_ttl [ss_cur];
+		dg('ss_desc')	.innerHTML 	= ss_desc[ss_cur];
+		dg('ss_n')		.innerHTML  = 1+ss_cur;
+		dg('ss_link1').setAttribute('href', link);
+		dg('ss_link2').setAttribute('href', link);
 		if (ss_cur < ss_date.length) {
 			preimg = new Image;
 			preimg.src 					= ss_src [ss_cur+1];
@@ -291,8 +300,8 @@ function ss_loaddone() {
 
 function ss_playpause() {
 	ss_play = !ss_play;
-	document.getElementById('ss_playpause_link').innerHTML = (ss_play)?'Pause it':'Play it';
-	document.getElementById('ss_playpause_link2').innerHTML = document.getElementById('ss_playpause_link').innerHTML;
+	dg('ss_playpause_link').innerHTML = (ss_play)?'Pause it':'Play it';
+	dg('ss_playpause_link2').innerHTML = dg('ss_playpause_link').innerHTML;
 	ss_run();
 }
 
@@ -304,14 +313,14 @@ function src_smaller(x) {
 
 function ss_toggleSmaller() {
 	ss_smaller = !ss_smaller;
-	document.getElementById('ss_smaller_link').innerHTML = (ss_smaller)?'Larger Size':'Smaller Size';
-	document.getElementById('ss_photo').src = ss_smaller?src_smaller(document.getElementById('ss_photo').src):ss_src[ss_cur];
+	dg('ss_smaller_link').innerHTML = (ss_smaller)?'Larger Size':'Smaller Size';
+	dg('ss_photo').src = ss_smaller?src_smaller(dg('ss_photo').src):ss_src[ss_cur];
 }
 
 function ss_run() {
 	if ((ss_play) && (ss_awaits <= 0)) {
 		ss_awaits++;
-		var lookup = parseInt(document.getElementById('ss_refresh').value);
+		var lookup = parseInt(dg('ss_refresh').value);
 		setTimeout("ss_slideshow();", lookup);
 	}
 }

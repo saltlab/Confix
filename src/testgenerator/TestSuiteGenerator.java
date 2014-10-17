@@ -41,14 +41,14 @@ test("${function.functionName}", function() {
 public class TestSuiteGenerator {
 
 	private String testSuiteNameToGenerate;
-	private List<String> functionsNameList;
+	private String functionName;
 	private List<String> DOMFixtureList;
-	private List<List<String>> attributeConstraintsStatements;
+	private List<String> attributeConstraintsStatements;
 
-	public TestSuiteGenerator(String testSuiteNameToGenerate, List<String> DOMFixture, List<String> functionsNameList, List<List<String>> attributeConstraints){
+	public TestSuiteGenerator(String testSuiteNameToGenerate, List<String> DOMFixture, String functionName, List<String> attributeConstraints){
 		this.testSuiteNameToGenerate = testSuiteNameToGenerate;
 		this.DOMFixtureList = DOMFixture;
-		this.functionsNameList = functionsNameList;
+		this.functionName = functionName;
 		this.attributeConstraintsStatements = attributeConstraints;
 
 	}
@@ -59,29 +59,26 @@ public class TestSuiteGenerator {
 	public void generateTestSuite() {
 
 		ArrayList<TestFunction> testFunctions = new ArrayList<TestFunction>();
-		int counter = 0, numOfPathsInFunction = 0;
+		int numOfPathsInFunction = 0;
 
-		for (int i=0; i< functionsNameList.size(); i++) {
+		if (attributeConstraintsStatements.size()>0)
+			numOfPathsInFunction = attributeConstraintsStatements.size();
 
-			if (attributeConstraintsStatements.size()>0)
-				numOfPathsInFunction = attributeConstraintsStatements.get(i).size();
+		System.out.println("numOfPathsInFunction: " + numOfPathsInFunction);
+		//For each path in a function
+		for (int i=0; i < numOfPathsInFunction; i++){
+			TestFunction testFunction = new TestFunction("Testing function " + functionName + " for path " + (i+1));
+			testFunction.setFixture(DOMFixtureList.get(i));
 
-			System.out.println("numOfPathsInFunction: " + numOfPathsInFunction);
-			//For each path in a function
-			for (int j=0; j < numOfPathsInFunction; j++){
-				TestFunction testFunction = new TestFunction("Testing function " + functionsNameList.get(i) + " for path " + (j+1));
-				testFunction.setFixture(DOMFixtureList.get(i));
+			// adding attribute constraints
+			if (!attributeConstraintsStatements.get(i).equals(""))
+				testFunction.addStatement(attributeConstraintsStatements.get(i));
 
-				// adding attribute constraints
-				if (!attributeConstraintsStatements.get(i).get(j).equals(""))
-					testFunction.addStatement(attributeConstraintsStatements.get(i).get(j));
-				
-				// calling the function
-				testFunction.addStatement(functionsNameList.get(i) + "();");
+			// calling the function
+			testFunction.addStatement(functionName + ";");
 
-				// adding the test method to the file
-				testFunctions.add(testFunction);
-			}
+			// adding the test method to the file
+			testFunctions.add(testFunction);
 		}
 
 		String moduleName = testSuiteNameToGenerate;
