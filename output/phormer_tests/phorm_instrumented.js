@@ -62,7 +62,7 @@ function toggleInfo(wut) {
 }
 function cookieVal(cookname) {
   thiscook = confixWrapper("infix", "thiscook = confixWrapper(\"functionCall\", \"document.cookie.split(\"; \")\", [\"; \"], [\"; \"], \"cookieVal\", document.cookie.split(\"; \"))", [""], [], "cookieVal", confixWrapper("functionCall", "document.cookie.split(\"; \")", ["; "], ["; "], "cookieVal", document.cookie.split("; ")));
-  for (i = confixWrapper("infix", "i = 0", [""], [], "cookieVal", 0); i < thiscook.length; i++) 
+  for (i = confixWrapper("infix", "i = 0", [""], [], "cookieVal", 0); confixWrapper("loopCondition", "i < thiscook.length", ["i", "thiscook"], [i, thiscook], "cookieVal", i < thiscook.length); i++) 
     if (confixWrapper("condition", "cookname == confixWrapper(\"functionCall\", \"thiscook[i].split(\"=\")\", [\"=\"], [\"=\"], \"cookieVal\", thiscook[i].split(\"=\"))[0]", [""], [], "cookieVal", cookname == confixWrapper("functionCall", "thiscook[i].split(\"=\")", ["="], ["="], "cookieVal", thiscook[i].split("="))[0])) 
     return confixWrapper("return", "return confixWrapper(\"functionCall\", \"thiscook[i].split(\"=\")\", [\"=\"], [\"=\"], \"cookieVal\", thiscook[i].split(\"=\"))[1];", [""], [], "cookieVal", confixWrapper("functionCall", "thiscook[i].split(\"=\")", ["="], ["="], "cookieVal", thiscook[i].split("="))[1]);
   return confixWrapper("return", "return -1;", [""], [], "cookieVal", -1);
@@ -81,7 +81,7 @@ function rand(x) {
 function reshuffle() {
   var maxRand = confixWrapper("initvar", "var maxRand = 400 - 75", [""], [], "reshuffle", 400 - 75);
   var n = confixWrapper("initvar", "var n = confixWrapper(\"functionCall\", \"dg('thumbscount')\", [\"thumbscount\"], ['thumbscount'], \"reshuffle\", dg('thumbscount')).value", [""], [], "reshuffle", confixWrapper("functionCall", "dg('thumbscount')", ["thumbscount"], ['thumbscount'], "reshuffle", dg('thumbscount')).value);
-  for (var i = confixWrapper("initvar", "var i = 0", [""], [], "reshuffle", 0); i < n; i++) 
+  for (var i = confixWrapper("initvar", "var i = 0", [""], [], "reshuffle", 0); confixWrapper("loopCondition", "i < n", ["i", "n"], [i, n], "reshuffle", i < n); i++) 
     {
       confixWrapper("functionCall", "dg('ThumbInBox' + i)", ["ThumbInBox + i"], ['ThumbInBox' + i], "reshuffle", dg('ThumbInBox' + i)).style.top = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('ThumbInBox' + i)\", [\"ThumbInBox + i\"], ['ThumbInBox' + i], \"reshuffle\", dg('ThumbInBox' + i)).style.top = confixWrapper(\"functionCall\", \"rand(maxRand)\", [\"maxRand\"], [maxRand], \"reshuffle\", rand(maxRand)) + 'px'", [""], [], "reshuffle", confixWrapper("functionCall", "rand(maxRand)", ["maxRand"], [maxRand], "reshuffle", rand(maxRand)) + 'px');
       confixWrapper("functionCall", "dg('ThumbInBox' + i)", ["ThumbInBox + i"], ['ThumbInBox' + i], "reshuffle", dg('ThumbInBox' + i)).style.left = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('ThumbInBox' + i)\", [\"ThumbInBox + i\"], ['ThumbInBox' + i], \"reshuffle\", dg('ThumbInBox' + i)).style.left = confixWrapper(\"functionCall\", \"rand(maxRand)\", [\"maxRand\"], [maxRand], \"reshuffle\", rand(maxRand)) + 'px'", [""], [], "reshuffle", confixWrapper("functionCall", "rand(maxRand)", ["maxRand"], [maxRand], "reshuffle", rand(maxRand)) + 'px');
@@ -158,6 +158,23 @@ function makeRequest(url) {
   confixWrapper("functionCall", "http_request.open('GET', url, true)", ["GET", "url", "true"], ['GET', url, true], "makeRequest", http_request.open('GET', url, true));
   confixWrapper("functionCall", "http_request.send(null)", ["null"], [null], "makeRequest", http_request.send(null));
 }
+function sumTotalPrice() {
+  sum = confixWrapper("infix", "sum = 0", [""], [], "sumTotalPrice", 0);
+  itemList = confixWrapper("infix", "itemList = confixWrapper(\"functionCall\", \"dg('items')\", [\"items\"], ['items'], \"sumTotalPrice\", dg('items'))", [""], [], "sumTotalPrice", confixWrapper("functionCall", "dg('items')", ["items"], ['items'], "sumTotalPrice", dg('items')));
+  x = confixWrapper("infix", "x = 10", [""], [], "sumTotalPrice", 10);
+  if (confixWrapper("condition", "x == 5", [""], [], "sumTotalPrice", x == 5)) 
+  confixWrapper("functionCall", "alert(\"temp\")", ["temp"], ["temp"], "sumTotalPrice", alert("temp"));
+  if (confixWrapper("condition", "itemList.children.length === 0", [""], [], "sumTotalPrice", itemList.children.length === 0)) 
+  confixWrapper("functionCall", "dg('message')", ["message"], ['message'], "sumTotalPrice", dg('message')).innerHTML = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('message')\", [\"message\"], ['message'], \"sumTotalPrice\", dg('message')).innerHTML = \"Item list is empty!\"", [""], [], "sumTotalPrice", "Item list is empty!"); else {
+    for (i = confixWrapper("infix", "i = 0", [""], [], "sumTotalPrice", 0); confixWrapper("loopCondition", "i < itemList.children.length", ["i", "itemList"], [i, itemList], "sumTotalPrice", i < itemList.children.length); i++) 
+      {
+        p = confixWrapper("infix", "p = itemList.children[i].value", ["itemList.children[i]"], [itemList.children[i]], "sumTotalPrice", itemList.children[i].value);
+        if (confixWrapper("condition", "typeof p === \"number\" && p > 0", [""], [], "sumTotalPrice", typeof p === "number" && p > 0)) 
+        sum += p; else confixWrapper("functionCall", "dg('message')", ["message"], ['message'], "sumTotalPrice", dg('message')).innerHTML += " Wrong value for item " + i;
+      }
+    confixWrapper("functionCall", "dg('total')", ["total"], ['total'], "sumTotalPrice", dg('total')).value = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('total')\", [\"total\"], ['total'], \"sumTotalPrice\", dg('total')).value = sum", [""], [], "sumTotalPrice", sum);
+  }
+}
 function NewSaveRating(i, j) {
   confixWrapper("functionCall", "SaveRating(i, j)", ["i", "j"], [i, j], "NewSaveRating", SaveRating(i, j));
 }
@@ -166,10 +183,23 @@ function SaveRating(pid, rate) {
   if (confixWrapper("condition", "!t.innerHTML", [""], [], "SaveRating", !t.innerHTML)) 
   {
   }
-  if (confixWrapper("condition", "t.children.length > 0", [""], [], "SaveRating", t.children.length > 0)) 
+  y = confixWrapper("infix", "y = 2", [""], [], "SaveRating", 2);
+  x = confixWrapper("infix", "x = 0", [""], [], "SaveRating", 0);
+  if (confixWrapper("condition", "(t.innerHTML && x == 3) || y > 4", [""], [], "SaveRating", (t.innerHTML && x == 3) || y > 4)) 
+  {
+  }
+  if (confixWrapper("condition", "t.children.length == 0", [""], [], "SaveRating", t.children.length == 0)) 
+  {
+  } else if (confixWrapper("condition", "t.children.length > 0", [""], [], "SaveRating", t.children.length > 0)) 
   {
   } else {
   }
+  for (i = confixWrapper("infix", "i = 0", [""], [], "SaveRating", 0); confixWrapper("loopCondition", "i < t.children.length + 1", ["i", "t"], [i, t], "SaveRating", i < t.children.length + 1); i++) 
+    {
+      p = confixWrapper("infix", "p = t.children[i].value", ["t.children[i]"], [t.children[i]], "SaveRating", t.children[i].value);
+      if (confixWrapper("condition", "typeof p === \"number\" && p > 0", [""], [], "SaveRating", typeof p === "number" && p > 0)) 
+      confixWrapper("functionCall", "dg('total')", ["total"], ['total'], "SaveRating", dg('total')).value += p;
+    }
   if (confixWrapper("condition", "rate == 0", [""], [], "SaveRating", rate == 0)) 
   {
     confixWrapper("functionCall", "alert('Select your rate among the other options!')", ["Select your rate among the other options!"], ['Select your rate among the other options!'], "SaveRating", alert('Select your rate among the other options!'));

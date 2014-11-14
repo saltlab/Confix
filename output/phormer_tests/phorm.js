@@ -35,8 +35,8 @@ function DarkenIt(cur, t) {
 
 function toggleInfo(wut) {
 	if (dg('hin').innerHTML)
-	if ((!wut) || (wut == ''))
-		wut = dg('hin').innerHTML;
+		if ((!wut) || (wut == ''))
+			wut = dg('hin').innerHTML;
 	if (wut == 'Show') {
 		dg('hin').innerHTML = 'Hide&nbsp;';
 		dg('photoBoxes').style.display = 'block';
@@ -92,10 +92,10 @@ function updateIndic() {
 	var neck = 52;
 	if (l > neck)
 		v = v.substring(0, l-3*7)
-	if ((l%3) == 0)
-		dg('indicator').innerHTML = '&#149;      '+v;
-	else
-		dg('indicator').innerHTML = '&nbsp; '+v;
+		if ((l%3) == 0)
+			dg('indicator').innerHTML = '&#149;      '+v;
+		else
+			dg('indicator').innerHTML = '&nbsp; '+v;
 	if (isAjaxing)
 		setTimeout("updateIndic();", 500);
 	else
@@ -146,27 +146,60 @@ function makeRequest(url) {
 	http_request.send(null);
 }
 
+function sumTotalPrice(){
+	sum = 0;
+	itemList = dg('items');
+	x = 10;
+	if (x == 5)
+		alert("temp");
+	if (itemList.children.length === 0)
+		dg('message').innerHTML = "Item list is empty!";
+	else {
+		for (i = 0; i < itemList.children.length; i++){
+			p = itemList.children[i].value;
+			if (typeof p === "number" && p > 0)
+				sum += p;
+			else
+				dg('message').innerHTML += " Wrong value for item " + i;
+		}
+		dg('total').value = sum;
+	}
+}
 
 function NewSaveRating(i,j) {
 	SaveRating(i, j);
 }
 
 function SaveRating(pid, rate) {
+
 	t = dg('rateStatus');
 	//t.innerHTML = "sth";
 	if (!t.innerHTML){
 		//sth is there!
 	}
-	if (t.children.length > 0){
+	y = 2; x = 0;
+	if ((t.innerHTML && x==3) || y>4) {
+	}
+	if (t.children.length == 0){
+		//alert('Select your rate among the other options!');
+	}else if (t.children.length > 0){
 		//alert('Select your rate among the other options!');
 	}else{
 		//alert('Select your rate among the other options!');
 	}
-	
+
+
+	for (i = 0; i < t.children.length+1; i++){
+		p = t.children[i].value;
+		if (typeof p === "number" && p > 0)
+			dg('total').value += p; 
+	}
+
+
 	/*if (!pid){
 		alert('Select your rate among the other options!');
 	}*/
-	
+
 	if (rate == 0) {
 		alert('Select your rate among the other options!');
 		return;

@@ -99,6 +99,8 @@ public class DOMConstraint {
 
 	// TODO:  Transform constraints to xpath using string/int solver
 	public String getCorrespondingXpath(){
+		System.out.println("getCorrespondingXpath()");
+
 		String id = elementVariable.getId_attribute();
 		String tag = elementVariable.getTag_attribute();
 		String type = elementVariable.getType_attribute();
@@ -224,6 +226,7 @@ public class DOMConstraint {
 	}
 
 	public List<String> getStatementsForAllConstraints() {
+		System.out.println("getStatementsForAllConstraints()");
 		String statementForConstraints = "";
 		// For a set of n constraints, produce 2^n combinations of constraints corresponding to paths
 		System.out.println("produce 2^n combinations");

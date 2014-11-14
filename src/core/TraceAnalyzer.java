@@ -23,6 +23,7 @@ import org.mozilla.javascript.ast.FunctionNode;
 import org.mozilla.javascript.ast.IfStatement;
 import org.mozilla.javascript.ast.InfixExpression;
 import org.mozilla.javascript.ast.Name;
+import org.mozilla.javascript.ast.ParenthesizedExpression;
 import org.mozilla.javascript.ast.PropertyGet;
 import org.mozilla.javascript.ast.UnaryExpression;
 import org.mozilla.javascript.ast.VariableDeclaration;
@@ -48,12 +49,55 @@ public class TraceAnalyzer {
 
 	private List<String> xpathsToSolve = new ArrayList<String>();
 	public HashSet<String> DOMDependentFunctions = new HashSet<String>();
+
+	//private static HashSet<DOMConstraint> DOMConstraintList = new HashSet<DOMConstraint>();
+	private static ArrayList<DOMConstraint> DOMConstraintList = new ArrayList<DOMConstraint>();
+
+	private static ArrayList<DOMConstraint> ConditionalConstraints = new ArrayList<DOMConstraint>();     // e.g. in the case of $('#id')
+	private static ArrayList<DOMConstraint> NonConditionalConstraints = new ArrayList<DOMConstraint>();  // e.g. in the case of if (d.innerHTML === 'bla')
+
+
+
 	private List<ArrayList<DOMConstraint>> pathConditions = new ArrayList<ArrayList<DOMConstraint>>();
-	private static HashSet<DOMConstraint> DOMConstraintList = new HashSet<DOMConstraint>();
+	private ArrayList<DOMConstraint> currentPathCondition = new ArrayList<DOMConstraint>();
+	public ArrayList<DOMConstraint> getcurrentPathCondition() {
+		System.out.println("Adding DOMConstraintList:" + DOMConstraintList + " to currentPathCondition: " + currentPathCondition);
+		System.out.println("pathConditions:" + pathConditions);
+		currentPathCondition.addAll(DOMConstraintList);
+		System.out.println("currentPathCondition is:" + currentPathCondition);
+		System.out.println("pathConditions:" + pathConditions);
+		return currentPathCondition;
+	}
+	public List<ArrayList<DOMConstraint>> getPathConditions() {
+		return pathConditions;
+	}
+	public boolean addToPathConditions(ArrayList<DOMConstraint> currentPathCondition) {
+		if (currentPathCondition.isEmpty()){
+			System.out.println("currentPathCondition is empty!");
+			return true;
+		}
+		// adds the currentPathCondition to the pathConditions if not already exist
+		if (pathConditions.contains(currentPathCondition)){
+			System.out.println("currentPathCondition: " + currentPathCondition + " found in pathConditions: " + pathConditions);
+			return false;
+		}
+		System.out.println("currentPathCondition: " + currentPathCondition + " added to pathConditions: " + pathConditions);
+		pathConditions.add(currentPathCondition);
+		return true;
+	}
+	public void clearCurrentPathCodition(){
+		currentPathCondition.clear();
+	}
+
+
+
 
 
 	private static String xpath="";
 	private static int numOfDOMElementsInFixture = 0;
+
+	private String lastLoopCondition = "";
+	public static int numOfCombinations = 0;
 
 
 	public TraceAnalyzer(){
@@ -65,6 +109,9 @@ public class TraceAnalyzer {
 
 	}
 
+	public void resetDOMConstraintList(){
+		DOMConstraintList.clear();
+	}
 
 	public void analyzeTrace(Map<String, String> map) {
 
@@ -83,6 +130,8 @@ public class TraceAnalyzer {
 			analyseFunctionCallNode(map);		
 		else if (map.get("statementType").equals("condition"))
 			analyseIfStatementNode(map);
+		else if (map.get("statementType").equals("loopCondition"))
+			analyseForLoopNode(map);
 		else if (map.get("statementType").equals("infix"))
 			analyseInfixExpressionNode(map);
 		else if (map.get("statementType").equals("initvar"))
@@ -197,6 +246,17 @@ public class TraceAnalyzer {
 
 		 */
 
+
+		// parsing actual statement to see if there is a DOM element access. e.g. actualStatement: [org.openqa.selenium.remote.RemoteWebElement@1e2123e2 -> unknown locator]
+		String RemoteWebElement = "";
+		String actualStatement = String.format("%s", map.get("actualStatement"));
+		if (actualStatement.contains("RemoteWebElement")){
+			// extract RemoteWebElementID
+			RemoteWebElement = actualStatement.substring(actualStatement.lastIndexOf("@") + 1, actualStatement.indexOf(" "));
+			System.out.println("RemoteWebElement: " + RemoteWebElement);
+		}
+
+
 		ArrayList<String> argumentList = getArguments(map, "varList");
 		System.out.println("argumentList: " + argumentList);
 		ArrayList<String> argumentValueList = getArguments(map, "varValueList");
@@ -253,7 +313,7 @@ public class TraceAnalyzer {
 			// Adding the enclosingFunctionName to the list of DDF during static instrumentation. DDF can increase during dynamic execution if a function calls a DDF   
 			DOMDependentFunctions.add(enclosingFunctionName);
 			ElementTypeVariable DOMElement = new ElementTypeVariable();
-			DOMElement.setParentElementJSVariable(pg.getLeft().toSource());
+			DOMElement.setParentElementJSVariable(parentNodeElement);
 			// adding the child node to the list for the parent
 			for (DOMConstraint d: DOMConstraintList){
 				if (d.getElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
@@ -274,6 +334,7 @@ public class TraceAnalyzer {
 				DOMElement.setClass_attribute(argumentValueList.get(0));
 			}	
 
+			DOMElement.setRemoteWebElementID(RemoteWebElement);
 			DOMConstraint dc = new DOMConstraint(DOMElement);
 			dc.setEnclosingFunctionName(enclosingFunctionName);
 			DOMConstraintList.add(dc);
@@ -355,6 +416,7 @@ public class TraceAnalyzer {
 					//	e.g. $("p#myElement"); // selects paragraph elements with ID "myElement"  
 					//	e.g. $("ul li a.navigation"); // selects anchors with class "navigation" that are nested in list items  
 
+					DOMElement.setRemoteWebElementID(RemoteWebElement);
 					DOMElement.setSource(node.toSource());
 					DOMConstraint dc = new DOMConstraint(DOMElement);
 					dc.setEnclosingFunctionName(enclosingFunctionName);
@@ -390,7 +452,7 @@ public class TraceAnalyzer {
 		if (returenedValue.contains("org.openqa.selenium.remote.RemoteWebElement")){
 			System.out.println("Function " + map.get("enclosingFunction") + " returns a DOM element.");
 		}
-		
+
 	}
 
 	private void analyseIfStatementNode(Map<String, String> map) {
@@ -401,39 +463,251 @@ public class TraceAnalyzer {
 		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
 		AstNode conditionNode = es.getExpression();
 
-		/*
-		    // e.g. x = document.getElemenyById('id2')
-				Assignment asmt = (Assignment)parentNode;
-				DOMJSVariable = asmt.getLeft().toSource();
-		 */
+		// check if it is a DOM dependent condition
+		if (isDOMDependentCondition(conditionNode)){
 
-		ArrayList<DOMConstraint> pathCondition = new ArrayList<DOMConstraint>(); 
+			System.out.println("DOM dependent condtion found!");
+			System.out.println("conditionNode.shortName(): " + conditionNode.shortName());
+			System.out.println("conditionNode.toSource(): \n" + conditionNode.toSource());
+			System.out.println("conditionNode.debugPrint(): \n" + conditionNode.debugPrint());
 
-		System.out.println("conditionNode.shortName() : " + conditionNode.shortName());
-		//System.out.println("conditionNode.depth() : " + conditionNode.depth());
-		//System.out.println("conditionNode.getLineno() : " + (conditionNode.getLineno()+1));
-		System.out.println("conditionNode.toSource() : \n" + conditionNode.toSource());
-		System.out.println("conditionNode.debugPrint() : \n" + conditionNode.debugPrint());
+			ArrayList<DOMConstraint> pathCondition = new ArrayList<DOMConstraint>(); 
 
+			analyseConditionNode(conditionNode);
+
+			//ConditionalConstraints
+			//currentPathCondition.add(pathCondition);
+		}else{
+			System.out.println("Condtion is not DOM dependent!");
+			System.out.println("conditionNode.shortName(): " + conditionNode.shortName());
+			System.out.println("conditionNode.toSource(): \n" + conditionNode.toSource());
+		}
+	}
+
+
+	// check if it is a DOM dependent condition
+	private boolean isDOMDependentCondition(AstNode conditionNode) {
+
+		// 1) Extracting variables used in the condition.
+		System.out.println("Extracting variables used in the condition");
+		String debugPrint = conditionNode.debugPrint();
+		ArrayList<String> candidateDOMJSVariable = new ArrayList<String>();
+		int index = debugPrint.indexOf("NAME");
+		while (index>=0){
+			String token  = debugPrint.substring(debugPrint.indexOf("NAME"));
+			token = token.substring(token.indexOf(" ")+1);
+			token = token.substring(token.indexOf(" ")+1);
+			token = token.substring(token.indexOf(" ")+1);
+			if (token.indexOf("\n")>0){
+				candidateDOMJSVariable.add(token.substring(0,token.indexOf("\n")));
+				System.out.println(token.substring(0,token.indexOf("\n")));
+			}
+			else{ 
+				System.out.println(token);
+				candidateDOMJSVariable.add(token);
+			}
+			debugPrint = debugPrint.substring(debugPrint.indexOf("NAME")+1, debugPrint.length()-1);
+			index = debugPrint.indexOf("NAME");
+		}
+
+		// 2.1) check if any variable refers to a known DOMJSVariable
+		for (String candidateVar :candidateDOMJSVariable){
+			for (DOMConstraint dc: DOMConstraintList){
+				if (dc.getElementTypeVariable().getDOMJSVariable().equals(candidateVar)){
+					System.out.println(candidateVar + " is a DOM JS variable!");
+					System.out.println("Condition: " + conditionNode.toSource() + " is DOM dependent");
+					return true;
+				}
+			}
+		}
+		// 2.2) check if any variable refers to a known DOMJSVariable attribute
+		for (String candidateVar :candidateDOMJSVariable){
+			for (DOMConstraint dc: DOMConstraintList){
+				if (dc.getElementTypeVariable().getId_attributeVariable().equals(candidateVar)
+					|| dc.getElementTypeVariable().getId_attributeVariable().equals(candidateVar)
+					|| dc.getElementTypeVariable().getInnerHTML_attributeVariable().equals(candidateVar)
+					|| dc.getElementTypeVariable().getName_attributeVariable().equals(candidateVar)
+					|| dc.getElementTypeVariable().getSrc_attributeVariable().equals(candidateVar)
+					|| dc.getElementTypeVariable().getType_attributeVariable().equals(candidateVar)
+					|| dc.getElementTypeVariable().getValue_attributeVariable().equals(candidateVar)
+						){
+					System.out.println(candidateVar + " is a DOM attribute JS variable!");
+					System.out.println("Condition: " + conditionNode.toSource() + " is DOM dependent");
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+
+	private void analyseForLoopNode(Map<String, String> map) {
+
+		System.out.println("=== analyseForLoopNode ===");
+
+		AstNode generatedNode = parse(map.get("statement"));
+		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
+		AstNode conditionNode = es.getExpression();
+
+		// check if it is a DOM dependent condition
+		if (isDOMDependentCondition(conditionNode)){
+			System.out.println("DOMDependent condtion found!");
+			System.out.println("conditionNode.shortName(): " + conditionNode.shortName());
+			System.out.println("conditionNode.toSource(): " + conditionNode.toSource());
+			System.out.println("conditionNode.debugPrint(): \n" + conditionNode.debugPrint());
+
+			ArrayList<DOMConstraint> pathCondition = new ArrayList<DOMConstraint>(); 
+
+			// Consider loop conditions only once
+			if (!conditionNode.toSource().equals(lastLoopCondition)){
+				lastLoopCondition = conditionNode.toSource();
+				analyseConditionNode(conditionNode);
+
+				//pathConditions.add(pathCondition);
+
+			}else{
+				System.out.println("Repeated loop condition found!");
+			}
+		}else{
+			System.out.println("Condtion is not DOM dependent!");
+			System.out.println("conditionNode.shortName(): " + conditionNode.shortName());
+			System.out.println("conditionNode.toSource(): \n" + conditionNode.toSource());
+		}
+	}
+
+
+	private void analyseConditionNode(AstNode conditionNode) {
 		String conditionShortName = conditionNode.shortName();
 
-		if (conditionShortName.equals("InfixExpression")){	// e.g. if (x<5)
-			System.out.println("*** InfixExpression found in the condition ***");
-			InfixExpression infix = (InfixExpression) conditionNode;
-			String leftOperand = infix.getLeft().toSource();
-			String oprator = ASTNodeUtility.operatorToString(infix.getOperator());
-			String rightOperand = infix.getRight().toSource();
+		if (conditionShortName.equals("InfixExpression"))		// e.g. x<5
+			analyseInfixExpressionInCondition(conditionNode);
+		else if (conditionShortName.equals("Name"))				// e.g. t  -> variable should be true to go in
+			analyseNameInCondition(conditionNode);
+		else if (conditionShortName.equals("UnaryExpression"))	// e.g. !t  -> variable should be false to go in
+			analyseUnaryExpressionInCondition(conditionNode);
+		else if (conditionShortName.equals("PropertyGet"))		// e.g. a.innerHTML
+			analysePropertyGetInCondition(conditionNode);
+		else if (conditionShortName.equals("ParenthesizedExpression"))		// e.g. (x<4  && y)
+			analyseParenthesizedExpressionCondition(conditionNode);
+		else {
+			System.out.println("Condition is of type: " + conditionShortName.equals("InfixExpression") + ". Not supported yet!");
+		}
 
-			System.out.println("Left: " + leftOperand);
-			System.out.println("Operator: " + oprator);
-			System.out.println("Right: " + rightOperand);	
+	}
 
 
-			// TODO: check if the path condition is on a DOM element
+	private void analyseParenthesizedExpressionCondition(AstNode conditionNode) {
+		System.out.println("analyseParenthesizedExpressionCondition");
+		ParenthesizedExpression pe = (ParenthesizedExpression) conditionNode;
+		if (((AstNode) pe.getExpression()) instanceof InfixExpression){
+			System.out.println("Recursive call to analyseInfixExpressionInCondition for the expression inside the parenthesis");
+			analyseConditionNode((AstNode) pe.getExpression());
+		}
+	}
 
-			/*
-			// adding the pathCondition to the 
-			ElementTypeVariable DOMElement = new ElementTypeVariable();
+
+	private void analysePropertyGetInCondition(AstNode conditionNode) {
+		System.out.println("analysePropertyGetInCondition");
+		PropertyGet pg = (PropertyGet)conditionNode;
+		String property = pg.getRight().toSource();
+		String left = pg.getLeft().toSource();
+
+		System.out.println("property: " + property);
+		System.out.println("left: " + left);
+
+		if (property.equals("innerHTML")){
+			System.out.println("innerHTML found");
+		}else if (property.equals("length")){
+			// checking for different possibilities
+			AstNode leftNode = pg.getLeft();
+
+			//  e.g. x.children.length
+			if (leftNode instanceof PropertyGet){
+				PropertyGet pg2 = (PropertyGet)leftNode;
+				//System.out.println("pg2.getLeft().toSource(): " + pg2.getLeft().toSource());
+				//System.out.println("pg2.getRight().toSource(): " + pg2.getRight().toSource());
+				if (pg2.getRight().toSource().equals("children")){
+					System.out.println("pg2.getLeft().toSource(): " + pg2.getLeft().toSource());   // e.g. x
+					System.out.println("pg2.getRight().toSource(): " + pg2.getRight().toSource()); 
+
+					// add a child node to the parent node in the fixture
+
+					AstNode parentNode = conditionNode.getParent();
+					// if the parent is infix e.g. itemList.children.length === 0
+					if (parentNode.shortName().equals("InfixExpression")){
+						System.out.println("parentNode.toSource(): " + parentNode.toSource());
+						InfixExpression pie = (InfixExpression) parentNode;
+						String pLeft = pie.getLeft().toSource();	// e.g. itemList.children.length
+						String pOprator = ASTNodeUtility.operatorToString(pie.getOperator()); // e.g. ===
+						String pRight = pie.getRight().toSource(); // e.g. 0
+
+						ElementTypeVariable DOMElement = new ElementTypeVariable();
+						DOMElement.setParentElementJSVariable(pg2.getLeft().toSource());
+						// adding the child node to the list for the parent
+						for (DOMConstraint d: DOMConstraintList){
+							if (d.getElementTypeVariable().getDOMJSVariable().equals(pg2.getLeft().toSource()))
+								System.out.println("found " + d.getElementTypeVariable().getDOMJSVariable() + " as the parent of the new node!");
+						}
+
+						DOMElement.setDOMJSVariable("");
+						//DOMElement.setRemoteWebElementID(RemoteWebElement);
+						DOMConstraint dc = new DOMConstraint(DOMElement);
+						//dc.setEnclosingFunctionName(enclosingFunctionName);
+						DOMConstraintList.add(dc);
+
+					}
+
+				}
+			}
+
+
+
+		}
+
+	}
+
+	private void analyseUnaryExpressionInCondition(AstNode conditionNode) {
+		System.out.println("analyseUnaryExpressionInCondition");
+		UnaryExpression ue = (UnaryExpression) conditionNode;
+		String oprator = ASTNodeUtility.operatorToString(ue.getOperator());
+		System.out.println("Oprator: " + oprator);
+		System.out.println("Operand: " + ue.getOperand().toSource());
+	}
+
+	private void analyseNameInCondition(AstNode conditionNode) {
+		// e.g. if (t)  -> variable should be true to go in
+		System.out.println("analyseNameInCondition");
+		Name varName = (Name) conditionNode;
+		System.out.println("varName.toSource(): " + varName.toSource());
+	}
+
+	private void analyseInfixExpressionInCondition(AstNode conditionNode) {
+		// e.g. if (x<5)
+		String conditionShortName = conditionNode.shortName();
+
+		System.out.println("analyseInfixExpressionInCondition");
+		InfixExpression infix = (InfixExpression) conditionNode;
+		String leftOperand = infix.getLeft().toSource();
+		String oprator = ASTNodeUtility.operatorToString(infix.getOperator());
+		String rightOperand = infix.getRight().toSource();
+
+		System.out.println("Left: " + leftOperand);
+		System.out.println("Operator: " + oprator);
+		System.out.println("Right: " + rightOperand);	
+
+		System.out.println("infix.getLeft().shortName: " + infix.getLeft().shortName());
+		analyseConditionNode(infix.getLeft());
+
+		System.out.println("infix.getRight().shortName: " + infix.getRight().shortName());
+		analyseConditionNode(infix.getRight());
+
+
+
+		// TODO: check if the path condition is on a DOM element
+
+		// adding the pathCondition to the 
+		/*ElementTypeVariable DOMElement = new ElementTypeVariable();
 			System.out.println("parentNodeElement: document");
 			DOMElement.setParentElementJSVariable("document");
 			// adding the child node to the list for the parent
@@ -446,101 +720,105 @@ public class TraceAnalyzer {
 
 			DOMElement.setId_attribute(argument);
 			DOMConstraint dc = new DOMConstraint(DOMElement);
-			 */
+		 */		
 
-			if (oprator.equals("&&") || oprator.equals("||")){
-				// TODO: Considering multiple constraints
 
-			}if (oprator.equals("==") || oprator.equals("===")){  
-				if (infix.getLeft() instanceof Name){  // e.g. if (a == ...)
-					// search among JSVariables
-					for (DOMConstraint dc: DOMConstraintList){ // e.g. if we have a = $('id') or a = $('id').html()  and then if (a == X)
+		// check if operands are not simple expressions
 
-						System.out.println("dc.getElementTypeVariable(): " + dc.getElementTypeVariable());
+		//analyseConditionNode();
 
-						ElementTypeVariable etv = dc.getElementTypeVariable();
-						if (etv.getDOMJSVariable().equals(leftOperand)){
-							System.out.println(etv.getDOMJSVariable() + " variable which refers to a DOM element is used in a condition");
-							break;
-						}else if (etv.getId_attributeVariable().equals(leftOperand)){
-							System.out.println(etv.getId_attributeVariable() + " variable which refers to an id attribute of a DOM element is used in a condition");
-							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
-							String condition = conditionNode.toSource();
-							condition = condition.replace(leftOperand, dc.getElementTypeVariable().getOriginalAccessCode() + ".id");
-							System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition, true);
-							break;
-						}else if (etv.getType_attributeVariable().equals(leftOperand)){
-							System.out.println(etv.getType_attributeVariable() + " variable which refers to a type attribute of a DOM element is used in a condition");
-							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
-							String condition = conditionNode.toSource();
-							condition = condition.replace(leftOperand, dc.getElementTypeVariable().getOriginalAccessCode() + ".type");
-							System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition, true);
-							break;
-						}else if (etv.getName_attributeVariable().equals(leftOperand)){
-							System.out.println(etv.getName_attributeVariable() + " variable which refers to a name attribute of a DOM element is used in a condition");
-							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
-							String condition = conditionNode.toSource();
-							condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".name");
-							System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition, true);
-							break;
-						}else if (etv.getClass_attributeVariable().equals(leftOperand)){
-							System.out.println(etv.getClass_attributeVariable() + " variable which refers to a class attribute of a DOM element is used in a condition");
-							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
-							String condition = conditionNode.toSource();
-							condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".class");
-							System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition, true);
-							break;
-						}else if (etv.getValue_attributeVariable().equals(leftOperand)){
-							System.out.println(etv.getValue_attributeVariable() + " variable which refers to a value attribute of a DOM element is used in a condition");
-							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
-							String condition = conditionNode.toSource();
-							condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".value");
-							System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition, true);
-							break;
-						}else if (etv.getInnerHTML_attributeVariable().equals(leftOperand)){
-							System.out.println(etv.getInnerHTML_attributeVariable() + " variable which refers to an innerHTML attribute of a DOM element is used in a condition");
-							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
-							String condition = conditionNode.toSource();
-							condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".innerHTML");
-							System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition, true);
-							break;
-						}else if (etv.getSrc_attributeVariable().equals(leftOperand)){
-							System.out.println(etv.getSrc_attributeVariable() + " variable which refers to an src attribute of a DOM element is used in a condition");
-							// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
-							String condition = conditionNode.toSource();
-							condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".src");
-							System.out.println("condition after replacement: " + condition);
-							dc.addConstraint(condition, true);
-							break;
-						}
+
+		if (oprator.equals("&&") || oprator.equals("||")){
+			// TODO: Considering multiple constraints
+			analyseConditionNode(infix.getLeft());
+			analyseConditionNode(infix.getRight());
+
+			/*
+			if (infix.getLeft() instanceof InfixExpression){
+				System.out.println("Recursive call to analyseInfixExpressionInCondition for the left operand");
+				analyseInfixExpressionInCondition(infix.getLeft());
+			}
+			if (infix.getRight() instanceof InfixExpression){
+				System.out.println("Recursive call to analyseInfixExpressionInCondition for the right operand");
+				analyseInfixExpressionInCondition(infix.getRight());
+			}*/
+
+		}
+		else if (oprator.equals("==") || oprator.equals("===")){  
+			if (infix.getLeft() instanceof Name){  // e.g. if (a == ...)
+				// search among JSVariables
+				for (DOMConstraint dc: DOMConstraintList){ // e.g. if we have a = $('id') or a = $('id').html()  and then if (a == X)
+
+					System.out.println("dc.getElementTypeVariable(): " + dc.getElementTypeVariable());
+
+					ElementTypeVariable etv = dc.getElementTypeVariable();
+					if (etv.getDOMJSVariable().equals(leftOperand)){
+						System.out.println(etv.getDOMJSVariable() + " variable which refers to a DOM element is used in a condition");
+						break;
+					}else if (etv.getId_attributeVariable().equals(leftOperand)){
+						System.out.println(etv.getId_attributeVariable() + " variable which refers to an id attribute of a DOM element is used in a condition");
+						// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+						String condition = conditionNode.toSource();
+						condition = condition.replace(leftOperand, dc.getElementTypeVariable().getOriginalAccessCode() + ".id");
+						System.out.println("condition after replacement: " + condition);
+						dc.addConstraint(condition, true);
+						break;
+					}else if (etv.getType_attributeVariable().equals(leftOperand)){
+						System.out.println(etv.getType_attributeVariable() + " variable which refers to a type attribute of a DOM element is used in a condition");
+						// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+						String condition = conditionNode.toSource();
+						condition = condition.replace(leftOperand, dc.getElementTypeVariable().getOriginalAccessCode() + ".type");
+						System.out.println("condition after replacement: " + condition);
+						dc.addConstraint(condition, true);
+						break;
+					}else if (etv.getName_attributeVariable().equals(leftOperand)){
+						System.out.println(etv.getName_attributeVariable() + " variable which refers to a name attribute of a DOM element is used in a condition");
+						// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+						String condition = conditionNode.toSource();
+						condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".name");
+						System.out.println("condition after replacement: " + condition);
+						dc.addConstraint(condition, true);
+						break;
+					}else if (etv.getClass_attributeVariable().equals(leftOperand)){
+						System.out.println(etv.getClass_attributeVariable() + " variable which refers to a class attribute of a DOM element is used in a condition");
+						// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+						String condition = conditionNode.toSource();
+						condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".class");
+						System.out.println("condition after replacement: " + condition);
+						dc.addConstraint(condition, true);
+						break;
+					}else if (etv.getValue_attributeVariable().equals(leftOperand)){
+						System.out.println(etv.getValue_attributeVariable() + " variable which refers to a value attribute of a DOM element is used in a condition");
+						// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+						String condition = conditionNode.toSource();
+						condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".value");
+						System.out.println("condition after replacement: " + condition);
+						dc.addConstraint(condition, true);
+						break;
+					}else if (etv.getInnerHTML_attributeVariable().equals(leftOperand)){
+						System.out.println(etv.getInnerHTML_attributeVariable() + " variable which refers to an innerHTML attribute of a DOM element is used in a condition");
+						// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+						String condition = conditionNode.toSource();
+						condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".innerHTML");
+						System.out.println("condition after replacement: " + condition);
+						dc.addConstraint(condition, true);
+						break;
+					}else if (etv.getSrc_attributeVariable().equals(leftOperand)){
+						System.out.println(etv.getSrc_attributeVariable() + " variable which refers to an src attribute of a DOM element is used in a condition");
+						// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+						String condition = conditionNode.toSource();
+						condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".src");
+						System.out.println("condition after replacement: " + condition);
+						dc.addConstraint(condition, true);
+						break;
 					}
 				}
 			}
-		}else if (conditionShortName.equals("Name")){	// e.g. if (t)  -> variable should be true to go in
-			Name varName = (Name) conditionNode;
-			System.out.println("varName.toSource(): " + varName.toSource());
-		}else if (conditionShortName.equals("UnaryExpression")){	// e.g. if (!t)  -> variable should be false to go in
-			UnaryExpression ue = (UnaryExpression) conditionNode;
-			String oprator = ASTNodeUtility.operatorToString(ue.getOperator());
-			System.out.println("Oprator: " + oprator);
-			System.out.println("Operand: " + ue.getOperand().toSource());
-		}else if (conditionShortName.equals("PropertyGet")){  // e.g. if (a.innerHTML)
-			PropertyGet pg = (PropertyGet)conditionNode;
-			String property = pg.getRight().toSource();
-			if (property.equals("innerHTML")){
-				System.out.println("innerHTML found");
-			}
 		}
-
-		pathConditions.add(pathCondition);
-
 	}
+
+
+
 
 
 	private void analyseInfixExpressionNode(Map<String, String> map) {
@@ -557,13 +835,81 @@ public class TraceAnalyzer {
 		System.out.println("Right: " + right);			
 
 		// TODO
-		
-		if (oprator.equals("=")){  // -> nodeName: Assignment
+
+		if (oprator.equals("=")){  // Assignment: e.g. t = getElemById('x')
 
 			String returenedValue = String.format("%s", map.get("actualStatement"));
 			if (returenedValue.contains("org.openqa.selenium.remote.RemoteWebElement")){
 				System.out.println("Variable "+ left + " referes to a DOM element.");
+				// parsing actual statement to see if there is a DOM element access. e.g. actualStatement: [org.openqa.selenium.remote.RemoteWebElement@1e2123e2 -> unknown locator]
+				String RemoteWebElement = "";
+				// extract RemoteWebElementID
+				RemoteWebElement = returenedValue.substring(returenedValue.lastIndexOf("@") + 1, returenedValue.indexOf(" "));
+				System.out.println("RemoteWebElement: " + RemoteWebElement);
+
+				for (DOMConstraint dc: DOMConstraintList)
+					if (dc.getElementTypeVariable().getRemoteWebElementID().equals(RemoteWebElement)){
+						dc.getElementTypeVariable().setDOMJSVariable(left);
+						System.out.println("Set the RemoteWebElement for " + dc.getElementTypeVariable());
+						break;
+					}
+
 			}
+
+
+
+			// assigning with an attribute value of an element. e.g. a = b.innerHTML or a = b.value
+			// search among current DOMJSVariables, if the RemoteWebElementID is equal to the nodes value 
+
+			if (right.contains(".value")){
+				// e.g. document.getElementById('t').value
+				System.out.println("Variable "+ left + " referes to a DOM element's value attribute.");
+
+				ArrayList<String> argumentValueList = getArguments(map, "varValueList"); // e.g. varValueList: [[org.openqa.selenium.remote.RemoteWebElement@1c5a0a44 -> unknown locator]]
+				String DOMAccess = argumentValueList.get(0);
+
+				if (DOMAccess.contains("org.openqa.selenium.remote.RemoteWebElement")){
+					// parsing actual statement to see if there is a DOM element access. e.g. actualStatement: [org.openqa.selenium.remote.RemoteWebElement@1e2123e2 -> unknown locator]
+					String RemoteWebElement = "";
+					// extract RemoteWebElementID
+					RemoteWebElement = DOMAccess.substring(DOMAccess.lastIndexOf("@") + 1, DOMAccess.indexOf("->"));
+					System.out.println("RemoteWebElement: " + RemoteWebElement);
+
+					boolean foundDOMElement = false;
+					for (DOMConstraint dc: DOMConstraintList)
+						if (dc.getElementTypeVariable().getRemoteWebElementID().equals(RemoteWebElement)){
+							dc.getElementTypeVariable().setValue_attributeVariable(left);
+							System.out.println(left + " is set as the variable refering to the value attribute of element:" + dc.getElementTypeVariable());
+							foundDOMElement = true;
+							break;
+						}
+					if (!foundDOMElement){
+						// the value attribute is not set for an existing element. check if is set for a child node of an existing DOM element
+						if (right.contains(".children")){
+							String parentNodeInJS = right.substring(0, right.indexOf(".children"));
+							System.out.println("The value attribute of a child node of a JSDOMVariable " + parentNodeInJS + " is assigned to the variable:" + left);
+							// updating the child node to the list for the parent
+							for (DOMConstraint dc: DOMConstraintList)
+								if (dc.getElementTypeVariable().getParentElementJSVariable().equals(parentNodeInJS)){
+									dc.getElementTypeVariable().setValue_attributeVariable(left);
+									System.out.println(left + " is set as the variable refering to the value attribute of element:" + dc.getElementTypeVariable());
+									break;
+								}
+						}
+					}
+
+				}else{
+					System.out.println("Something is wrong! Value was used but not for a DOM element!!");
+				}
+
+				AstNode parentNode = infix.getParent();
+				System.out.println("Value attribute used!");
+				System.out.println("parentNode.toSource(): " + parentNode.toSource());
+				System.out.println("parentNode.shortName(): " + parentNode.shortName());
+			}
+
+
+
 
 		}else if (oprator.equals("GETPROP")){  // -> nodeName: PropertyGet, e.g. Left: $("p").innerHTML
 			if (right.equals("innerHTML")){
@@ -571,7 +917,7 @@ public class TraceAnalyzer {
 				AstNode parentNode = infix.getParent();
 				System.out.println("parentNode.toSource(): " + parentNode.toSource());
 				System.out.println("parentNode.shortName(): " + parentNode.shortName());
-				
+
 				if (parentNode instanceof IfStatement){
 					// innerHTML of an element was used in an if condition -> e.g. if (a.innerHTML)
 					System.out.println(left + ".innerHTML is used in an if condition");
@@ -754,7 +1100,7 @@ public class TraceAnalyzer {
 
 		}
 		//TODO: considering other comparison operators
-		
+
 
 
 		/*
@@ -877,7 +1223,8 @@ public class TraceAnalyzer {
 	}
 
 
-	public HashSet<DOMConstraint> getDOMConstraintList() {
+	//public HashSet<DOMConstraint> getDOMConstraintList() {
+	public ArrayList<DOMConstraint> getDOMConstraintList() {
 		return DOMConstraintList;
 	}
 
@@ -897,6 +1244,20 @@ public class TraceAnalyzer {
 
 		//System.out.print(code+"*******\n");
 		return p.parse(code, null, 0);
+	}
+
+
+	// returns true if a variable in the JS code is of DOM element type 
+	private boolean isDOMElementVariable(String var){
+		// search among JSVariables in the DOMConstraintList
+		for (DOMConstraint dc: DOMConstraintList){
+			ElementTypeVariable etv = dc.getElementTypeVariable();   // e.g. a in a = $('id')
+			if (etv.getDOMJSVariable().equals(var)){
+				System.out.println("Variable: " + var + " is of DOM element type");
+				return true;
+			}
+		}
+		return false;
 	}
 
 

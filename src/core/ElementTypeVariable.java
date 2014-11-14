@@ -15,14 +15,17 @@ public class ElementTypeVariable {
 	private String DOMJSVariable;	// e.g. a = document.getElementById("demo"); then a is a DOMJSVariable
 
 	private String originalAccessCode = ""; // e.g.  document.getElementById("demo")  or $('id')
-	
+
+	private String RemoteWebElementID = ""; // e.g. 1e2123e2 in  actualStatement: [org.openqa.selenium.remote.RemoteWebElement@1e2123e2 -> unknown locator]
+
+
 	private String source = "";
-	
+
 	private String parentElementJSVariable;	// e.g. a = document.getElementById("demo"); then document is a DOMJSVariable / a.getElementByTag('p') -> a
 	private List<String> childrenElementJSVariables = new ArrayList<String>();	// e.g. b = a.getElementByTag("p"); then b is a child of a
 
 	private String attribues = "";
-	
+
 	// if isElement
 	private String id_attribute = "ConfixGeneID" + Integer.toString((new Random()).nextInt(100)); // e.g. id="demo"  -> the "ConfixGeneratedID" id is to make sure all elements has at least one attribute for the sake of xpath generation step
 	private String type_attribute = null; // e.g. type="button"
@@ -32,7 +35,7 @@ public class ElementTypeVariable {
 	private String value_attribute = null; // e.g. value="test"
 	private String src_attribute = null; // e.g. scr="/image.jpg"
 	private String innerHTML_attribute = null; // e.g. innerHTML="text"
-	
+
 	// variables set by attribute values: e.g. a = document.getElementById("demo").innerHTML; then a is an innerHTML_attributeVariable
 	private String id_attributeVariable = ""; 
 	private String type_attributeVariable = "";
@@ -42,20 +45,21 @@ public class ElementTypeVariable {
 	private String src_attributeVariable = ""; 
 	private String innerHTML_attributeVariable = ""; 
 
-	
-	
+
+
 	@Override
 	public String toString() {
 
 		return "[DOMJSVariable=" + DOMJSVariable
-				+ "\n parentElementJSVariable:" + parentElementJSVariable
+				+ "\n parentElementJSVariable: " + parentElementJSVariable
+				+ "\n RemoteWebElementID: " + RemoteWebElementID
 				+ "\n attribues:" + getAttribues() + "]";
 	}
-	
+
 	public void addChildElementJSVariables(String child){
 		childrenElementJSVariables.add(child);
 	}
-	
+
 	public String getDOMJSVariable() {
 		return DOMJSVariable;
 	}
@@ -66,7 +70,7 @@ public class ElementTypeVariable {
 
 	public String getAttribues() {
 		attribues = "";
-		
+
 		if (id_attribute!=null)
 			attribues += (" id=\"" + id_attribute + "\"");		
 		if (type_attribute!=null)
@@ -177,6 +181,11 @@ public class ElementTypeVariable {
 		int result = 1;
 		result = prime * result
 				+ ((DOMJSVariable == null) ? 0 : DOMJSVariable.hashCode());
+		
+		result = prime * result
+				+ ((RemoteWebElementID == null) ? 0 : RemoteWebElementID.hashCode());
+		
+	
 		result = prime * result
 				+ ((attribues == null) ? 0 : attribues.hashCode());
 		result = prime
@@ -222,6 +231,10 @@ public class ElementTypeVariable {
 				return false;
 		} else if (!DOMJSVariable.equals(other.DOMJSVariable))
 			return false;
+
+		if (!RemoteWebElementID.equals(other.RemoteWebElementID))
+			return false;
+
 		if (attribues == null) {
 			if (other.attribues != null)
 				return false;
@@ -282,7 +295,7 @@ public class ElementTypeVariable {
 		return true;
 	}
 
-	
+
 	public String getId_attributeVariable() {
 		return id_attributeVariable;
 	}
@@ -355,5 +368,13 @@ public class ElementTypeVariable {
 		this.originalAccessCode = originalAccessCode;
 	}
 
-	
+	public String getRemoteWebElementID() {
+		return RemoteWebElementID;
+	}
+
+	public void setRemoteWebElementID(String remoteWebElementID) {
+		RemoteWebElementID = remoteWebElementID;
+	}
+
+
 }

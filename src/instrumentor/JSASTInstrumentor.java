@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import org.mozilla.javascript.CompilerEnvirons;
 import org.mozilla.javascript.Parser;
@@ -240,11 +241,99 @@ public class JSASTInstrumentor implements NodeVisitor{
 				instrumentVariableInitializerNode(node);
 			else if (node instanceof ReturnStatement)
 				instrumentReturnStatementNode(node);
+			else if (node instanceof ForLoop)
+				instrumentForLoopNode(node);
 		}
 
 		/* have a look at the children of this node */
 		return true;
 	}
+
+
+	private void instrumentForLoopNode(AstNode node) {
+		System.out.println("=== instrumentForLoopNode ===");
+		String enclosingFunction = "";
+		if (node.getEnclosingFunction()!=null)
+			enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
+
+		ForLoop fl = (ForLoop) node;
+		AstNode conditionNode = fl.getCondition();
+
+		System.out.println("conditionNode.shortName() : " + conditionNode.shortName());
+		System.out.println("conditionNode.toSource() : \n" + conditionNode.toSource());
+		System.out.println("conditionNode.getType() : " + conditionNode.getType());
+		System.out.println("conditionNode.getAstRoot() : " + conditionNode.getAstRoot());
+		System.out.println("conditionNode.debugPrint() : \n" + conditionNode.debugPrint());
+
+
+		// Extracting variables used in the condition.
+		ArrayList<String> VarList = getVarListFromDebugPrint(conditionNode.debugPrint());
+
+
+		// instrumenting the condition
+		String originalCondition = conditionNode.toSource().replace("\"", "\\\"");		
+		// e.g. if(x>5) -> confixWrapper("condition", "x>5", ["x"], [x], x>5)
+		String wrapperCode = "if (confixWrapper(\"loopCondition\", \""+ originalCondition +"\", [";
+		if (VarList.size()>0)
+			for (String v: VarList){
+				if (v.equals("children") || v.equals("length") || v.equals("lengt") || v.equals("leng")){
+
+				}else
+					wrapperCode += ("\"" + v + "\", "); 
+			}
+		else
+			wrapperCode += "\"\""; 
+
+		wrapperCode += "], [";
+
+		if (VarList.size()>0)
+			for (String v: VarList){
+				if (v.equals("children") || v.equals("length") || v.equals("lengt") || v.equals("leng")){
+
+				}else
+					wrapperCode += (v + ", "); 
+			}
+
+		wrapperCode += "], \"" + enclosingFunction + "\", " + conditionNode.toSource() + ")) temp;";
+		System.out.println("wrapperCode before: " + wrapperCode );
+		wrapperCode = wrapperCode.replace("\\\\\"", "\\\"");
+		System.out.println("wrapperCode : " + wrapperCode );
+		AstNode wrapperNode = parse(wrapperCode);
+		//System.out.println(wrapperNode.toSource());
+		//System.out.println( ().getCondition().toSource());
+
+		IfStatement tempIS = (IfStatement) (AstNode) wrapperNode.getFirstChild();
+		System.out.println("Replacing condition: " + fl.getCondition().toSource() + " with wrapperCondition: " + tempIS.getCondition().toSource());
+		fl.setCondition(tempIS.getCondition());
+		System.out.println("New condition: " + fl.getCondition().toSource());	
+
+
+	}
+
+
+	private ArrayList<String> getVarListFromDebugPrint(String debugPrint) {
+		// Extracting variables used in the condition.
+		ArrayList<String> result = new ArrayList<String>();
+		int index = debugPrint.indexOf("NAME");
+		while (index>=0){
+			String token  = debugPrint.substring(debugPrint.indexOf("NAME"));
+			token = token.substring(token.indexOf(" ")+1);
+			token = token.substring(token.indexOf(" ")+1);
+			token = token.substring(token.indexOf(" ")+1);
+			if (token.indexOf("\n")>0){
+				result.add(token.substring(0,token.indexOf("\n")));
+				System.out.println(token.substring(0,token.indexOf("\n")));
+			}
+			else{ 
+				System.out.println(token);
+				result.add(token);
+			}
+			debugPrint = debugPrint.substring(debugPrint.indexOf("NAME")+1, debugPrint.length()-1);
+			index = debugPrint.indexOf("NAME");
+		}
+		return result;
+	}
+
 
 
 	private void instrumentReturnStatementNode(AstNode node) {
@@ -345,7 +434,21 @@ public class JSASTInstrumentor implements NodeVisitor{
 		originalSource = originalSource.replace("\n", "").replace("\r", ""); // if it contains a function body		
 		if (oprator.equals("=")){
 			// e.g. a = b -> a = confixWrapper("infix", "a=b", [""], [], b)
-			String wrapperCode = left + " = confixWrapper(\"infix\", \""+ originalSource +"\", [\"\"], [], \"" + enclosingFunction + "\", " + right + ")";
+			//String wrapperCode = left + " = confixWrapper(\"infix\", \""+ originalSource +"\", [\"\"], [], \"" + enclosingFunction + "\", " + right + ")";
+
+			String wrapperCode = left + " = confixWrapper(\"infix\", \""+ originalSource +"\", [";
+			if (right.contains(".value"))  // e.g. p = itemList.children[i].value;
+				wrapperCode += ("\"" + right.replace(".value", "") + "\", "); 
+			else
+				wrapperCode += "\"\""; 
+
+			wrapperCode += "], [";
+
+			if (right.contains(".value"))  // e.g. p = itemList.children[i].value;
+				wrapperCode += (right.replace(".value", "") + ", "); 
+
+			wrapperCode += "], \"" + enclosingFunction + "\", " + right + ")";
+
 			System.out.println("wrapperCode before: " + wrapperCode );
 			wrapperCode = wrapperCode.replace("\\\\\"", "\\\"");
 			System.out.println("wrapperCode : " + wrapperCode );
@@ -363,10 +466,10 @@ public class JSASTInstrumentor implements NodeVisitor{
 		}
 		// No need for other instrumentation at this point
 		//else if (oprator.equals("GETPROP")){	
-			//TODO
-			// e.g. document.getElementById -> a = confixWrapper("infix", "document.getElementById", [""], [], getElementById)
-			// -> nodeName: PropertyGet, e.g. Left: $("p").innerHTML
-			// consider the parent node until there is no more GETPROP
+		//TODO
+		// e.g. document.getElementById -> a = confixWrapper("infix", "document.getElementById", [""], [], getElementById)
+		// -> nodeName: PropertyGet, e.g. Left: $("p").innerHTML
+		// consider the parent node until there is no more GETPROP
 		//}
 
 	}
