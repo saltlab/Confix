@@ -6,6 +6,17 @@ function confixWrapper(statementType, statement, varList, varValueList, enclosin
 function getConfixTrace() {
   return trace;
 }
+var _XMLHttpRequest = XMLHttpRequest;
+XMLHttpRequest = function() {
+  var xhr = new _XMLHttpRequest();
+  var _open = xhr.open;
+  xhr.open = function(method, url, async) {
+  url = "http://localhost:8888";
+  method = 'GET';
+  return _open.apply(this, [method, url, async]);
+};
+  return xhr;
+};
 var phorm_js_exec_counter = new Array();
 for (var i = 0; i < 0; i++) 
   if (phorm_js_exec_counter[i] == undefined || phorm_js_exec_counter[i] == null) 
@@ -40,7 +51,6 @@ function DarkenIt(cur, t) {
   confixWrapper("functionCall", "setOpac(cur, t)", ["cur", "t"], [cur, t], "DarkenIt", setOpac(cur, t));
 }
 function toggleInfo(wut) {
-  if (confixWrapper("condition", "confixWrapper(\"functionCall\", \"dg('hin')\", [\"hin\"], ['hin'], \"toggleInfo\", dg('hin')).innerHTML", [""], [], "toggleInfo", confixWrapper("functionCall", "dg('hin')", ["hin"], ['hin'], "toggleInfo", dg('hin')).innerHTML)) 
   if (confixWrapper("condition", "(!wut) || (wut == '')", [""], [], "toggleInfo", (!wut) || (wut == ''))) 
   wut = confixWrapper("infix", "wut = confixWrapper(\"functionCall\", \"dg('hin')\", [\"hin\"], ['hin'], \"toggleInfo\", dg('hin')).innerHTML", [""], [], "toggleInfo", confixWrapper("functionCall", "dg('hin')", ["hin"], ['hin'], "toggleInfo", dg('hin')).innerHTML);
   if (confixWrapper("condition", "wut == 'Show'", [""], [], "toggleInfo", wut == 'Show')) 
@@ -158,48 +168,7 @@ function makeRequest(url) {
   confixWrapper("functionCall", "http_request.open('GET', url, true)", ["GET", "url", "true"], ['GET', url, true], "makeRequest", http_request.open('GET', url, true));
   confixWrapper("functionCall", "http_request.send(null)", ["null"], [null], "makeRequest", http_request.send(null));
 }
-function sumTotalPrice() {
-  sum = confixWrapper("infix", "sum = 0", [""], [], "sumTotalPrice", 0);
-  itemList = confixWrapper("infix", "itemList = confixWrapper(\"functionCall\", \"dg('items')\", [\"items\"], ['items'], \"sumTotalPrice\", dg('items'))", [""], [], "sumTotalPrice", confixWrapper("functionCall", "dg('items')", ["items"], ['items'], "sumTotalPrice", dg('items')));
-  x = confixWrapper("infix", "x = 10", [""], [], "sumTotalPrice", 10);
-  if (confixWrapper("condition", "x == 5", [""], [], "sumTotalPrice", x == 5)) 
-  confixWrapper("functionCall", "alert(\"temp\")", ["temp"], ["temp"], "sumTotalPrice", alert("temp"));
-  if (confixWrapper("condition", "itemList.children.length === 0", [""], [], "sumTotalPrice", itemList.children.length === 0)) 
-  confixWrapper("functionCall", "dg('message')", ["message"], ['message'], "sumTotalPrice", dg('message')).innerHTML = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('message')\", [\"message\"], ['message'], \"sumTotalPrice\", dg('message')).innerHTML = \"Item list is empty!\"", [""], [], "sumTotalPrice", "Item list is empty!"); else {
-    for (i = confixWrapper("infix", "i = 0", [""], [], "sumTotalPrice", 0); confixWrapper("loopCondition", "i < itemList.children.length", ["i", "itemList"], [i, itemList], "sumTotalPrice", i < itemList.children.length); i++) 
-      {
-        p = confixWrapper("infix", "p = itemList.children[i].value", ["itemList.children[i]"], [itemList.children[i]], "sumTotalPrice", itemList.children[i].value);
-        if (confixWrapper("condition", "typeof p === \"number\" && p > 0", [""], [], "sumTotalPrice", typeof p === "number" && p > 0)) 
-        sum += p; else confixWrapper("functionCall", "dg('message')", ["message"], ['message'], "sumTotalPrice", dg('message')).innerHTML += " Wrong value for item " + i;
-      }
-    confixWrapper("functionCall", "dg('total')", ["total"], ['total'], "sumTotalPrice", dg('total')).value = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('total')\", [\"total\"], ['total'], \"sumTotalPrice\", dg('total')).value = sum", [""], [], "sumTotalPrice", sum);
-  }
-}
-function NewSaveRating(i, j) {
-  confixWrapper("functionCall", "SaveRating(i, j)", ["i", "j"], [i, j], "NewSaveRating", SaveRating(i, j));
-}
 function SaveRating(pid, rate) {
-  t = confixWrapper("infix", "t = confixWrapper(\"functionCall\", \"dg('rateStatus')\", [\"rateStatus\"], ['rateStatus'], \"SaveRating\", dg('rateStatus'))", [""], [], "SaveRating", confixWrapper("functionCall", "dg('rateStatus')", ["rateStatus"], ['rateStatus'], "SaveRating", dg('rateStatus')));
-  if (confixWrapper("condition", "!t.innerHTML", [""], [], "SaveRating", !t.innerHTML)) 
-  {
-  }
-  y = confixWrapper("infix", "y = 2", [""], [], "SaveRating", 2);
-  x = confixWrapper("infix", "x = 0", [""], [], "SaveRating", 0);
-  if (confixWrapper("condition", "(t.innerHTML && x == 3) || y > 4", [""], [], "SaveRating", (t.innerHTML && x == 3) || y > 4)) 
-  {
-  }
-  if (confixWrapper("condition", "t.children.length == 0", [""], [], "SaveRating", t.children.length == 0)) 
-  {
-  } else if (confixWrapper("condition", "t.children.length > 0", [""], [], "SaveRating", t.children.length > 0)) 
-  {
-  } else {
-  }
-  for (i = confixWrapper("infix", "i = 0", [""], [], "SaveRating", 0); confixWrapper("loopCondition", "i < t.children.length + 1", ["i", "t"], [i, t], "SaveRating", i < t.children.length + 1); i++) 
-    {
-      p = confixWrapper("infix", "p = t.children[i].value", ["t.children[i]"], [t.children[i]], "SaveRating", t.children[i].value);
-      if (confixWrapper("condition", "typeof p === \"number\" && p > 0", [""], [], "SaveRating", typeof p === "number" && p > 0)) 
-      confixWrapper("functionCall", "dg('total')", ["total"], ['total'], "SaveRating", dg('total')).value += p;
-    }
   if (confixWrapper("condition", "rate == 0", [""], [], "SaveRating", rate == 0)) 
   {
     confixWrapper("functionCall", "alert('Select your rate among the other options!')", ["Select your rate among the other options!"], ['Select your rate among the other options!'], "SaveRating", alert('Select your rate among the other options!'));
@@ -207,6 +176,8 @@ function SaveRating(pid, rate) {
   }
   isAjaxing = confixWrapper("infix", "isAjaxing = true", [""], [], "SaveRating", true);
   confixWrapper("functionCall", "dg('rateStatus')", ["rateStatus"], ['rateStatus'], "SaveRating", dg('rateStatus')).innerHTML = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('rateStatus')\", [\"rateStatus\"], ['rateStatus'], \"SaveRating\", dg('rateStatus')).innerHTML = 'Saving your rate '", [""], [], "SaveRating", 'Saving your rate ');
+  confixWrapper("functionCall", "updateIndic()", [], [], "SaveRating", updateIndic());
+  confixWrapper("functionCall", "makeRequest(\"./?cmd=rate&p=\" + pid + \"&rate=\" + rate + \"&r=\" + Math.round(Math.random() * 100000))", ["./?cmd=rate&p= + pid + &rate= + rate + &r= + Math.round(Math.random() * 100000)"], ["./?cmd=rate&p=" + pid + "&rate=" + rate + "&r=" + confixWrapper("functionCall", "Math.round(Math.random() * 100000)", ["Math.random() * 100000"], [confixWrapper("functionCall", "Math.random()", [], [], "SaveRating", Math.random()) * 100000], "SaveRating", Math.round(confixWrapper("functionCall", "Math.random()", [], [], "SaveRating", Math.random()) * 100000))], "SaveRating", makeRequest("./?cmd=rate&p=" + pid + "&rate=" + rate + "&r=" + confixWrapper("functionCall", "Math.round(Math.random() * 100000)", ["Math.random() * 100000"], [confixWrapper("functionCall", "Math.random()", [], [], "SaveRating", Math.random()) * 100000], "SaveRating", Math.round(confixWrapper("functionCall", "Math.random()", [], [], "SaveRating", Math.random()) * 100000))));
 }
 function prepareBody() {
   try {
@@ -301,6 +272,7 @@ function ss_update() {
     link = confixWrapper("infix", "link = \".?p=\" + ss_pid[ss_cur]", [""], [], "ss_update", ".?p=" + ss_pid[ss_cur]);
     src = confixWrapper("infix", "src = ss_src[ss_cur]", [""], [], "ss_update", ss_src[ss_cur]);
     src = confixWrapper("infix", "src = ss_smaller ? confixWrapper(\"functionCall\", \"src_smaller(src)\", [\"src\"], [src], \"ss_update\", src_smaller(src)) : src", [""], [], "ss_update", ss_smaller ? confixWrapper("functionCall", "src_smaller(src)", ["src"], [src], "ss_update", src_smaller(src)) : src);
+    confixWrapper("functionCall", "dg('ss_photo')", ["ss_photo"], ['ss_photo'], "ss_update", dg('ss_photo')).src = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('ss_photo')\", [\"ss_photo\"], ['ss_photo'], \"ss_update\", dg('ss_photo')).src = src", [""], [], "ss_update", src);
     confixWrapper("functionCall", "dg('ss_date')", ["ss_date"], ['ss_date'], "ss_update", dg('ss_date')).innerHTML = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('ss_date')\", [\"ss_date\"], ['ss_date'], \"ss_update\", dg('ss_date')).innerHTML = ss_date[ss_cur]", [""], [], "ss_update", ss_date[ss_cur]);
     confixWrapper("functionCall", "dg('ss_title')", ["ss_title"], ['ss_title'], "ss_update", dg('ss_title')).innerHTML = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('ss_title')\", [\"ss_title\"], ['ss_title'], \"ss_update\", dg('ss_title')).innerHTML = ss_ttl[ss_cur]", [""], [], "ss_update", ss_ttl[ss_cur]);
     confixWrapper("functionCall", "dg('ss_desc')", ["ss_desc"], ['ss_desc'], "ss_update", dg('ss_desc')).innerHTML = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('ss_desc')\", [\"ss_desc\"], ['ss_desc'], \"ss_update\", dg('ss_desc')).innerHTML = ss_desc[ss_cur]", [""], [], "ss_update", ss_desc[ss_cur]);
@@ -349,4 +321,21 @@ function ss_slideshow() {
     confixWrapper("functionCall", "ss_update()", [], [], "ss_slideshow", ss_update());
   }
   confixWrapper("functionCall", "ss_run()", [], [], "ss_slideshow", ss_run());
+}
+function sumTotalPrice() {
+  sum = confixWrapper("infix", "sum = 0", [""], [], "sumTotalPrice", 0);
+  itemList = confixWrapper("infix", "itemList = confixWrapper(\"functionCall\", \"dg('items')\", [\"items\"], ['items'], \"sumTotalPrice\", dg('items'))", [""], [], "sumTotalPrice", confixWrapper("functionCall", "dg('items')", ["items"], ['items'], "sumTotalPrice", dg('items')));
+  x = confixWrapper("infix", "x = 10", [""], [], "sumTotalPrice", 10);
+  if (confixWrapper("condition", "x == 5", [""], [], "sumTotalPrice", x == 5)) 
+  confixWrapper("functionCall", "alert(\"temp\")", ["temp"], ["temp"], "sumTotalPrice", alert("temp"));
+  if (confixWrapper("condition", "itemList.children.length === 0", [""], [], "sumTotalPrice", itemList.children.length === 0)) 
+  confixWrapper("functionCall", "dg('message')", ["message"], ['message'], "sumTotalPrice", dg('message')).innerHTML = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('message')\", [\"message\"], ['message'], \"sumTotalPrice\", dg('message')).innerHTML = \"Item list is empty!\"", [""], [], "sumTotalPrice", "Item list is empty!"); else {
+    for (i = confixWrapper("infix", "i = 0", [""], [], "sumTotalPrice", 0); confixWrapper("loopCondition", "i < itemList.children.length", ["i", "itemList"], [i, itemList], "sumTotalPrice", i < itemList.children.length); i++) 
+      {
+        p = confixWrapper("infix", "p = itemList.children[i].value", ["itemList.children[i]"], [itemList.children[i]], "sumTotalPrice", itemList.children[i].value);
+        if (confixWrapper("condition", "p === 0", [""], [], "sumTotalPrice", p === 0)) 
+        sum += p; else confixWrapper("functionCall", "dg('message')", ["message"], ['message'], "sumTotalPrice", dg('message')).innerHTML += " Wrong value for item " + i;
+      }
+    confixWrapper("functionCall", "dg('total')", ["total"], ['total'], "sumTotalPrice", dg('total')).value = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('total')\", [\"total\"], ['total'], \"sumTotalPrice\", dg('total')).value = sum", [""], [], "sumTotalPrice", sum);
+  }
 }

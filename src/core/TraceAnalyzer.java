@@ -298,7 +298,7 @@ public class TraceAnalyzer {
 
 
 		// e.g. document.getElemenyById(x)
-		if (targetNode instanceof PropertyGet){
+		if (targetNode instanceof PropertyGet && functionType.equals("accessingDOM")){
 			PropertyGet pg = (PropertyGet)targetNode;
 			targetBody = pg.getRight().toSource();
 			// getting parentNodeElement e.g. document in document.getElemenyById(x) or a in a.getElemenyById(x)
@@ -321,18 +321,20 @@ public class TraceAnalyzer {
 			}
 
 			DOMElement.setDOMJSVariable(DOMJSVariable);
-			DOMElement.setOriginalAccessCode(parentNodeElement + "." + targetBody + "(" + argumentValueList.get(0) + ")");
-			System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + targetBody + "('" + argumentValueList.get(0) + "')");
+			if (argumentValueList.size() > 0){
+				DOMElement.setOriginalAccessCode(parentNodeElement + "." + targetBody + "(" + argumentValueList.get(0) + ")");
+				System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + targetBody + "('" + argumentValueList.get(0) + "')");
 
-			if (targetBody.equals("getElementById")){
-				DOMElement.setId_attribute(argumentValueList.get(0));
-			}else if (targetBody.equals("getElementsByTagName")){
-				DOMElement.setTag_attribute(argumentValueList.get(0));
-			}else if (targetBody.equals("getElementsByName")){
-				DOMElement.setName_attribute(argumentValueList.get(0));
-			}else if (targetBody.equals("getElementsByClassName")){
-				DOMElement.setClass_attribute(argumentValueList.get(0));
-			}	
+				if (targetBody.equals("getElementById")){
+					DOMElement.setId_attribute(argumentValueList.get(0));
+				}else if (targetBody.equals("getElementsByTagName")){
+					DOMElement.setTag_attribute(argumentValueList.get(0));
+				}else if (targetBody.equals("getElementsByName")){
+					DOMElement.setName_attribute(argumentValueList.get(0));
+				}else if (targetBody.equals("getElementsByClassName")){
+					DOMElement.setClass_attribute(argumentValueList.get(0));
+				}	
+			}
 
 			DOMElement.setRemoteWebElementID(RemoteWebElement);
 			DOMConstraint dc = new DOMConstraint(DOMElement);
@@ -524,12 +526,12 @@ public class TraceAnalyzer {
 		for (String candidateVar :candidateDOMJSVariable){
 			for (DOMConstraint dc: DOMConstraintList){
 				if (dc.getElementTypeVariable().getId_attributeVariable().equals(candidateVar)
-					|| dc.getElementTypeVariable().getId_attributeVariable().equals(candidateVar)
-					|| dc.getElementTypeVariable().getInnerHTML_attributeVariable().equals(candidateVar)
-					|| dc.getElementTypeVariable().getName_attributeVariable().equals(candidateVar)
-					|| dc.getElementTypeVariable().getSrc_attributeVariable().equals(candidateVar)
-					|| dc.getElementTypeVariable().getType_attributeVariable().equals(candidateVar)
-					|| dc.getElementTypeVariable().getValue_attributeVariable().equals(candidateVar)
+						|| dc.getElementTypeVariable().getId_attributeVariable().equals(candidateVar)
+						|| dc.getElementTypeVariable().getInnerHTML_attributeVariable().equals(candidateVar)
+						|| dc.getElementTypeVariable().getName_attributeVariable().equals(candidateVar)
+						|| dc.getElementTypeVariable().getSrc_attributeVariable().equals(candidateVar)
+						|| dc.getElementTypeVariable().getType_attributeVariable().equals(candidateVar)
+						|| dc.getElementTypeVariable().getValue_attributeVariable().equals(candidateVar)
 						){
 					System.out.println(candidateVar + " is a DOM attribute JS variable!");
 					System.out.println("Condition: " + conditionNode.toSource() + " is DOM dependent");
@@ -757,58 +759,52 @@ public class TraceAnalyzer {
 						break;
 					}else if (etv.getId_attributeVariable().equals(leftOperand)){
 						System.out.println(etv.getId_attributeVariable() + " variable which refers to an id attribute of a DOM element is used in a condition");
-						// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+
+						// TODO: need to be checked later
 						String condition = conditionNode.toSource();
-						condition = condition.replace(leftOperand, dc.getElementTypeVariable().getOriginalAccessCode() + ".id");
-						System.out.println("condition after replacement: " + condition);
 						dc.addConstraint(condition, true);
 						break;
 					}else if (etv.getType_attributeVariable().equals(leftOperand)){
 						System.out.println(etv.getType_attributeVariable() + " variable which refers to a type attribute of a DOM element is used in a condition");
-						// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+
+						// TODO: need to be checked later
 						String condition = conditionNode.toSource();
-						condition = condition.replace(leftOperand, dc.getElementTypeVariable().getOriginalAccessCode() + ".type");
-						System.out.println("condition after replacement: " + condition);
 						dc.addConstraint(condition, true);
 						break;
 					}else if (etv.getName_attributeVariable().equals(leftOperand)){
 						System.out.println(etv.getName_attributeVariable() + " variable which refers to a name attribute of a DOM element is used in a condition");
-						// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+
+						// TODO: need to be checked later
 						String condition = conditionNode.toSource();
-						condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".name");
-						System.out.println("condition after replacement: " + condition);
 						dc.addConstraint(condition, true);
 						break;
 					}else if (etv.getClass_attributeVariable().equals(leftOperand)){
 						System.out.println(etv.getClass_attributeVariable() + " variable which refers to a class attribute of a DOM element is used in a condition");
-						// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+
+						// TODO: need to be checked later
 						String condition = conditionNode.toSource();
-						condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".class");
-						System.out.println("condition after replacement: " + condition);
 						dc.addConstraint(condition, true);
 						break;
 					}else if (etv.getValue_attributeVariable().equals(leftOperand)){
 						System.out.println(etv.getValue_attributeVariable() + " variable which refers to a value attribute of a DOM element is used in a condition");
-						// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+						etv.setValue_attribute("INTEGER_" + rightOperand);
+						System.out.println("evt:" + etv);
+						// TODO: need to be checked later
 						String condition = conditionNode.toSource();
-						condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".value");
-						System.out.println("condition after replacement: " + condition);
 						dc.addConstraint(condition, true);
 						break;
 					}else if (etv.getInnerHTML_attributeVariable().equals(leftOperand)){
 						System.out.println(etv.getInnerHTML_attributeVariable() + " variable which refers to an innerHTML attribute of a DOM element is used in a condition");
-						// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+
+						// TODO: need to be checked later
 						String condition = conditionNode.toSource();
-						condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".innerHTML");
-						System.out.println("condition after replacement: " + condition);
 						dc.addConstraint(condition, true);
 						break;
 					}else if (etv.getSrc_attributeVariable().equals(leftOperand)){
 						System.out.println(etv.getSrc_attributeVariable() + " variable which refers to an src attribute of a DOM element is used in a condition");
-						// replacing the condition to be used later for generating combination of satisfier statemets in the javascript test fuctions
+
+						// TODO: need to be checked later
 						String condition = conditionNode.toSource();
-						condition = condition.replace(leftOperand, etv.getOriginalAccessCode() + ".src");
-						System.out.println("condition after replacement: " + condition);
 						dc.addConstraint(condition, true);
 						break;
 					}

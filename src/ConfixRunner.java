@@ -8,7 +8,8 @@ public class ConfixRunner {
 	
 	// provide input values for a DOM dependent function 
 	//private static String functionToTest = "NewSaveRating(1,3)";
-	private static String functionToTest = "sumTotalPrice()";
+	//private static String functionToTest = "sumTotalPrice()";
+	private static String functionToTest = "SaveRating(1,3)";
 
 	public static void main(String[] args) throws Exception {
 

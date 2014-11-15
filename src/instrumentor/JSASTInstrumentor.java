@@ -745,6 +745,24 @@ public class JSASTInstrumentor implements NodeVisitor{
 				"return trace;" +
 				"}";
 
+		// this is XHR replacing
+		code += // Storing the original XMLHTTPRequest object
+				"var _XMLHttpRequest = XMLHttpRequest;" +
+				// Redefining XHR
+				"XMLHttpRequest = function() {" +
+				"    var xhr = new _XMLHttpRequest();" +
+				// Replacing the function for opening a new request
+				"    var _open = xhr.open;" +
+				"    xhr.open = function(method, url, async) {" +
+				// fake URL
+				"        url = \"http://localhost:8888\";" +
+				"        method = 'GET';" +
+				"        return _open.apply(this, [ method, url, async ]);" +
+				"    };" +
+				"    return xhr;" +
+				"};";
+
+		
 		code += "var " + jsName + "_exec_counter = new Array(); " +
 				"for (var i=0;i<" + instrumentedLinesCounter + ";i++)" +
 				"if("+jsName + "_exec_counter[i]== undefined || "+jsName + "_exec_counter[i]== null) "+jsName + "_exec_counter[i]=0;";
