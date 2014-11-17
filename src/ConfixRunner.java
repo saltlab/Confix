@@ -7,9 +7,15 @@ public class ConfixRunner {
 	private static String testSuiteNameToGenerate = "tests_phormer.js";
 	
 	// provide input values for a DOM dependent function 
+
+	// Testing phormer.js DDFs
+	//private static String functionToTest = "dg('test')";
 	//private static String functionToTest = "NewSaveRating(1,3)";
-	//private static String functionToTest = "sumTotalPrice()";
-	private static String functionToTest = "SaveRating(1,3)";
+	private static String functionToTest = "sumTotalPrice()";
+	//private static String functionToTest = "SaveRating(1,3)";
+	
+	
+	
 
 	public static void main(String[] args) throws Exception {
 

@@ -333,8 +333,8 @@ function sumTotalPrice() {
     for (i = confixWrapper("infix", "i = 0", [""], [], "sumTotalPrice", 0); confixWrapper("loopCondition", "i < itemList.children.length", ["i", "itemList"], [i, itemList], "sumTotalPrice", i < itemList.children.length); i++) 
       {
         p = confixWrapper("infix", "p = itemList.children[i].value", ["itemList.children[i]"], [itemList.children[i]], "sumTotalPrice", itemList.children[i].value);
-        if (confixWrapper("condition", "p === 0", [""], [], "sumTotalPrice", p === 0)) 
-        sum += p; else confixWrapper("functionCall", "dg('message')", ["message"], ['message'], "sumTotalPrice", dg('message')).innerHTML += " Wrong value for item " + i;
+        if (confixWrapper("condition", "p == 0", [""], [], "sumTotalPrice", p == 0)) 
+        sum += p; else confixWrapper("functionCall", "dg('message')", ["message"], ['message'], "sumTotalPrice", dg('message')).innerHTML += "value for item " + i + " is " + itemList.children[i].value;
       }
     confixWrapper("functionCall", "dg('total')", ["total"], ['total'], "sumTotalPrice", dg('total')).value = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('total')\", [\"total\"], ['total'], \"sumTotalPrice\", dg('total')).value = sum", [""], [], "sumTotalPrice", sum);
   }

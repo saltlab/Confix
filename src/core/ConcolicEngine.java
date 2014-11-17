@@ -70,7 +70,7 @@ public class ConcolicEngine {
 		codeAnalyzer.generateHTMLTestFile(htmlTestFile);
 
 		//fixture = "<div id=\"rateStatus\"/>";//  <div id=\"indicator\"/>";
-		fixture = "";//  <div id=\"indicator\"/>";
+		fixture = "";
 
 		int pathCounter = 1;
 		do {
@@ -86,7 +86,6 @@ public class ConcolicEngine {
 			}
 			catch(Exception e){
 				System.out.println("Failed to execute function " + functionToTest + ": " + e);
-				// TODO: based on the failure create a new fixture. Need to parse the exception trace.
 			}
 
 			// Get the execution trace
@@ -99,30 +98,37 @@ public class ConcolicEngine {
 				traceAnalyzer.analyzeTrace(map);
 			}
 
-			// check if all the new path condition is repeated i.e. all paths are excersised
+			// check if all the new path condition is repeated i.e. all paths are exercised
 			ArrayList<DOMConstraint> currentPathCondition = new ArrayList<DOMConstraint>();
 					
 			currentPathCondition.addAll(traceAnalyzer.getcurrentPathCondition());
 			if (traceAnalyzer.addToPathConditions(currentPathCondition)){
 				traceAnalyzer.clearCurrentPathCodition();
 				traceAnalyzer.getDOMConstraintList();
+				TraceAnalyzer.generatedID = 0;  // resetting the static auto-increment generatedID
 
 				System.out.println("");
+				
+				System.out.println("**********************");
 				for (DOMConstraint dc: traceAnalyzer.getDOMConstraintList()){
 					System.out.println("dc.getCorrespondingXpath(): " + dc.getCorrespondingXpath());
-					System.out.println("dc.getConstraints():" + dc.getConstraints());
-					System.out.println("dc.getStatementsForAllConstraints():" + dc.getStatementsForAllConstraints());
+					//System.out.println("dc.getConstraints():" + dc.getConstraints());
+					//System.out.println("dc.getStatementsForAllConstraints():" + dc.getStatementsForAllConstraints());
 					System.out.println("dc.getElementTypeVariable(): " + dc.getElementTypeVariable());
 				}
+				System.out.println("**********************");
 
 				// Generate DOM constraints from the trace
 
 				//System.out.println("traceAnalyzer.getDOMDependentFunctions(): " + traceAnalyzer.getDOMDependentFunctions());
 
-				List<List<String>> attributeConstraintList = getAttributeConstraintList(traceAnalyzer.getDOMDependentFunctions());
+				
+				
+				//List<List<String>> attributeConstraintList = getAttributeConstraintList(traceAnalyzer.getDOMDependentFunctions());
+				//System.out.println("attributeConstraintList: " + attributeConstraintList);
 
-				System.out.println("attributeConstraintList: " + attributeConstraintList);
-
+				
+				
 				String DOMFixture = getDOMFixture();
 
 				System.out.println("DOMFixture: " + DOMFixture);

@@ -27,7 +27,7 @@ public class ElementTypeVariable {
 	private String attribues = "";
 
 	// if isElement
-	private String id_attribute = "ConfixGeneID" + Integer.toString((new Random()).nextInt(100)); // e.g. id="demo"  -> the "ConfixGeneratedID" id is to make sure all elements has at least one attribute for the sake of xpath generation step
+	private String id_attribute = "ConfixGeneID" + TraceAnalyzer.generatedID++; // "ConfixGeneID%d" id is the default id to make sure all elements has at least one attribute for the sake of xpath generation step
 	private String type_attribute = null; // e.g. type="button"
 	private String name_attribute = null; // e.g. name="subject"
 	private String tag_attribute = "div"; // using tag="div" as a default value for the element as long as we have no more information about it
@@ -145,6 +145,8 @@ public class ElementTypeVariable {
 	}
 
 	public void setValue_attribute(String value_attribute) {
+		// changing the default div tag to input as div elements do not have value attributes
+		setTag_attribute("input");
 		value_attribute = value_attribute.replace("\"", "");
 		this.value_attribute = value_attribute;
 	}

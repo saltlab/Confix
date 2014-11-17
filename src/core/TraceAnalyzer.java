@@ -56,7 +56,13 @@ public class TraceAnalyzer {
 	private static ArrayList<DOMConstraint> ConditionalConstraints = new ArrayList<DOMConstraint>();     // e.g. in the case of $('#id')
 	private static ArrayList<DOMConstraint> NonConditionalConstraints = new ArrayList<DOMConstraint>();  // e.g. in the case of if (d.innerHTML === 'bla')
 
+	private static String xpath="";
+	private static int numOfDOMElementsInFixture = 0;
 
+	private String lastLoopCondition = "";
+	public static int numOfCombinations = 0;
+	public static int generatedID = 0;   // designed to be auto-increment and reset once fixture generated
+ 
 
 	private List<ArrayList<DOMConstraint>> pathConditions = new ArrayList<ArrayList<DOMConstraint>>();
 	private ArrayList<DOMConstraint> currentPathCondition = new ArrayList<DOMConstraint>();
@@ -91,13 +97,6 @@ public class TraceAnalyzer {
 
 
 
-
-
-	private static String xpath="";
-	private static int numOfDOMElementsInFixture = 0;
-
-	private String lastLoopCondition = "";
-	public static int numOfCombinations = 0;
 
 
 	public TraceAnalyzer(){
@@ -339,7 +338,10 @@ public class TraceAnalyzer {
 			DOMElement.setRemoteWebElementID(RemoteWebElement);
 			DOMConstraint dc = new DOMConstraint(DOMElement);
 			dc.setEnclosingFunctionName(enclosingFunctionName);
-			DOMConstraintList.add(dc);
+			if (!DOMConstraintList.contains(dc))
+				DOMConstraintList.add(dc);
+			
+			
 			//}else 
 			// e.g.  DIV = "div";  d = getElementsByTagName(DIV);
 
@@ -422,7 +424,8 @@ public class TraceAnalyzer {
 					DOMElement.setSource(node.toSource());
 					DOMConstraint dc = new DOMConstraint(DOMElement);
 					dc.setEnclosingFunctionName(enclosingFunctionName);
-					DOMConstraintList.add(dc);
+					if (!DOMConstraintList.contains(dc))
+						DOMConstraintList.add(dc);
 
 				}else if (argumentShortName.equals("Name")){   // e.g.  DIV = "<div />";  d = $(DIV);
 					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + targetBody + "(" + argumentValueList.get(0) + ")");
@@ -656,7 +659,8 @@ public class TraceAnalyzer {
 						//DOMElement.setRemoteWebElementID(RemoteWebElement);
 						DOMConstraint dc = new DOMConstraint(DOMElement);
 						//dc.setEnclosingFunctionName(enclosingFunctionName);
-						DOMConstraintList.add(dc);
+						if (!DOMConstraintList.contains(dc))
+							DOMConstraintList.add(dc);
 
 					}
 
@@ -787,7 +791,7 @@ public class TraceAnalyzer {
 						break;
 					}else if (etv.getValue_attributeVariable().equals(leftOperand)){
 						System.out.println(etv.getValue_attributeVariable() + " variable which refers to a value attribute of a DOM element is used in a condition");
-						etv.setValue_attribute("INTEGER_" + rightOperand);
+						etv.setValue_attribute(rightOperand);
 						System.out.println("evt:" + etv);
 						// TODO: need to be checked later
 						String condition = conditionNode.toSource();
@@ -1082,7 +1086,8 @@ public class TraceAnalyzer {
 
 						// TODO...
 						DOMConstraint newDC = new DOMConstraint(DOMElement);
-						DOMConstraintList.add(newDC);
+						if (!DOMConstraintList.contains(newDC))
+							DOMConstraintList.add(newDC);
 						break;
 					}
 				}
@@ -1145,6 +1150,12 @@ public class TraceAnalyzer {
 		xpath = "select(\"document[";
 		//List<String> JSDOMVars = new ArrayList<String>();
 
+		System.out.println("++++++++++++++++");
+		for (DOMConstraint dc : DOMConstraintList)
+			System.out.println(dc.getElementTypeVariable());
+		System.out.println("++++++++++++++++");
+
+		
 		// Transform constraints to xpath
 		for (DOMConstraint dc : DOMConstraintList){
 			if (dc.isAddedToTheXpath())
@@ -1166,7 +1177,7 @@ public class TraceAnalyzer {
 		return xpath;
 	}
 
-	//	private static void generateSubXpath(DOMConstraint currentConstraint, String enclosingFunctionName){  -> this is for the old static version
+
 	private static void generateSubXpath(DOMConstraint currentConstraint){
 		// generate xpath for currentConstraint first (id+attributes) and then add its children
 		String id = currentConstraint.getElementTypeVariable().getId_attribute();
@@ -1199,10 +1210,6 @@ public class TraceAnalyzer {
 				continue;
 			if(dc.getElementTypeVariable().getParentElementJSVariable().equals(currentConstraint.getElementTypeVariable().getDOMJSVariable())){
 				//xpath += " and child::";
-
-				//if (dc.getEnclosingFunctionName().equals(enclosingFunctionName))  -> this is for the old static version
-				//generateSubXpath(dc, enclosingFunctionName);
-
 				generateSubXpath(dc);
 			}
 		}

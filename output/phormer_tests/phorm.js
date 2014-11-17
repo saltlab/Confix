@@ -12,10 +12,12 @@ var ss_loaded = false;
 var ss_smaller = false;
 var ss_awaits = 1;
 
+// DDF
 function dg(x) {
 	return document.getElementById(x);
 }
 
+//DDF but Confix can't handle
 function setOpac(cur, strength) {
 	if (cur.style.MozOpacity)
 		cur.style.MozOpacity=strength;
@@ -24,15 +26,18 @@ function setOpac(cur, strength) {
 			cur.filters.alpha.opacity=strength*100;
 }
 
+//DDF but Confix can't handle
 function LightenIt(cur) {
 	setOpac(cur, 0.99);
 }
 
+//DDF but Confix can't handle
 function DarkenIt(cur, t) {
 	if ((!t) || (t == ''))	t = DarkenVal / 100;
 	setOpac(cur, t);
 }
 
+//DDF
 function toggleInfo(wut) {
 	if ((!wut) || (wut == ''))
 		wut = dg('hin').innerHTML;
@@ -54,6 +59,7 @@ function toggleInfo(wut) {
 	}
 }
 
+//NonDDF
 function cookieVal(cookname) {
 	thiscook = document.cookie.split("; ");
 	for (i=0; i<thiscook.length; i++)
@@ -62,20 +68,24 @@ function cookieVal(cookname) {
 	return -1;
 }
 
+//NonDDF
 function setCookie(key, val) {
 	newd = new Date;
 	newd.setMonth(newd.getMonth()+6);
 	document.cookie = key+"="+val+";expires=" + newd.toGMTString();
 }
 
+//DDF
 function reToggleInfo() {
 	toggleInfo((cookieVal('hideinfo') != 'true')?'Show':'Hide');
 }
 
+//NonDDF
 function rand(x) {
 	return Math.round(Math.random()*x);
 }
 
+//DDF
 function reshuffle() {
 	var maxRand = 400-75;
 	var n = dg('thumbscount').value;
@@ -85,6 +95,7 @@ function reshuffle() {
 	}
 }
 
+//DDF
 function updateIndic() {
 	var v = dg('indicator').innerHTML;
 	var l = v.length;
@@ -101,6 +112,7 @@ function updateIndic() {
 		dg('indicator').innerHTML = '';
 }
 
+//DDF
 function alertContents(http_request) {
 	if (http_request.readyState == 4)
 		try {
@@ -125,6 +137,7 @@ function alertContents(http_request) {
 		} catch (e) {}
 }
 
+//NonDDF
 function makeRequest(url) {
 	var http_request = false;
 	if (window.XMLHttpRequest) { // Mozilla, Safari,...
@@ -145,6 +158,7 @@ function makeRequest(url) {
 	http_request.send(null);
 }
 
+//DDF
 function SaveRating(pid, rate) {
 	if (rate == 0) {
 		alert('Select your rate among the other options!');
@@ -156,6 +170,7 @@ function SaveRating(pid, rate) {
 	makeRequest("./?cmd=rate&p="+pid+"&rate="+rate+"&r="+Math.round(Math.random()*100000)); // to avoid unwanted caching
 }
 
+//DDF
 function prepareBody() {
 	try {
 		reToggleInfo();
@@ -166,28 +181,33 @@ function prepareBody() {
 	} catch(e) {}
 }
 
+//NonDDF
 function confirmDelete(x) {
 	return confirm('Are you sure you want to delete "'+x+'"?');
 }
 
+//DDF
 function hideElem(x) {
 	try {
 		dg(x).style.display = 'none';
 	} catch(e) {}
 }
 
+//DDF
 function showElem(x) {
 	try {
 		dg(x).style.display = 'block';
 	} catch(e) {}
 }
 
+//DDF
 function inlineElem(x) {
 	try {
 		dg(x).style.display = 'inline';
 	} catch(e) {}
 }
 
+//DDF
 function tableRowElem(x) {
 	try {
 		dg(x).style;
@@ -198,6 +218,7 @@ function tableRowElem(x) {
 	}
 }
 
+//DDF
 function checkWV() {
 	re = /^\d{5}$/;
 	if (! re.test(dg('wvinput').value)) {
@@ -211,6 +232,7 @@ function checkWV() {
 	return true;
 }
 
+//DDF
 function doReply(x) {
 	x = parseInt(x);
 	dg('cmntReply').value = x;
@@ -221,6 +243,7 @@ function doReply(x) {
 		tableRowElem('ComReplyTR');
 }
 
+//DDF but Confix can't handle
 function toggle(w, c, t) {
 	var block = (dg(w).style.display == 'block');
 	dg(w).style.display = (block)?'none':'block';
@@ -228,16 +251,19 @@ function toggle(w, c, t) {
 	t.innerHTML = (!block)?"Hide'em again":"Show'em All";
 }
 
+//DDF
 function ss_next() {
 	ss_cur++;
 	ss_update();
 }
 
+//DDF
 function ss_prev() {
 	ss_cur--;
 	ss_update();
 }
 
+//DDF
 function ss_update() {
 	ss_cur = Math.max(ss_cur, 0);
 
@@ -273,10 +299,12 @@ function ss_update() {
 	}
 }
 
+//NonDDF
 function ss_loaddone() {
 	ss_loaded = true;
 }
 
+//DDF
 function ss_playpause() {
 	ss_play = !ss_play;
 	dg('ss_playpause_link').innerHTML = (ss_play)?'Pause it':'Play it';
@@ -284,18 +312,21 @@ function ss_playpause() {
 	ss_run();
 }
 
+//NonDDF
 function src_smaller(x) {
 	if (x.charAt(x.length-1) == ")")
 		x = x.substr(3, x.length-4);
 	return x.substr(0, x.length-5)+"4.jpg";
 }
 
+//DDF
 function ss_toggleSmaller() {
 	ss_smaller = !ss_smaller;
 	dg('ss_smaller_link').innerHTML = (ss_smaller)?'Larger Size':'Smaller Size';
 	dg('ss_photo').src = ss_smaller?src_smaller(dg('ss_photo').src):ss_src[ss_cur];
 }
 
+//DDF
 function ss_run() {
 	if ((ss_play) && (ss_awaits <= 0)) {
 		ss_awaits++;
@@ -304,6 +335,7 @@ function ss_run() {
 	}
 }
 
+//DDF
 function ss_slideshow() {
 	ss_awaits--;
 	if (ss_play == 1 && ss_loaded) {
@@ -316,8 +348,9 @@ function ss_slideshow() {
 
 
 
-// motivating example used in the paper
 
+
+// motivating DDF example used in the paper
 function sumTotalPrice(){
 	sum = 0;
 	itemList = dg('items');
@@ -329,11 +362,12 @@ function sumTotalPrice(){
 	else {
 		for (i = 0; i < itemList.children.length; i++){
 			p = itemList.children[i].value;
-			//if (typeof p === "number" && p > 0)
-			if (p === 0)
+			//if (p > 0)
+			if (p == 0)
 				sum += p;
 			else
-				dg('message').innerHTML += " Wrong value for item " + i;
+				//dg('message').innerHTML += " Wrong value for item " + i;
+				dg('message').innerHTML += "value for item " + i + " is " + itemList.children[i].value;
 		}
 		dg('total').value = sum;
 	}
