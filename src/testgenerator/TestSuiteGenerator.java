@@ -41,45 +41,26 @@ test("${function.functionName}", function() {
 public class TestSuiteGenerator {
 
 	private String testSuiteNameToGenerate;
-	private String functionName;
-	private List<String> DOMFixtureList;
-	private List<String> attributeConstraintsStatements;
+	ArrayList<TestFunction> testFunctions = new ArrayList<TestFunction>();
 
-	public TestSuiteGenerator(String testSuiteNameToGenerate, List<String> DOMFixture, String functionName, List<String> attributeConstraints){
+	public TestSuiteGenerator(String testSuiteNameToGenerate){
 		this.testSuiteNameToGenerate = testSuiteNameToGenerate;
-		this.DOMFixtureList = DOMFixture;
-		this.functionName = functionName;
-		this.attributeConstraintsStatements = attributeConstraints;
+	}
 
+	public void addNewTestMethod(String functionName, String DOMFixture, int pathNumber){
+		System.out.println("Adding test method for function "  + functionName + " for path " + pathNumber);
+		TestFunction testFunction = new TestFunction("Testing function " + functionName + " for path " + pathNumber);
+		testFunction.setFixture(DOMFixture);
+		// calling the function
+		testFunction.addStatement(functionName + ";");
+		// adding the test method to the file
+		testFunctions.add(testFunction);
 	}
 
 	/**
-	 * Generating the extended test suite in multiple files
+	 * Generating the QUnit test file
 	 */
 	public void generateTestSuite() {
-
-		ArrayList<TestFunction> testFunctions = new ArrayList<TestFunction>();
-		int numOfPathsInFunction = 0;
-
-		if (attributeConstraintsStatements.size()>0)
-			numOfPathsInFunction = attributeConstraintsStatements.size();
-
-		System.out.println("numOfPathsInFunction: " + numOfPathsInFunction);
-		//For each path in a function
-		for (int i=0; i < numOfPathsInFunction; i++){
-			TestFunction testFunction = new TestFunction("Testing function " + functionName + " for path " + (i+1));
-			testFunction.setFixture(DOMFixtureList.get(i));
-
-			// adding attribute constraints
-			if (!attributeConstraintsStatements.get(i).equals(""))
-				testFunction.addStatement(attributeConstraintsStatements.get(i));
-
-			// calling the function
-			testFunction.addStatement(functionName + ";");
-
-			// adding the test method to the file
-			testFunctions.add(testFunction);
-		}
 
 		String moduleName = testSuiteNameToGenerate;
 

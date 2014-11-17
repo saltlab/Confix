@@ -1,4 +1,4 @@
-// QUnit test cases generated @ Wed Aug 27 12:29:25 PDT 2014
+// QUnit test cases generated @ Mon Nov 17 14:39:47 PST 2014
 
 module("tests_phormer.js", {
     setup: function() {
@@ -13,115 +13,58 @@ module("tests_phormer.js", {
 
 
 
-test("Testing function toggleInfo for path 1", function() {
+test("Testing function dg('test') for path 1", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="photoBoxes"/> <div id="theImage"/> <div id="hin"/> ');
-	!dg('hin').innerHTML;
-	dg('hin').innerHTML = 'Show' + "NEGATE"
-	toggleInfo();
+	$("#qunit-fixture").append(' <div id="test"/> ');
+	dg('test');
 });
 
 
-test("Testing function toggleInfo for path 2", function() {
+test("Testing function NewSaveRating(1,3) for path 1", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="photoBoxes"/> <div id="theImage"/> <div id="hin"/> ');
-	!dg('hin').innerHTML;
-	dg('hin').innerHTML = 'Show'
-	toggleInfo();
+	$("#qunit-fixture").append('');
+	NewSaveRating(1,3);
 });
 
 
-test("Testing function toggleInfo for path 3", function() {
+test("Testing function sumTotalPrice() for path 1", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="photoBoxes"/> <div id="theImage"/> <div id="hin"/> ');
-	dg('hin').innerHTML;
-	dg('hin').innerHTML = 'Show' + "NEGATE"
-	toggleInfo();
+	$("#qunit-fixture").append(' <div id="items"/> ');
+	sumTotalPrice();
 });
 
 
-test("Testing function toggleInfo for path 4", function() {
+test("Testing function sumTotalPrice() for path 2", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="photoBoxes"/> <div id="theImage"/> <div id="hin"/> ');
-	dg('hin').innerHTML;
-	dg('hin').innerHTML = 'Show'
-	toggleInfo();
+	$("#qunit-fixture").append(' <div id="items">  <div id="ConfixGeneID1"/> </div> <div id="message"/> ');
+	sumTotalPrice();
 });
 
 
-test("Testing function updateIndic for path 1", function() {
+test("Testing function sumTotalPrice() for path 3", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="indicator"/> ');
-	updateIndic();
+	$("#qunit-fixture").append(' <div id="total"/> <div id="items">  <input id="ConfixGeneID1" value="1"/> </div> <div id="message"/> ');
+	sumTotalPrice();
 });
 
 
-test("Testing function dg for path 1", function() {
+test("Testing function sumTotalPrice() for path 4", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="TheIDShouldBeSetFromFunctionInput"/> ');
-	dg();
+	$("#qunit-fixture").append(' <div id="items">  <input id="ConfixGeneID1" value="1"/> </div> <div id="total"/> ');
+	sumTotalPrice();
 });
 
 
-test("Testing function ss_run for path 1", function() {
-	expect(0);
-	$("#qunit-fixture").append(' <div id="ss_refresh"/> ');
-	ss_run();
-});
-
-
-test("Testing function reshuffle for path 1", function() {
-	expect(0);
-	$("#qunit-fixture").append(' <div id="thumbscount"/> ');
-	reshuffle();
-});
-
-
-test("Testing function ss_toggleSmaller for path 1", function() {
-	expect(0);
-	$("#qunit-fixture").append(' <div id="ss_photo"/> <img id="ss_photo" src="ConfixGeneratedSrc"/> <div id="ss_smaller_link"/> ');
-	ss_toggleSmaller();
-});
-
-
-test("Testing function ss_playpause for path 1", function() {
-	expect(0);
-	$("#qunit-fixture").append(' <div id="ss_playpause_link2"/> <div id="ss_playpause_link"/> ');
-	ss_playpause();
-});
-
-
-test("Testing function doReply for path 1", function() {
-	expect(0);
-	$("#qunit-fixture").append(' <div id="viewComment"/> <div id="cmntReply"/> ');
-	doReply();
-});
-
-
-test("Testing function ss_update for path 1", function() {
-	expect(0);
-	$("#qunit-fixture").append(' <img id="ss_photo" src="ConfixGeneratedSrc"/> <div id="ss_photo"/> <div id="ss_title"/> <div id="ConfixGeneID84"/> <div id="ss_n"/> <div id="ss_desc"/> <div id="ss_link1"/> <div id="ss_date"/> <div id="ss_link2"/> ');
-	ss_update();
-});
-
-
-test("Testing function checkWV for path 1", function() {
-	expect(0);
-	$("#qunit-fixture").append(' <div id="cmntTextArea"/> <div id="wvinput"/> ');
-	checkWV();
-});
-
-
-test("Testing function SaveRating for path 1", function() {
+test("Testing function SaveRating(1,3) for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append(' <div id="rateStatus"/> ');
-	SaveRating();
+	SaveRating(1,3);
 });
 
 
-test("Testing function alertContents for path 1", function() {
+test("Testing function SaveRating(1,3) for path 2", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="wvwimg"/> <div id="sumRate"/> <div id="rateStatus"/> ');
-	alertContents();
+	$("#qunit-fixture").append(' <div id="indicator"/> <div id="rateStatus"/> ');
+	SaveRating(1,3);
 });
 

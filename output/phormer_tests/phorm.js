@@ -354,20 +354,15 @@ function ss_slideshow() {
 function sumTotalPrice(){
 	sum = 0;
 	itemList = dg('items');
-	x = 10;
-	if (x == 5)
-		alert("temp");
 	if (itemList.children.length === 0)
 		dg('message').innerHTML = "Item list is empty!";
 	else {
 		for (i = 0; i < itemList.children.length; i++){
 			p = itemList.children[i].value;
-			//if (p > 0)
-			if (p == 0)
+			if (p > 0)
 				sum += p;
 			else
-				//dg('message').innerHTML += " Wrong value for item " + i;
-				dg('message').innerHTML += "value for item " + i + " is " + itemList.children[i].value;
+				dg('message').innerHTML += " Wrong value for item " + i;
 		}
 		dg('total').value = sum;
 	}

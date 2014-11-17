@@ -62,7 +62,7 @@ public class TraceAnalyzer {
 	private String lastLoopCondition = "";
 	public static int numOfCombinations = 0;
 	public static int generatedID = 0;   // designed to be auto-increment and reset once fixture generated
- 
+
 
 	private List<ArrayList<DOMConstraint>> pathConditions = new ArrayList<ArrayList<DOMConstraint>>();
 	private ArrayList<DOMConstraint> currentPathCondition = new ArrayList<DOMConstraint>();
@@ -340,8 +340,8 @@ public class TraceAnalyzer {
 			dc.setEnclosingFunctionName(enclosingFunctionName);
 			if (!DOMConstraintList.contains(dc))
 				DOMConstraintList.add(dc);
-			
-			
+
+
 			//}else 
 			// e.g.  DIV = "div";  d = getElementsByTagName(DIV);
 
@@ -659,19 +659,28 @@ public class TraceAnalyzer {
 						//DOMElement.setRemoteWebElementID(RemoteWebElement);
 						DOMConstraint dc = new DOMConstraint(DOMElement);
 						//dc.setEnclosingFunctionName(enclosingFunctionName);
+						
+						// check if it is needed to add more than one child, else check if a child already exist
+						for (DOMConstraint d: DOMConstraintList){
+							if (d.getElementTypeVariable().getParentElementJSVariable().equals(pg2.getLeft().toSource())){
+								System.out.println("We already have " + d.getElementTypeVariable().getDOMJSVariable() + " as a child node of the parent node!");
+								boolean shouldAddMorethanOneChild = false;
+								if (!shouldAddMorethanOneChild){
+									return;
+								}
+							}
+						}
+						// now that the node is the first child, or we can add more than one children, add the new child to the DOMConstraintList  
 						if (!DOMConstraintList.contains(dc))
 							DOMConstraintList.add(dc);
-
 					}
-
 				}
 			}
-
-
 
 		}
 
 	}
+
 
 	private void analyseUnaryExpressionInCondition(AstNode conditionNode) {
 		System.out.println("analyseUnaryExpressionInCondition");
@@ -750,7 +759,7 @@ public class TraceAnalyzer {
 			}*/
 
 		}
-		else if (oprator.equals("==") || oprator.equals("===")){  
+		else if (oprator.equals("==") || oprator.equals("===") || oprator.equals("!==")  || oprator.equals("!=") || oprator.equals(">") || oprator.equals("<") || oprator.equals(">=") || oprator.equals("<=")){  
 			if (infix.getLeft() instanceof Name){  // e.g. if (a == ...)
 				// search among JSVariables
 				for (DOMConstraint dc: DOMConstraintList){ // e.g. if we have a = $('id') or a = $('id').html()  and then if (a == X)
@@ -791,7 +800,14 @@ public class TraceAnalyzer {
 						break;
 					}else if (etv.getValue_attributeVariable().equals(leftOperand)){
 						System.out.println(etv.getValue_attributeVariable() + " variable which refers to a value attribute of a DOM element is used in a condition");
-						etv.setValue_attribute(rightOperand);
+						if (oprator.equals("==") || oprator.equals("==="))
+							etv.setValue_attribute(rightOperand);
+						else if (oprator.equals("!==") || oprator.equals("!="))
+							etv.setValue_attribute(rightOperand+"1");
+						else if (oprator.equals(">") || oprator.equals(">="))
+							etv.setValue_attribute(Integer.toString(Integer.parseInt(rightOperand)+1));
+						else if (oprator.equals("<") || oprator.equals("<="))
+							etv.setValue_attribute(Integer.toString(Integer.parseInt(rightOperand)-1));
 						System.out.println("evt:" + etv);
 						// TODO: need to be checked later
 						String condition = conditionNode.toSource();
@@ -799,7 +815,10 @@ public class TraceAnalyzer {
 						break;
 					}else if (etv.getInnerHTML_attributeVariable().equals(leftOperand)){
 						System.out.println(etv.getInnerHTML_attributeVariable() + " variable which refers to an innerHTML attribute of a DOM element is used in a condition");
-
+						if (oprator.equals("==") || oprator.equals("==="))
+							etv.setInnerHTML_attribute(rightOperand);
+						else if (oprator.equals("!==") || oprator.equals("!="))
+							etv.setInnerHTML_attribute("Not"+rightOperand);
 						// TODO: need to be checked later
 						String condition = conditionNode.toSource();
 						dc.addConstraint(condition, true);
@@ -904,6 +923,52 @@ public class TraceAnalyzer {
 
 				AstNode parentNode = infix.getParent();
 				System.out.println("Value attribute used!");
+				System.out.println("parentNode.toSource(): " + parentNode.toSource());
+				System.out.println("parentNode.shortName(): " + parentNode.shortName());
+			}
+			else if (right.contains(".innerHTML")){
+				// e.g. document.getElementById('t').innerHTML
+				System.out.println("Variable "+ left + " referes to a DOM element's innerHTML attribute.");
+
+				ArrayList<String> argumentValueList = getArguments(map, "varValueList"); // e.g. varValueList: [[org.openqa.selenium.remote.RemoteWebElement@1c5a0a44 -> unknown locator]]
+				String DOMAccess = argumentValueList.get(0);
+
+				if (DOMAccess.contains("org.openqa.selenium.remote.RemoteWebElement")){
+					// parsing actual statement to see if there is a DOM element access. e.g. actualStatement: [org.openqa.selenium.remote.RemoteWebElement@1e2123e2 -> unknown locator]
+					String RemoteWebElement = "";
+					// extract RemoteWebElementID
+					RemoteWebElement = DOMAccess.substring(DOMAccess.lastIndexOf("@") + 1, DOMAccess.indexOf("->"));
+					System.out.println("RemoteWebElement: " + RemoteWebElement);
+
+					boolean foundDOMElement = false;
+					for (DOMConstraint dc: DOMConstraintList)
+						if (dc.getElementTypeVariable().getRemoteWebElementID().equals(RemoteWebElement)){
+							dc.getElementTypeVariable().setInnerHTML_attributeVariable(left);
+							System.out.println(left + " is set as the variable refering to the innerHTML attribute of element:" + dc.getElementTypeVariable());
+							foundDOMElement = true;
+							break;
+						}
+					if (!foundDOMElement){
+						// the innerHTML attribute is not set for an existing element. check if is set for a child node of an existing DOM element
+						if (right.contains(".children")){
+							String parentNodeInJS = right.substring(0, right.indexOf(".children"));
+							System.out.println("The innerHTML attribute of a child node of a JSDOMVariable " + parentNodeInJS + " is assigned to the variable:" + left);
+							// updating the child node to the list for the parent
+							for (DOMConstraint dc: DOMConstraintList)
+								if (dc.getElementTypeVariable().getParentElementJSVariable().equals(parentNodeInJS)){
+									dc.getElementTypeVariable().setInnerHTML_attributeVariable(left);
+									System.out.println(left + " is set as the variable refering to the innerHTML attribute of element:" + dc.getElementTypeVariable());
+									break;
+								}
+						}
+					}
+
+				}else{
+					System.out.println("Something is wrong! Value was used but not for a DOM element!!");
+				}
+
+				AstNode parentNode = infix.getParent();
+				System.out.println("innerHTML attribute used!");
 				System.out.println("parentNode.toSource(): " + parentNode.toSource());
 				System.out.println("parentNode.shortName(): " + parentNode.shortName());
 			}
@@ -1155,7 +1220,7 @@ public class TraceAnalyzer {
 			System.out.println(dc.getElementTypeVariable());
 		System.out.println("++++++++++++++++");
 
-		
+
 		// Transform constraints to xpath
 		for (DOMConstraint dc : DOMConstraintList){
 			if (dc.isAddedToTheXpath())

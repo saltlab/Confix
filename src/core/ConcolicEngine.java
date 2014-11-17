@@ -32,17 +32,17 @@ public class ConcolicEngine {
 
 	private String jsAddress;
 	private String scopeName;
-	private String functionToTest;
+	private ArrayList<String> functionsToTest = new ArrayList<String>();
+	private String currentFunctionToTest;
 	private String testSuiteNameToGenerate;
 	private String fixture = "";
 
 	private List<String> DOMFixtureList = new ArrayList<String>();
-	private List<String> attributeConstraints = new ArrayList<String>();
 
-	public ConcolicEngine(String jsAdderess, String scopeName, String functionToTest, String testSuiteNameToGenerate){
+	public ConcolicEngine(String jsAdderess, String scopeName, ArrayList<String> functionsToTest, String testSuiteNameToGenerate){
 		this.jsAddress = jsAdderess;
 		this.scopeName = scopeName;
-		this.functionToTest = functionToTest;
+		this.functionsToTest = functionsToTest;
 		this.testSuiteNameToGenerate = testSuiteNameToGenerate;
 		this.codeAnalyzer = new JSAnalyzer(new JSASTInstrumentor(), jsAddress, scopeName);
 		this.traceAnalyzer = new TraceAnalyzer();
@@ -51,6 +51,9 @@ public class ConcolicEngine {
 
 	// Runs the concolic exectuion
 	public void run() throws Exception {
+		// Generating a QUnit test file for a DOM-dependent function with DOM fixture
+		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate);
+
 		/*
 		 * 1) Execute the program.
 		 * 2) Symbolically re-execute the program on the trace, generating a set of symbolic constraints (including path conditions).
@@ -69,86 +72,97 @@ public class ConcolicEngine {
 		//System.out.println(htmlTestFile);
 		codeAnalyzer.generateHTMLTestFile(htmlTestFile);
 
-		//fixture = "<div id=\"rateStatus\"/>";//  <div id=\"indicator\"/>";
-		fixture = "";
+		// for each function in the functionsToTest
+		for (String fname: functionsToTest){
+			currentFunctionToTest = fname;
 
-		int pathCounter = 1;
-		do {
-			// Loading the htmlTestFile and reset the fixture
-			loadPage("file:///" + htmlTestFile);
+			// e.g of a fixture is "<div id=\"rateStatus\"/>";
+			fixture = "";
 
-			// Apply the new fixture on htmlTestFile
-			((JavascriptExecutor) driver).executeScript("$(\"#confixTestFixture\").append('" + fixture + "');");
+			int pathCounter = 1;
+			do {
+				// Loading the htmlTestFile and reset the fixture
+				loadPage("file:///" + htmlTestFile);
 
-			try{
-				// Execute the function under test according to the user input value
-				((JavascriptExecutor) driver).executeScript(functionToTest + ";");
-			}
-			catch(Exception e){
-				System.out.println("Failed to execute function " + functionToTest + ": " + e);
-			}
+				// Apply the new fixture on htmlTestFile
+				((JavascriptExecutor) driver).executeScript("$(\"#confixTestFixture\").append('" + fixture + "');");
 
-			// Get the execution trace
-			traceAnalyzer.resetDOMConstraintList();
-			ArrayList traceList = (ArrayList)((JavascriptExecutor) driver).executeScript("return getConfixTrace();");
-			System.out.println("traceList: " + traceList);
-			Map<String,String> map;
-			for (int i=0; i<traceList.size(); i++){
-				map = (Map<String,String>)(traceList.get(i));
-				traceAnalyzer.analyzeTrace(map);
-			}
-
-			// check if all the new path condition is repeated i.e. all paths are exercised
-			ArrayList<DOMConstraint> currentPathCondition = new ArrayList<DOMConstraint>();
-					
-			currentPathCondition.addAll(traceAnalyzer.getcurrentPathCondition());
-			if (traceAnalyzer.addToPathConditions(currentPathCondition)){
-				traceAnalyzer.clearCurrentPathCodition();
-				traceAnalyzer.getDOMConstraintList();
-				TraceAnalyzer.generatedID = 0;  // resetting the static auto-increment generatedID
-
-				System.out.println("");
-				
-				System.out.println("**********************");
-				for (DOMConstraint dc: traceAnalyzer.getDOMConstraintList()){
-					System.out.println("dc.getCorrespondingXpath(): " + dc.getCorrespondingXpath());
-					//System.out.println("dc.getConstraints():" + dc.getConstraints());
-					//System.out.println("dc.getStatementsForAllConstraints():" + dc.getStatementsForAllConstraints());
-					System.out.println("dc.getElementTypeVariable(): " + dc.getElementTypeVariable());
+				try{
+					// Execute the function under test according to the user input value
+					((JavascriptExecutor) driver).executeScript(currentFunctionToTest + ";");
 				}
-				System.out.println("**********************");
+				catch(Exception e){
+					System.out.println("Failed to execute function " + currentFunctionToTest + ": " + e);
+				}
 
-				// Generate DOM constraints from the trace
+				// Get the execution trace
+				traceAnalyzer.resetDOMConstraintList();
+				ArrayList traceList = (ArrayList)((JavascriptExecutor) driver).executeScript("return getConfixTrace();");
+				System.out.println("traceList: " + traceList);
+				Map<String,String> map;
+				for (int i=0; i<traceList.size(); i++){
+					map = (Map<String,String>)(traceList.get(i));
+					traceAnalyzer.analyzeTrace(map);
+				}
 
-				//System.out.println("traceAnalyzer.getDOMDependentFunctions(): " + traceAnalyzer.getDOMDependentFunctions());
+				// check if all the new path condition is repeated i.e. all paths are exercised
+				ArrayList<DOMConstraint> currentPathCondition = new ArrayList<DOMConstraint>();
 
-				
-				
-				//List<List<String>> attributeConstraintList = getAttributeConstraintList(traceAnalyzer.getDOMDependentFunctions());
-				//System.out.println("attributeConstraintList: " + attributeConstraintList);
+				currentPathCondition.addAll(traceAnalyzer.getcurrentPathCondition());
+				if (traceAnalyzer.addToPathConditions(currentPathCondition)){
+					traceAnalyzer.clearCurrentPathCodition();
+					traceAnalyzer.getDOMConstraintList();
+					TraceAnalyzer.generatedID = 0;  // resetting the static auto-increment generatedID
 
-				
-				
-				String DOMFixture = getDOMFixture();
+					System.out.println("");
 
-				System.out.println("DOMFixture: " + DOMFixture);
-				DOMFixtureList.add(DOMFixture);
+					System.out.println("**********************");
+					for (DOMConstraint dc: traceAnalyzer.getDOMConstraintList()){
+						dc.getCorrespondingXpath();
+						//System.out.println("dc.getCorrespondingXpath(): " + dc.getCorrespondingXpath());
+						//System.out.println("dc.getConstraints():" + dc.getConstraints());
+						//System.out.println("dc.getStatementsForAllConstraints():" + dc.getStatementsForAllConstraints());
+						//System.out.println("dc.getElementTypeVariable(): " + dc.getElementTypeVariable());
+					}
+					System.out.println("**********************");
 
-				// Transform the DOM constraints in into xpath constraint (xpath rule)
+					// Generate DOM constraints from the trace
 
-				// Solve xpath constraints and generate corresponding DOMFixture
+					//System.out.println("traceAnalyzer.getDOMDependentFunctions(): " + traceAnalyzer.getDOMDependentFunctions());
+					//List<List<String>> attributeConstraintList = getAttributeConstraintList(traceAnalyzer.getDOMDependentFunctions());
+					//System.out.println("attributeConstraintList: " + attributeConstraintList);
 
-				// Generate a new fixture to execute another path. If all paths were exercised, fixture will be set to "" to terminate the loop
-				fixture = DOMFixture;
-				System.out.println("=======> Path #" + pathCounter++ + ": DOM fixture: " + fixture);
-			}else{
-				System.out.println("=======> No new path was found. Terminating the concolic engine...");
-				fixture="";
-			}
-		} while (fixture!="");
+					String DOMFixture = getDOMFixture();
+
+					System.out.println("DOMFixture: " + DOMFixture);
+					if (DOMFixtureList.contains(DOMFixture)){
+						System.out.println("No new fixyture found!");
+						break;
+					}
+					DOMFixtureList.add(DOMFixture);
+
+					// Transform the DOM constraints in into xpath constraint (xpath rule)
+
+					// Solve xpath constraints and generate corresponding DOMFixture
+
+					// Generate a new fixture to execute another path. If all paths were exercised, fixture will be set to "" to terminate the loop
+					fixture = DOMFixture;
+					// Generating a new test method
+					tsg.addNewTestMethod(currentFunctionToTest, fixture, pathCounter);
+
+					System.out.println("=======> Path #" + pathCounter++ + ": DOM fixture: " + fixture);
+					
+				}else{
+					System.out.println("=======> No new path was found. Terminating the concolic engine...");
+					fixture="";
+				}
+			} while (fixture!="");
+		}
+
+		// Generate a QUnit test file
+		tsg.generateTestSuite();
 
 		quitDriver();
-
 	}
 
 
@@ -211,16 +225,6 @@ public class ConcolicEngine {
 
 
 
-	public void generateTestSuite() throws Exception {
-		// Generate a QUnit test file for a DOM-dependent function with DOM fixture
-		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate, DOMFixtureList, functionToTest, attributeConstraints);
-		tsg.generateTestSuite();
-	}
-
-
-
-
-
 
 	/*
 	public List<String> getAttributeConstraintList() {
@@ -262,7 +266,7 @@ public class ConcolicEngine {
 		XpathSolver xpathsolver = new XpathSolver();
 		String DOMFixture = "";
 		String xpathToSolve = traceAnalyzer.generateXpathConstraints();
-		System.out.println("DOM fixture for function: " + functionToTest);
+		System.out.println("DOM fixture for function: " + currentFunctionToTest);
 		if (!xpathToSolve.equals("select(\"document[]\")")){
 			xpathsolver.setXpath(xpathToSolve);
 			xpathsolver.solve();

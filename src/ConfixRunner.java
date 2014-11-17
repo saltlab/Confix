@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 import core.ConcolicEngine;
 
 public class ConfixRunner {
@@ -7,21 +9,26 @@ public class ConfixRunner {
 	private static String testSuiteNameToGenerate = "tests_phormer.js";
 	
 	// provide input values for a DOM dependent function 
-
-	// Testing phormer.js DDFs
-	//private static String functionToTest = "dg('test')";
-	//private static String functionToTest = "NewSaveRating(1,3)";
-	private static String functionToTest = "sumTotalPrice()";
-	//private static String functionToTest = "SaveRating(1,3)";
+	private static ArrayList<String> functionToTest = new ArrayList<String>();
 	
-	
-	
-
 	public static void main(String[] args) throws Exception {
+
+		// Testing phormer.js DDFs
+		/*functionToTest.add("toggleInfo()");
+		functionToTest.add("toggleInfo('')");
+		functionToTest.add("toggleInfo('Show')");
+		functionToTest.add("toggleInfo('Hide')");
+		functionToTest.add("toggleInfo()");
+		functionToTest.add("toggleInfo()");
+		functionToTest.add("toggleInfo()");
+		*/
+		functionToTest.add("dg('test')");
+		functionToTest.add("NewSaveRating(1,3)");
+		functionToTest.add("sumTotalPrice()");
+		functionToTest.add("SaveRating(1,3)");
 
 		ConcolicEngine ce = new ConcolicEngine(jsAdderess, scopeName, functionToTest, testSuiteNameToGenerate);
 		ce.run();
-		ce.generateTestSuite();
 	}
 
 

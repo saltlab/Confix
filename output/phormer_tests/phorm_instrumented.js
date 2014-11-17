@@ -325,16 +325,13 @@ function ss_slideshow() {
 function sumTotalPrice() {
   sum = confixWrapper("infix", "sum = 0", [""], [], "sumTotalPrice", 0);
   itemList = confixWrapper("infix", "itemList = confixWrapper(\"functionCall\", \"dg('items')\", [\"items\"], ['items'], \"sumTotalPrice\", dg('items'))", [""], [], "sumTotalPrice", confixWrapper("functionCall", "dg('items')", ["items"], ['items'], "sumTotalPrice", dg('items')));
-  x = confixWrapper("infix", "x = 10", [""], [], "sumTotalPrice", 10);
-  if (confixWrapper("condition", "x == 5", [""], [], "sumTotalPrice", x == 5)) 
-  confixWrapper("functionCall", "alert(\"temp\")", ["temp"], ["temp"], "sumTotalPrice", alert("temp"));
   if (confixWrapper("condition", "itemList.children.length === 0", [""], [], "sumTotalPrice", itemList.children.length === 0)) 
   confixWrapper("functionCall", "dg('message')", ["message"], ['message'], "sumTotalPrice", dg('message')).innerHTML = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('message')\", [\"message\"], ['message'], \"sumTotalPrice\", dg('message')).innerHTML = \"Item list is empty!\"", [""], [], "sumTotalPrice", "Item list is empty!"); else {
     for (i = confixWrapper("infix", "i = 0", [""], [], "sumTotalPrice", 0); confixWrapper("loopCondition", "i < itemList.children.length", ["i", "itemList"], [i, itemList], "sumTotalPrice", i < itemList.children.length); i++) 
       {
         p = confixWrapper("infix", "p = itemList.children[i].value", ["itemList.children[i]"], [itemList.children[i]], "sumTotalPrice", itemList.children[i].value);
-        if (confixWrapper("condition", "p == 0", [""], [], "sumTotalPrice", p == 0)) 
-        sum += p; else confixWrapper("functionCall", "dg('message')", ["message"], ['message'], "sumTotalPrice", dg('message')).innerHTML += "value for item " + i + " is " + itemList.children[i].value;
+        if (confixWrapper("condition", "p > 0", [""], [], "sumTotalPrice", p > 0)) 
+        sum += p; else confixWrapper("functionCall", "dg('message')", ["message"], ['message'], "sumTotalPrice", dg('message')).innerHTML += " Wrong value for item " + i;
       }
     confixWrapper("functionCall", "dg('total')", ["total"], ['total'], "sumTotalPrice", dg('total')).value = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('total')\", [\"total\"], ['total'], \"sumTotalPrice\", dg('total')).value = sum", [""], [], "sumTotalPrice", sum);
   }
