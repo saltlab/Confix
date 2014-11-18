@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.openqa.selenium.Alert;
+import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxBinary;
@@ -72,6 +74,7 @@ public class ConcolicEngine {
 		//System.out.println(htmlTestFile);
 		codeAnalyzer.generateHTMLTestFile(htmlTestFile);
 
+
 		// for each function in the functionsToTest
 		for (String fname: functionsToTest){
 			currentFunctionToTest = fname;
@@ -82,8 +85,13 @@ public class ConcolicEngine {
 			int pathCounter = 1;
 			do {
 				// Loading the htmlTestFile and reset the fixture
-				loadPage("file:///" + htmlTestFile);
+				//driver.get("file:///" + htmlTestFile);
 
+				// To get coverage by JSCover the runner html should be loaded from a server not local directory
+				// Also the XHR replacement in the instrumented file should be removed as JSCover also changes XHR
+				driver.get("http://localhost:8888/concolic/phormer_tests/concolic.htm");
+
+				
 				// Apply the new fixture on htmlTestFile
 				((JavascriptExecutor) driver).executeScript("$(\"#confixTestFixture\").append('" + fixture + "');");
 
@@ -114,24 +122,11 @@ public class ConcolicEngine {
 					traceAnalyzer.getDOMConstraintList();
 					TraceAnalyzer.generatedID = 0;  // resetting the static auto-increment generatedID
 
-					System.out.println("");
-
-					System.out.println("**********************");
 					for (DOMConstraint dc: traceAnalyzer.getDOMConstraintList()){
 						dc.getCorrespondingXpath();
-						//System.out.println("dc.getCorrespondingXpath(): " + dc.getCorrespondingXpath());
-						//System.out.println("dc.getConstraints():" + dc.getConstraints());
-						//System.out.println("dc.getStatementsForAllConstraints():" + dc.getStatementsForAllConstraints());
-						//System.out.println("dc.getElementTypeVariable(): " + dc.getElementTypeVariable());
 					}
-					System.out.println("**********************");
 
 					// Generate DOM constraints from the trace
-
-					//System.out.println("traceAnalyzer.getDOMDependentFunctions(): " + traceAnalyzer.getDOMDependentFunctions());
-					//List<List<String>> attributeConstraintList = getAttributeConstraintList(traceAnalyzer.getDOMDependentFunctions());
-					//System.out.println("attributeConstraintList: " + attributeConstraintList);
-
 					String DOMFixture = getDOMFixture();
 
 					System.out.println("DOMFixture: " + DOMFixture);
@@ -142,16 +137,14 @@ public class ConcolicEngine {
 					DOMFixtureList.add(DOMFixture);
 
 					// Transform the DOM constraints in into xpath constraint (xpath rule)
-
 					// Solve xpath constraints and generate corresponding DOMFixture
-
 					// Generate a new fixture to execute another path. If all paths were exercised, fixture will be set to "" to terminate the loop
 					fixture = DOMFixture;
 					// Generating a new test method
 					tsg.addNewTestMethod(currentFunctionToTest, fixture, pathCounter);
 
 					System.out.println("=======> Path #" + pathCounter++ + ": DOM fixture: " + fixture);
-					
+
 				}else{
 					System.out.println("=======> No new path was found. Terminating the concolic engine...");
 					fixture="";
@@ -162,7 +155,16 @@ public class ConcolicEngine {
 		// Generate a QUnit test file
 		tsg.generateTestSuite();
 
-		quitDriver();
+		//driver.get("http://localhost:8888/concolic/phormer_tests/concolic1.htm");
+
+		try{
+			((JavascriptExecutor) driver).executeScript("return jscoverage_report('CoverageReport');");
+		}
+		catch(Exception e){
+			System.out.println("Failed to execute function " + e);
+		}
+
+		driver.quit();
 	}
 
 
@@ -175,8 +177,15 @@ public class ConcolicEngine {
 			runProxy(prox);
 			driverSetup(prox);
 		}else{
-			FirefoxBinary binary = new FirefoxBinary(new File("/Applications/Firefox 2.app/Contents/MacOS/firefox"));
 			FirefoxProfile profile = new FirefoxProfile();
+			profile.setPreference("network.proxy.http", "localhost");
+			profile.setPreference("network.proxy.http_port", 3128);
+			profile.setPreference("network.proxy.type", 1);
+			/* use proxy for everything, including localhost */
+			profile.setPreference("network.proxy.no_proxies_on", "");
+			//FirefoxProfile profile = new FirefoxProfile();
+			
+			FirefoxBinary binary = new FirefoxBinary(new File("/Applications/Firefox 2.app/Contents/MacOS/firefox"));
 			driver = new FirefoxDriver(binary, profile);
 			// setting the webdriver without proxy
 			//driver = new FirefoxDriver();
@@ -213,15 +222,6 @@ public class ConcolicEngine {
 		((JavascriptExecutor) driver).executeScript(javascript);
 	}
 
-	public void quitDriver() throws Exception {
-		//if (getCoverageReport)
-		//	((JavascriptExecutor) driver).executeScript(" if (window.jscoverage_report) {return jscoverage_report('CodeCoverageReport');}");
-		driver.quit();
-	}
-
-	public void loadPage(String htmlTestFile){
-		driver.get(htmlTestFile);
-	}
 
 
 
@@ -286,6 +286,34 @@ public class ConcolicEngine {
 			e.printStackTrace();
 		}		
 	}
+
+
+	public void generateCoverageReport() {
+		FirefoxProfile profile = new FirefoxProfile();
+		profile.setPreference("network.proxy.http", "localhost");
+		profile.setPreference("network.proxy.http_port", 3128);
+		profile.setPreference("network.proxy.type", 1);
+		/* use proxy for everything, including localhost */
+		profile.setPreference("network.proxy.no_proxies_on", "");
+
+		FirefoxBinary binary = new FirefoxBinary(new File("/Applications/Firefox 2.app/Contents/MacOS/firefox"));
+		driver = new FirefoxDriver(binary, profile);
+
+		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+
+		driver.get("file:///Users/aminmf/Documents/workspace/confix/output/phormer_tests/phorm_tests.html");
+		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+
+		Alert alert = driver.switchTo().alert();
+		alert.getText();
+		alert.accept();
+
+
+		((JavascriptExecutor) driver).executeScript(" if (window.jscoverage_report) {return jscoverage_report('CodeCoverageReport');}");
+		driver.quit();
+	}
+
+
 
 
 	// OLD VERSION
