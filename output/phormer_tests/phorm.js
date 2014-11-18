@@ -112,7 +112,7 @@ function updateIndic() {
 		dg('indicator').innerHTML = '';
 }
 
-//DDF
+//DDF, Confix can't handle it directly. It is used by other DDFs 
 function alertContents(http_request) {
 	if (http_request.readyState == 4)
 		try {
