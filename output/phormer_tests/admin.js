@@ -2,6 +2,7 @@ var blured = false;
 var MAX_ADD_BOX = 20;
 var nowTime;
 
+// DDF
 function PrepareBody() {
 	try {
 		dg('newpasswd').focus();
@@ -28,6 +29,7 @@ function PrepareBody() {
 		try { alli[i].onfocus = alli[i].select; } catch(e) {}
 }
 
+//NonDDF
 function getMyXY(eve, t) {
 	var tt
 	if(!eve)
@@ -37,32 +39,38 @@ function getMyXY(eve, t) {
 	return t?document.all?eve.clientY+tt:eve.pageY:document.all?eve.clientX:eve.pageX;
 }
 
+//NonDDF
 function wordize(s) {
 	return s[0].toUpperCase()+s.substring(1);
 }
 
+// DDF
 function dg(x) {
 	return document.getElementById(x);
 }
 
+// DDF
 function hideElem(x) {
 	try {
 		dg(x).style.display = 'none';
 	} catch(e) {}
 }
 
+// DDF
 function showElem(x) {
 	try {
 		dg(x).style.display = 'block';
 	} catch(e) {}
 }
 
+// DDF
 function inlineElem(x) {
 	try {
 		dg(x).style.display = 'inline';
 	} catch(e) {}
 }
 
+//DDF
 function tableRowElem(x) {
 	try {
 		dg(x).style;
@@ -73,6 +81,7 @@ function tableRowElem(x) {
 	}
 }
 
+//DDF
 function checkChangePass() {
 	var np1 = dg('newpasswd1').value;
 	var np2 = dg('newpasswd2').value;
@@ -87,6 +96,7 @@ function checkChangePass() {
 	return true;
 }
 
+//DDF
 function checkInstallPass() {
 	var np = dg('newpasswd').value;
 	if (np.length < 4) {
@@ -96,6 +106,7 @@ function checkInstallPass() {
 	return true;
 }
 
+//DDF
 function checkPrivacyRow() {
 	var p = dg('public').checked;
 	if (p) {
@@ -111,6 +122,7 @@ function checkPrivacyRow() {
 	}
 }
 
+//DDF
 function checkHasPass() {
 	if (dg('name').value == "") {
 		alert('"Name" field can not be left blank!');
@@ -123,10 +135,12 @@ function checkHasPass() {
 	return true;
 }
 
+//NonDDF
 function confirmDelete(x) {
 	return confirm('Are you sure you want to delete "'+x+'"?');
 }
 
+//DDF
 function checkDate() {
 	if (dg('date').value.length == 0) {
 		alert('Date is required');
@@ -140,6 +154,7 @@ function checkDate() {
 	return true;
 }
 
+//DDF
 function CheckAddPhotoTime() {
 	retime = /^\d{4}\/\d{2}\/\d{2}[ ]\d{2}[:]\d{2}$/;
 	re = /^\d{4}\/\d{2}\/\d{2}$/;
@@ -159,6 +174,7 @@ function CheckAddPhotoTime() {
 	return true;
 }
 
+//DDF
 function CheckAddPhoto() {
 	if (!CheckAddPhotoTime())
 		return false;
@@ -169,22 +185,27 @@ function CheckAddPhoto() {
 	return true;
 }
 
+//NonDDF
 function ConfirmDelPhotoID(x) {
 	return confirm('Are you sure you want to delete photo number "'+x+'"?');
 }
 
+//DDF
 function ConfirmDelPhoto() {
 	return ConfirmDelPhotoID(dg('piddel').value);
 }
 
+//NonDDF
 function ConfirmRestore() {
 	return confirm('Are you sure you want to restore the backup file?');
 }
 
+//NonDDF
 function ConfirmSave() {
 	return confirm('Are you sure you want to save your modification?');
 }
 
+//DDF
 function showlinkline(x) {
 	dg('linkline'+x).style.display = 'table-row';
 }
@@ -193,6 +214,7 @@ function hidelinkline(x) {
 	//dg('linkline'+x).style.display = 'none';
 }
 
+//DDF
 function linkAddBelow(x) {
 	x = parseInt(x.id.substr(8, x.id.length));
 	//alert(x*10);
@@ -241,6 +263,7 @@ function linkAddBelow(x) {
 	//showlinkline(n-1);
 }
 
+//DDF
 function linkDelThis(x) {
 	x = parseInt(x.id.substr(8, x.id.length));
 
@@ -264,6 +287,7 @@ function linkDelThis(x) {
 	removeThisNode('linkline'+n);
 }
 
+//DDF
 function removeThisNode(node) {
 	if (dg(node))
 		node = dg(node);
@@ -271,6 +295,7 @@ function removeThisNode(node) {
 	updateMode();
 }
 
+//DDF
 function addMainColDiv() {
  	var allModes = dg('allModes');
 
@@ -291,6 +316,7 @@ function addMainColDiv() {
  	updateMode();
 }
 
+//DDF
 function updateMode() {
  	var allModes = dg('allModes');
 
@@ -309,10 +335,12 @@ function updateMode() {
 	changePrev(dg('mode').value, '');
 }
 
+//DDF
 function fixBoldInput(x, val) {
 	dg('l'+x+'n').style.fontWeight = (val.length > 0)?'normal':'bold';
 }
 
+//DDF
 function changePrev() {
 	var mode = dg('mode').value;
 	var theme = dg('theme').value;
@@ -320,11 +348,13 @@ function changePrev() {
 	dg('prevmode2').setAttribute("href", './?mode='+mode+'&theme='+theme);
 }
 
+//DDF
 function rethumb_fill(ImgPath) {
 	dg('thumbPrev').src = ImgPath;
 	dg('thePhoto').style.backgroundImage = "url('"+ImgPath+"')";
 }
 
+//DDF
 function rethumb() {
 	var ImgPath = dg('thumbPrev').src;
 	dg('thumbPrev').src = '';
@@ -332,6 +362,7 @@ function rethumb() {
 	setTimeout("rethumb_fill(ImgPath)", 1000);
 }
 
+//DDF
 function ToggleAdvPref() {
 	var pref = dg('AdvPref');
 	if (pref.style.display == 'block') {
@@ -344,6 +375,7 @@ function ToggleAdvPref() {
 	}
 }
 
+//DDF
 function updateTimeDiffer(x) {
 	try {
 		x = eval(x);
@@ -361,6 +393,7 @@ function updateTimeDiffer(x) {
 	dg('timeDiffShow').innerHTML = hours+":"+minutes;
 }
 
+//DDF
 function CheckDateDrafts() {
 	retime = /^\d{4}\/\d{2}\/\d{2}[ ]\d{2}[:]\d{2}$/;
 	if (dg('dateadd').value.length == 0) {
@@ -375,6 +408,7 @@ function CheckDateDrafts() {
 
 }
 
+//DDF
 function CheckActionDrafts() {
 	if (parseInt(dg('selCount1').innerHTML ) == 0) {
 		alert("At least one file should be selected!");
@@ -388,10 +422,12 @@ function CheckActionDrafts() {
 	return true;
 }
 
+//NonDDF
 function CheckDeleteThisDrafts(which) {
 	return confirm("Are you sure you want to delete file "+which + "?");
 }
 
+//DDF
 function updateSelCount() {
 	var r = 0;
 	var alli = document.getElementsByTagName('input');
@@ -405,6 +441,7 @@ function updateSelCount() {
 	dg('selCount2').innerHTML = r;
 }
 
+//DDF
 function DraftsSelectBit(_and, _xor) {
 	var alli = document.getElementsByTagName('input');
 	for (var i=0; i<alli.length; i++)
@@ -417,6 +454,7 @@ function DraftsSelectBit(_and, _xor) {
 	updateSelCount();
 }
 
+//DDF
 function AddAddBox() {
 	dg('boxv').value = parseInt(dg('boxv').value) + 1;
 	if (dg('boxv').value >= MAX_ADD_BOX)

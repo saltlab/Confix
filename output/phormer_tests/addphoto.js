@@ -11,10 +11,12 @@ var AjaxDelay = 1500;
 var isFakeDateTaken = false;
 var FileName;
 
+// NonDDF
 function setFakeDate(wat) {
 	isFakeDateTaken = wat;
 }
 
+//NonDDF
 function alertContents(http_request, seed) {
 	if (http_request.readyState == 4)
 		try {
@@ -26,6 +28,7 @@ function alertContents(http_request, seed) {
 		} catch(e) {}
 }
 
+//NonDDF
 function makeRequest(url, seed) {
 	var http_request = false;
 	if (window.XMLHttpRequest) { // Mozilla, Safari,...
@@ -46,6 +49,7 @@ function makeRequest(url, seed) {
 	http_request.send(null);
 }
 
+// DDF
 function setExif(seed) {
 	if (AjaxVal[seedId(seed)].charAt(0) != '!')
 		AttemptEXIF(seed, ImgPath9);
@@ -76,6 +80,7 @@ function setExif(seed) {
 	}
 }
 
+// DDF
 function imageUploaded(indeed, seed) {
 	if (hasgd) {
 		hideElem('thumb_note_wrapper_'+seed);
@@ -105,6 +110,7 @@ function imageUploaded(indeed, seed) {
 		dg('PhotoTitleId').value = FileName.substr(0, FileName.length-4);
 }
 
+//NonDDF
 /* might be externally called */
 function AttemptEXIF(_seed, _ImgPath9) {
 	seed = _seed;
@@ -117,6 +123,7 @@ function AttemptEXIF(_seed, _ImgPath9) {
 	}
 }
 
+//NonDDF
 function Ajaxify(action, seed) {
 	//dg('jj').innerHTML += '&&&&&&&&&&&&&&& AJAX &&&&&&&&&&&&&&& '+action+':'+seed+'<br />';
 	var str = "upload.php?mod="+action+"&seed="+seed;
@@ -125,6 +132,7 @@ function Ajaxify(action, seed) {
 	makeRequest(str+"&r="+Math.round(Math.random()*100000), seed); // to avoid unwanted caching
 }
 
+// DDF
 function writeYet(seed, draft) {
 	//dg('jj').innerHTML += draft + 'seed=>'+seed+' , draft=>' +draft+', AV=>'+AjaxVal[seedId(seed)]+' ::' +seedArr[0]+','+seedArr[1]+' ::' +AjaxVal[0]+','+AjaxVal[1]+'<br />';
 	Ajaxify("listen", seed);
@@ -217,6 +225,7 @@ function writeYet(seed, draft) {
 	}
 }
 
+//NonDDF
 function seedId(seed) {
 	var n = seedArr.length;
 	var ret = -1;
@@ -231,6 +240,7 @@ function seedId(seed) {
 	return ret;
 }
 
+// DDF
 function uploadSubmitted(theseed, gd, tdraft, pcup) {
 	hasgd = gd;
 	seed = theseed;

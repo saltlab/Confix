@@ -6,6 +6,7 @@ document.onmouseup = captureMousedown;
 document.onkeydown = captureKeydown;
 document.onkeyup = captureKeyup;
 
+//NonDDF
 function captureMousedown(e) {
 	ReleaseMouse();
 	var mc = e?e.which:window.event.button;
@@ -14,6 +15,7 @@ function captureMousedown(e) {
 		HideHelp();
 }
 
+//NonDDF
 function captureKeydown(e) {
 	var k = e?e.which:window.event.keyCode;
 	if (k == 27)
@@ -23,6 +25,7 @@ function captureKeydown(e) {
 }
 
 
+//NonDDF
 function captureKeyup(e) {
 	var k = e?e.which:window.event.keyCode;
 	if (k == 16) // shift
@@ -30,11 +33,13 @@ function captureKeyup(e) {
 }
 
 
+//NonDDF
 function DontHideHelp() {
 	dont_help = true;
 }
 
 
+//DDF
 function HideHelp() {
 	if ((dgp('helpBox').style.display != 'block') || (dont_help)) {
 		dont_help = false;
@@ -49,10 +54,12 @@ function HideHelp() {
 	}
 }
 
+//DDF
 function dgp(x) {
 	return document.getElementById(x);
 }
 
+//DDF
 function ShowHelp(s, eve, lang) {
 	if ((dgp('helpBoxLegend').innerHTML == s)) {
 		HideHelp();
@@ -81,6 +88,7 @@ function ShowHelp(s, eve, lang) {
 }
 
 
+//NonDDF
 function getMyXY(eve, t) {
 	var myY, myX;
 	if(!eve)
@@ -102,6 +110,7 @@ function getMyXY(eve, t) {
 }
 
 
+//DDF
 function SwitchSelectIE(t) {
 	if (isIE()) {
 		var SS = document.styleSheets[0];
@@ -115,6 +124,7 @@ function SwitchSelectIE(t) {
 	}
 }
 
+//NonDDF
 function isIE() {
 	return (navigator.appName.indexOf('Microsoft') != -1) && !window.opera;
 }
@@ -123,6 +133,7 @@ function isIE() {
 /********************** GET HELP MESSAGES FUNCTION **************************/
 /****************************************************************************/
 
+//NonDDF
 /********* Italian Translation, to be implemented **********/
 function GetItHelpMsg(s) {
 	var r = "";
@@ -134,6 +145,7 @@ function GetItHelpMsg(s) {
 	return r;
 }
 
+//NonDDF
 /********* English Translation, By Aideen [i.horm.org] **********/
 function GetHelpMsg(s) {
 	var r = "";

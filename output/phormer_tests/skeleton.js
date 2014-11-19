@@ -4,10 +4,12 @@ var theRatio = 1;
 var dBord = 0;
 var shiftDown = false;
 
+//DDF
 function SaveRatio() {
 	theRatio = parseFloat(dg('skeleton').style.width)/parseFloat(dg('skeleton').style.height);
 }
 
+//DDF
 function MouseDown(x, eve) {
 	stickToMouse = x;
 	wasX = getMyXY(eve, 0);
@@ -18,15 +20,18 @@ function MouseDown(x, eve) {
 	wasSklL = parseInt(dg('skeleton').style.left);
 }
 
+//DDF
 function MouseDownTheSkeleton(eve) {
 	if (stickToMouse == -1)
 		MouseDown(5, eve);
 }
 
+//NonDDF
 function ReleaseMouse() {
 	stickToMouse = -1;
 }
 
+//DDF
 function ExpandSkl() {
 	var ImgW = parseInt(dg('thePhoto').style.width);
 	var ImgH = parseInt(dg('thePhoto').style.height);
@@ -67,6 +72,7 @@ function keyHitUp(e) {
 
 */
 
+//DDF
 function MouseMoveInside(eve) {
 	if (stickToMouse == -1)
 		return;
@@ -119,6 +125,7 @@ function MouseMoveInside(eve) {
 	UpdateThumbPrev();
 }
 
+//DDF
 function UpdateThumbPrev() {
 	dg('sklW').value = parseInt(dg('skeleton').style.width);
 	dg('sklH').value = parseInt(dg('skeleton').style.height);
