@@ -418,19 +418,19 @@ public class JSASTInstrumentor implements NodeVisitor{
 		if (node.getEnclosingFunction()!=null)
 			enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
 
-		InfixExpression infex = (InfixExpression) node;
-		String left = infex.getLeft().toSource();
-		String oprator = ASTNodeUtility.operatorToString(infex.getOperator());
-		String right = infex.getRight().toSource();
+		InfixExpression infix = (InfixExpression) node;
+		String left = infix.getLeft().toSource();
+		String oprator = ASTNodeUtility.operatorToString(infix.getOperator());
+		String right = infix.getRight().toSource();
 
-		System.out.println("infex.toSource(): " + infex.toSource());
+		System.out.println("infix.toSource(): " + infix.toSource());
 		System.out.println("Left: " + left);
-		System.out.println("Left.shortName: " + infex.getLeft().shortName());
+		System.out.println("Left.shortName: " + infix.getLeft().shortName());
 		System.out.println("Operator: " + oprator);
 		System.out.println("Right: " + right);			
-		System.out.println("Right.shortName: " + infex.getRight().shortName());
+		System.out.println("Right.shortName: " + infix.getRight().shortName());
 
-		String originalSource = infex.toSource().replace("\"", "\\\"");		
+		String originalSource = infix.toSource().replace("\"", "\\\"");		
 		originalSource = originalSource.replace("\n", "").replace("\r", ""); // if it contains a function body		
 		if (oprator.equals("=")){
 			// e.g. a = b -> a = confixWrapper("infix", "a=b", [""], [], b)
@@ -439,6 +439,8 @@ public class JSASTInstrumentor implements NodeVisitor{
 			String wrapperCode = left + " = confixWrapper(\"infix\", \""+ originalSource +"\", [";
 			if (right.contains(".value"))  // e.g. p = itemList.children[i].value;
 				wrapperCode += ("\"" + right.replace(".value", "") + "\", "); 
+			else if (right.contains(".innerHTML"))  // e.g. p = x.innerHTML;
+				wrapperCode += ("\"" + right.replace(".innerHTML", "") + "\", "); 
 			else
 				wrapperCode += "\"\""; 
 
@@ -446,6 +448,8 @@ public class JSASTInstrumentor implements NodeVisitor{
 
 			if (right.contains(".value"))  // e.g. p = itemList.children[i].value;
 				wrapperCode += (right.replace(".value", "") + ", "); 
+			else if (right.contains(".innerHTML"))  // e.g. p = x.innerHTML;
+				wrapperCode += (right.replace(".innerHTML", "") + ", "); 
 
 			wrapperCode += "], \"" + enclosingFunction + "\", " + right + ")";
 
@@ -458,11 +462,11 @@ public class JSASTInstrumentor implements NodeVisitor{
 			ExpressionStatement es = (ExpressionStatement) (AstNode) wrapperNode.getFirstChild();
 			System.out.println("ES: " + es.toSource());
 			InfixExpression tempInf = (InfixExpression) (AstNode) es.getExpression();
-			System.out.println("Replacing infix: " + infex.toSource() + " with wrappedInfix: " + tempInf.toSource());
-			infex.setLeft(tempInf.getLeft());
-			infex.setOperator(tempInf.getOperator());
-			infex.setRight(tempInf.getRight());
-			System.out.println("New infix is: " + infex.toSource());	
+			System.out.println("Replacing infix: " + infix.toSource() + " with wrappedInfix: " + tempInf.toSource());
+			infix.setLeft(tempInf.getLeft());
+			infix.setOperator(tempInf.getOperator());
+			infix.setRight(tempInf.getRight());
+			System.out.println("New infix is: " + infix.toSource());	
 		}
 		// No need for other instrumentation at this point
 		//else if (oprator.equals("GETPROP")){	
@@ -640,6 +644,11 @@ public class JSASTInstrumentor implements NodeVisitor{
 			return;
 		}
 
+		// TODO: Getting rid of alert() function calls as they make trouble closing sometimes during concolic execution
+		//if (fcall.toSource().contains("alert(")){
+		//		
+		//}
+		
 		// e.g. Replacing functionCall: document.getElementById(x) with wrapperFunCall: confixWrapper("functionCall", "document.getElementById(x)", ["x"], [x], document.getElementById(x))
 		List<AstNode> args = new ArrayList<AstNode>(fcall.getArguments());
 		String wrapperCode = "confixWrapper(\"functionCall\", \""+ fcall.toSource().replace("\"", "\\\"") +"\", [";
@@ -763,10 +772,11 @@ public class JSASTInstrumentor implements NodeVisitor{
 				"};";
 
 		
-		code += "var " + jsName + "_exec_counter = new Array(); " +
+		/*// this is to get coverage, removed as we use JSCover instead
+		 * code += "var " + jsName + "_exec_counter = new Array(); " +
 				"for (var i=0;i<" + instrumentedLinesCounter + ";i++)" +
 				"if("+jsName + "_exec_counter[i]== undefined || "+jsName + "_exec_counter[i]== null) "+jsName + "_exec_counter[i]=0;";
-
+		*/
 		// instrumentedLinesCounter resets to 0 for the next codes
 		instrumentedLinesCounter = 0;
 

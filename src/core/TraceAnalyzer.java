@@ -842,7 +842,11 @@ public class TraceAnalyzer {
 
 	private void analyseInfixExpressionNode(Map<String, String> map) {
 		System.out.println("=== analyseInfixExpressionNode ===");
-		AstNode generatedNode = parse(map.get("statement"));
+		String statement = map.get("statement");
+		// TODO: needs refactoring. This is done temorary for the phormer app
+		statement = statement.replace("\"document.cookie.split(\"; \")", "\"document.cookie.split(\\\"; \\\")");
+		//System.out.println(statement);
+		AstNode generatedNode = parse(statement);
 		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
 		InfixExpression infix = (InfixExpression) es.getExpression();
 		String left = infix.getLeft().toSource();
@@ -927,7 +931,7 @@ public class TraceAnalyzer {
 				System.out.println("parentNode.shortName(): " + parentNode.shortName());
 			}
 			else if (right.contains(".innerHTML")){
-				// e.g. document.getElementById('t').innerHTML
+				// e.g. right is document.getElementById('t').innerHTML
 				System.out.println("Variable "+ left + " referes to a DOM element's innerHTML attribute.");
 
 				ArrayList<String> argumentValueList = getArguments(map, "varValueList"); // e.g. varValueList: [[org.openqa.selenium.remote.RemoteWebElement@1c5a0a44 -> unknown locator]]

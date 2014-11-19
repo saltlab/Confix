@@ -8,13 +8,16 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -91,7 +94,7 @@ public class ConcolicEngine {
 				// Also the XHR replacement in the instrumented file should be removed as JSCover also changes XHR
 				driver.get("http://localhost:8888/concolic/phormer_tests/concolic.htm");
 
-				
+
 				// Apply the new fixture on htmlTestFile
 				((JavascriptExecutor) driver).executeScript("$(\"#confixTestFixture\").append('" + fixture + "');");
 
@@ -130,7 +133,7 @@ public class ConcolicEngine {
 					String DOMFixture = getDOMFixture();
 
 					System.out.println("DOMFixture: " + DOMFixture);
-					if (DOMFixtureList.contains(DOMFixture)){
+					if (!DOMFixture.equals("") && DOMFixtureList.contains(DOMFixture)){
 						System.out.println("No new fixyture found!");
 						break;
 					}
@@ -184,7 +187,7 @@ public class ConcolicEngine {
 			/* use proxy for everything, including localhost */
 			profile.setPreference("network.proxy.no_proxies_on", "");
 			//FirefoxProfile profile = new FirefoxProfile();
-			
+
 			FirefoxBinary binary = new FirefoxBinary(new File("/Applications/Firefox 2.app/Contents/MacOS/firefox"));
 			driver = new FirefoxDriver(binary, profile);
 			// setting the webdriver without proxy
