@@ -134,6 +134,7 @@ public class ConcolicEngine {
 
 					System.out.println("DOMFixture: " + DOMFixture);
 					if (!DOMFixture.equals("") && DOMFixtureList.contains(DOMFixture)){
+						DOMFixtureList.clear();  // clearing the DOMFixtureList to avoid terminating fixture generation for other functions that have a same fixture
 						System.out.println("No new fixyture found!");
 						break;
 					}
@@ -152,6 +153,15 @@ public class ConcolicEngine {
 					System.out.println("=======> No new path was found. Terminating the concolic engine...");
 					fixture="";
 				}
+
+				// updating the coverage report
+				try{
+					((JavascriptExecutor) driver).executeScript("return jscoverage_report('CoverageReport');");
+				}
+				catch(Exception e){
+					System.out.println("Failed to execute function " + e);
+				}
+
 			} while (fixture!="");
 		}
 
@@ -160,12 +170,6 @@ public class ConcolicEngine {
 
 		//driver.get("http://localhost:8888/concolic/phormer_tests/concolic1.htm");
 
-		try{
-			((JavascriptExecutor) driver).executeScript("return jscoverage_report('CoverageReport');");
-		}
-		catch(Exception e){
-			System.out.println("Failed to execute function " + e);
-		}
 
 		driver.quit();
 	}

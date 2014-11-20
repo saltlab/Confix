@@ -17,10 +17,6 @@ XMLHttpRequest = function() {
 };
   return xhr;
 };
-var phorm_js_exec_counter = new Array();
-for (var i = 0; i < 0; i++) 
-  if (phorm_js_exec_counter[i] == undefined || phorm_js_exec_counter[i] == null) 
-  phorm_js_exec_counter[i] = 0;
 var AjaxVal = confixWrapper("initvar", "var AjaxVal = \"\"", [""], [], "", "");
 var isAjaxing = confixWrapper("initvar", "var isAjaxing = false", [""], [], "", false);
 var md5 = confixWrapper("initvar", "var md5 = \"\"", [""], [], "", "");
@@ -52,7 +48,7 @@ function DarkenIt(cur, t) {
 }
 function toggleInfo(wut) {
   if (confixWrapper("condition", "(!wut) || (wut == '')", [""], [], "toggleInfo", (!wut) || (wut == ''))) 
-  wut = confixWrapper("infix", "wut = confixWrapper(\"functionCall\", \"dg('hin')\", [\"hin\"], ['hin'], \"toggleInfo\", dg('hin')).innerHTML", [""], [], "toggleInfo", confixWrapper("functionCall", "dg('hin')", ["hin"], ['hin'], "toggleInfo", dg('hin')).innerHTML);
+  wut = confixWrapper("infix", "wut = confixWrapper(\"functionCall\", \"dg('hin')\", [\"hin\"], ['hin'], \"toggleInfo\", dg('hin')).innerHTML", ["confixWrapper(\"functionCall\", \"dg('hin')\", [\"hin\"], ['hin'], \"toggleInfo\", dg('hin'))"], [confixWrapper("functionCall", "dg('hin')", ["hin"], ['hin'], "toggleInfo", dg('hin'))], "toggleInfo", confixWrapper("functionCall", "dg('hin')", ["hin"], ['hin'], "toggleInfo", dg('hin')).innerHTML);
   if (confixWrapper("condition", "wut == 'Show'", [""], [], "toggleInfo", wut == 'Show')) 
   {
     confixWrapper("functionCall", "dg('hin')", ["hin"], ['hin'], "toggleInfo", dg('hin')).innerHTML = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('hin')\", [\"hin\"], ['hin'], \"toggleInfo\", dg('hin')).innerHTML = 'Hide&nbsp;'", [""], [], "toggleInfo", 'Hide&nbsp;');
@@ -292,7 +288,7 @@ function ss_loaddone() {
 function ss_playpause() {
   ss_play = confixWrapper("infix", "ss_play = !ss_play", [""], [], "ss_playpause", !ss_play);
   confixWrapper("functionCall", "dg('ss_playpause_link')", ["ss_playpause_link"], ['ss_playpause_link'], "ss_playpause", dg('ss_playpause_link')).innerHTML = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('ss_playpause_link')\", [\"ss_playpause_link\"], ['ss_playpause_link'], \"ss_playpause\", dg('ss_playpause_link')).innerHTML = (ss_play) ? 'Pause it' : 'Play it'", [""], [], "ss_playpause", (ss_play) ? 'Pause it' : 'Play it');
-  confixWrapper("functionCall", "dg('ss_playpause_link2')", ["ss_playpause_link2"], ['ss_playpause_link2'], "ss_playpause", dg('ss_playpause_link2')).innerHTML = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('ss_playpause_link2')\", [\"ss_playpause_link2\"], ['ss_playpause_link2'], \"ss_playpause\", dg('ss_playpause_link2')).innerHTML = confixWrapper(\"functionCall\", \"dg('ss_playpause_link')\", [\"ss_playpause_link\"], ['ss_playpause_link'], \"ss_playpause\", dg('ss_playpause_link')).innerHTML", [""], [], "ss_playpause", confixWrapper("functionCall", "dg('ss_playpause_link')", ["ss_playpause_link"], ['ss_playpause_link'], "ss_playpause", dg('ss_playpause_link')).innerHTML);
+  confixWrapper("functionCall", "dg('ss_playpause_link2')", ["ss_playpause_link2"], ['ss_playpause_link2'], "ss_playpause", dg('ss_playpause_link2')).innerHTML = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('ss_playpause_link2')\", [\"ss_playpause_link2\"], ['ss_playpause_link2'], \"ss_playpause\", dg('ss_playpause_link2')).innerHTML = confixWrapper(\"functionCall\", \"dg('ss_playpause_link')\", [\"ss_playpause_link\"], ['ss_playpause_link'], \"ss_playpause\", dg('ss_playpause_link')).innerHTML", ["confixWrapper(\"functionCall\", \"dg('ss_playpause_link')\", [\"ss_playpause_link\"], ['ss_playpause_link'], \"ss_playpause\", dg('ss_playpause_link'))"], [confixWrapper("functionCall", "dg('ss_playpause_link')", ["ss_playpause_link"], ['ss_playpause_link'], "ss_playpause", dg('ss_playpause_link'))], "ss_playpause", confixWrapper("functionCall", "dg('ss_playpause_link')", ["ss_playpause_link"], ['ss_playpause_link'], "ss_playpause", dg('ss_playpause_link')).innerHTML);
   confixWrapper("functionCall", "ss_run()", [], [], "ss_playpause", ss_run());
 }
 function src_smaller(x) {

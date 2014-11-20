@@ -440,7 +440,7 @@ public class JSASTInstrumentor implements NodeVisitor{
 			if (right.contains(".value"))  // e.g. p = itemList.children[i].value;
 				wrapperCode += ("\"" + right.replace(".value", "") + "\", "); 
 			else if (right.contains(".innerHTML"))  // e.g. p = x.innerHTML;
-				wrapperCode += ("\"" + right.replace(".innerHTML", "") + "\", "); 
+				wrapperCode += ("\"" + right.replace(".innerHTML", "").replace("\"", "\\\"") + "\", "); 
 			else
 				wrapperCode += "\"\""; 
 

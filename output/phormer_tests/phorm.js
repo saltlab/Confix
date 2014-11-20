@@ -44,6 +44,7 @@ function toggleInfo(wut) {
 	if (wut == 'Show') {
 		dg('hin').innerHTML = 'Hide&nbsp;';
 		dg('photoBoxes').style.display = 'block';
+		//TODO
 		dg('theImage').style.cssFloat = 'left';
 		dg('theImage').style.styleFloat = 'left';
 		dg('theImage').style.marginRight = '15px';
@@ -225,6 +226,7 @@ function checkWV() {
 		alert('Word Verification box should have an string of length 5 with digits');
 		return false;
 	}
+	// TODO
 	if (dg('cmntTextArea').value.length == 0) {
 		alert('Empty comment is not allowed!');
 		return false;
