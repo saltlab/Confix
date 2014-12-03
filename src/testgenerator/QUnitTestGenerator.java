@@ -32,15 +32,25 @@ public class QUnitTestGenerator {
 	}
 
 	/**
-	 * @param outputFolder
+	 * @param outputFolderName
+	 * @param outputFileName
 	 * @param fileNameTemplate
 	 * @return filename of generates class
 	 * @throws Exception
 	 */
-	public String generate(String outputFolder, String fileNameTemplate) throws Exception {
+	public String generate(String outputFolderName, String outputFileName, String fileNameTemplate) throws Exception {
 
 		Template template = engine.getTemplate(fileNameTemplate);
-		File f = new File(outputFolder);
+		File directory = new File(outputFolderName);
+		if (!directory.exists()){
+			boolean success = directory.mkdir();
+			if (success) {
+				System.out.printf("Successfully created new directory : %s%n", directory);
+			} else {
+				System.out.printf("Failed to create new directory: %s%n", directory);
+			}
+		}
+		File f = new File(outputFolderName+"/"+outputFileName);
 		FileWriter writer = new FileWriter(f);
 		template.merge(context, writer);
 		writer.flush();

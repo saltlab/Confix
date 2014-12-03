@@ -39,16 +39,18 @@ public class ConcolicEngine {
 	private String scopeName;
 	private ArrayList<String> functionsToTest = new ArrayList<String>();
 	private String currentFunctionToTest;
-	private String testSuiteNameToGenerate;
+	private String testSuitePathToGenerate;
+	private String testSuiteFileToGenerate;
 	private String fixture = "";
 
 	private List<String> DOMFixtureList = new ArrayList<String>();
 
-	public ConcolicEngine(String jsAdderess, String scopeName, ArrayList<String> functionsToTest, String testSuiteNameToGenerate){
+	public ConcolicEngine(String jsAdderess, String scopeName, ArrayList<String> functionsToTest, String testSuitePathToGenerate, String testSuiteFileToGenerate){
 		this.jsAddress = jsAdderess;
 		this.scopeName = scopeName;
 		this.functionsToTest = functionsToTest;
-		this.testSuiteNameToGenerate = testSuiteNameToGenerate;
+		this.testSuitePathToGenerate = testSuitePathToGenerate;
+		this.testSuiteFileToGenerate = testSuiteFileToGenerate;
 		this.codeAnalyzer = new JSAnalyzer(new JSASTInstrumentor(), jsAddress, scopeName);
 		this.traceAnalyzer = new TraceAnalyzer();
 	}
@@ -57,7 +59,7 @@ public class ConcolicEngine {
 	// Runs the concolic exectuion
 	public void run() throws Exception {
 		// Generating a QUnit test file for a DOM-dependent function with DOM fixture
-		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuiteNameToGenerate);
+		TestSuiteGenerator tsg = new TestSuiteGenerator(testSuitePathToGenerate, testSuiteFileToGenerate);
 
 		/*
 		 * 1) Execute the program.
@@ -143,6 +145,8 @@ public class ConcolicEngine {
 					// Transform the DOM constraints in into xpath constraint (xpath rule)
 					// Solve xpath constraints and generate corresponding DOMFixture
 					// Generate a new fixture to execute another path. If all paths were exercised, fixture will be set to "" to terminate the loop
+					
+					// fixture = ""; // not using Confix
 					fixture = DOMFixture;
 					// Generating a new test method
 					tsg.addNewTestMethod(currentFunctionToTest, fixture, pathCounter);

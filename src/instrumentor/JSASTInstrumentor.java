@@ -382,6 +382,11 @@ public class JSASTInstrumentor implements NodeVisitor{
 		//System.out.println("parentNode.getChildBefore(ASTNode).getString() :" + parentNode.getChildBefore(ASTNode).getString());
 		System.out.println("VariableInitializer - source: " + vi.toSource());
 		System.out.println("VariableInitializer - varName: " + varName.toSource());
+
+		if (varLiteral==null){
+			System.out.println("VariableInitializer - varLiteral is null!");
+			return;
+		}
 		System.out.println("VariableInitializer - varLiteral: " + varLiteral.toSource());
 
 

@@ -40,11 +40,13 @@ test("${function.functionName}", function() {
 
 public class TestSuiteGenerator {
 
-	private String testSuiteNameToGenerate;
+	private String testSuitePathToGenerate;
+	private String testSuiteFileToGenerate;
 	ArrayList<TestFunction> testFunctions = new ArrayList<TestFunction>();
 
-	public TestSuiteGenerator(String testSuiteNameToGenerate){
-		this.testSuiteNameToGenerate = testSuiteNameToGenerate;
+	public TestSuiteGenerator(String testSuitePathToGenerate, String testSuiteFileToGenerate){
+		this.testSuitePathToGenerate = testSuitePathToGenerate;
+		this.testSuiteFileToGenerate = testSuiteFileToGenerate;
 	}
 
 	public void addNewTestMethod(String functionName, String DOMFixture, int pathNumber){
@@ -62,23 +64,19 @@ public class TestSuiteGenerator {
 	 */
 	public void generateTestSuite() {
 
-		String moduleName = testSuiteNameToGenerate;
-
-		String TEST_SUITE_PATH = "output/" + testSuiteNameToGenerate;
-
 		String FILE_NAME_TEMPLATE = "TestCaseTemplate.vm";
 
 		try {
 			String fileName = null;
 
-			QUnitTestGenerator generator = new QUnitTestGenerator(moduleName, testFunctions);
+			QUnitTestGenerator generator = new QUnitTestGenerator(testSuitePathToGenerate, testFunctions);
 
-			fileName = generator.generate(TEST_SUITE_PATH, FILE_NAME_TEMPLATE);
+			fileName = generator.generate(testSuitePathToGenerate, testSuiteFileToGenerate, FILE_NAME_TEMPLATE);
 
 			System.out.println("Tests succesfully generated in " + fileName);		
 
 		} catch (IOException e) {
-			System.out.println("Error in checking " + TEST_SUITE_PATH);
+			System.out.println("Error in checking " + testSuitePathToGenerate);
 			e.printStackTrace();
 		} catch (Exception e) {
 			System.out.println("Error generating testsuite: " + e.getMessage());
