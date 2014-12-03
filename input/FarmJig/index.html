@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="Style/main.css" rel="stylesheet" type="text/css">
+	<script src="intelxdk.js"></script>
+    <script type="text/javascript" src="Script/helper.js"></script>
+    <script type="text/javascript" src="Script/block.js"></script>
+    <script type="text/javascript" src="Script/jigsawScript.js"></script>
+</head>
+<body id="index">
+    <img id="backArrow" src="Images/Arrow.png" width="1" style="position:absolute;" />
+
+    <canvas id="canJigsaw" width="1" height="1"></canvas>
+
+    <div id="indexScreen">
+        <img id="indexPig" src="Images/Pig.png" width="1" style="position:absolute;"  />
+        <img id="indexSheep" src="Images/Sheep.png" width="1" style="position:absolute;" />
+        <img id="indexDuck" src="Images/Duck.png" width="1" style="position:absolute;" />
+        <img id="indexDonkey" src="Images/Donkey.png" width="1" style="position:absolute;" />
+    </div>
+
+    <img id="background" width="0" height="0" src="Images/Landscape.png" />
+</body>
+</html>
+
+    <script type="text/javascript" language="javascript">
+        document.addEventListener("intel.xdk.device.ready", onDeviceReady, false);
+
+        function onDeviceReady(){
+            intel.xdk.device.hideSplashScreen();
+
+            // Preload the mp3
+            intel.xdk.player.loadSound("Audio/finish.mp3");
+
+            // Dette virker ikke på min iPhone
+            intel.xdk.device.setRotateOrientation("landscape");        // portrait
+            intel.xdk.device.setAutoRotate(false);
+
+            var totalRows = 2;
+            var totalColumns = 3;
+            var mode = "EASY"; //HARD and EASY
+            var canvasID = "canJigsaw";
+            var game = new Jigsaw(canvasID, totalRows, totalColumns, mode);
+            game.loadGame();
+        }
+    </script>
