@@ -1,9 +1,11 @@
 import java.util.ArrayList;
 
 import core.ConcolicEngine;
+import core.utils.Method;
 
 public class ConfixRunner {
 
+	static Method testGenerationMethod = Method.CONFIX;
 	
 	private static String jsFolderNameToTest = "phormer";  // the folder should be available in the "input/" directory
 	private static String jsNameToTest = "phorm.js";
@@ -164,7 +166,7 @@ public class ConfixRunner {
 		
 		*/
 
-		ConcolicEngine ce = new ConcolicEngine(jsPathToTest, jsNameToTest, functionToTest, testSuitePathToGenerate, testSuiteFileToGenerate);
+		ConcolicEngine ce = new ConcolicEngine(jsPathToTest, jsNameToTest, functionToTest, testSuitePathToGenerate, testSuiteFileToGenerate, testGenerationMethod);
 		ce.run();
 
 		long endTime = System.currentTimeMillis();

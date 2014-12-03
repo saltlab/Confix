@@ -26,10 +26,15 @@ import org.owasp.webscarab.model.Preferences;
 import org.owasp.webscarab.plugin.Framework;
 import org.owasp.webscarab.plugin.proxy.Proxy;
 
+import core.utils.Method;
+
+
 import testgenerator.TestSuiteGenerator;
 
 public class ConcolicEngine {
 
+	private Method testGenerationMethod;
+	
 	private WebDriver driver;
 	private JSModifyProxyPlugin JSModifier;
 	private JSAnalyzer codeAnalyzer;
@@ -45,7 +50,8 @@ public class ConcolicEngine {
 
 	private List<String> DOMFixtureList = new ArrayList<String>();
 
-	public ConcolicEngine(String jsAdderess, String scopeName, ArrayList<String> functionsToTest, String testSuitePathToGenerate, String testSuiteFileToGenerate){
+	public ConcolicEngine(String jsAdderess, String scopeName, ArrayList<String> functionsToTest, String testSuitePathToGenerate, String testSuiteFileToGenerate, Method testGenerationMethod){
+		this.testGenerationMethod = testGenerationMethod;
 		this.jsAddress = jsAdderess;
 		this.scopeName = scopeName;
 		this.functionsToTest = functionsToTest;
@@ -146,8 +152,12 @@ public class ConcolicEngine {
 					// Solve xpath constraints and generate corresponding DOMFixture
 					// Generate a new fixture to execute another path. If all paths were exercised, fixture will be set to "" to terminate the loop
 					
-					// fixture = ""; // not using Confix
-					fixture = DOMFixture;
+					
+					if (testGenerationMethod != Method.CONFIX)
+						fixture = ""; // not using Confix
+					else
+						fixture = DOMFixture;
+					
 					// Generating a new test method
 					tsg.addNewTestMethod(currentFunctionToTest, fixture, pathCounter);
 
