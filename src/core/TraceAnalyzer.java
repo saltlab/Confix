@@ -659,7 +659,7 @@ public class TraceAnalyzer {
 						//DOMElement.setRemoteWebElementID(RemoteWebElement);
 						DOMConstraint dc = new DOMConstraint(DOMElement);
 						//dc.setEnclosingFunctionName(enclosingFunctionName);
-						
+
 						// check if it is needed to add more than one child, else check if a child already exist
 						for (DOMConstraint d: DOMConstraintList){
 							if (d.getElementTypeVariable().getParentElementJSVariable().equals(pg2.getLeft().toSource())){
@@ -1023,6 +1023,22 @@ public class TraceAnalyzer {
 					VariableInitializer vi = (VariableInitializer)parentNode;
 					System.out.println("innerHTML property for " + left + " is used to initialize " + vi.getTarget().toSource());
 					// TODO: in this case there should be sth as an innerHTML value
+				}
+			}else if (right.equals("checked")){
+				// e.g. if(dg('item').checked)
+				AstNode parentNode = infix.getParent();
+				System.out.println("parentNode.toSource(): " + parentNode.toSource());
+				System.out.println("parentNode.shortName(): " + parentNode.shortName());
+				//  just a use of checked prop, make sure the prop exist and the tag is set to either input, etc...
+				if (infix.getLeft() instanceof FunctionCall){
+					// this is to make sure ie.getLeft() will be added if not already exist
+					//instrumentFunctionCallNode(infix.getLeft());
+					for (DOMConstraint dc: DOMConstraintList)
+						if (dc.getElementTypeVariable().getSource().equals(left)){
+							dc.getElementTypeVariable().setTag_attribute("input");
+							dc.getElementTypeVariable().setSrc_attribute("ConfixGeneratedInput");
+							break;
+						}
 				}
 			}else if (right.equals("src")){
 				// e.g. dg('ss_photo').src = ...

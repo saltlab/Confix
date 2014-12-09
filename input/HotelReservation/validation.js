@@ -40,14 +40,14 @@ function isValidVISA(cardNumber){
 //DDF
 function checkPassConfirm(){
 
-	var pass = document.getElementById("pass").value;
-	var c_pass = document.getElementById("c_pass").value;
+	var pass = document.getElementById('pass').value;
+	var c_pass = document.getElementById('c_pass').value;
 
 	if(pass!=c_pass){
 
-		document.getElementById("pass").value = "";
-		document.getElementById("c_pass").value="";
-		document.getElementById("error_Password").innerHTML="Passwords do not match";
+		document.getElementById('pass').value = "";
+		document.getElementById('c_pass').value="";
+		document.getElementById('error_Password').innerHTML="Passwords do not match";
 		return false;
 
 
@@ -73,8 +73,9 @@ function trim(s) {
 
 
 //DDF
-function checkValid(f){
-	var cardNumber=f.cardno.value;
+function checkValid(){
+	var cardNumber=document.getElementsByName('cardno').value;
+	//var cardNumber= cardno f.cardno.value;
 
 	if(document.getElementById('c1').checked) {
 		if(!isValidVISA(cardNumber)){
@@ -100,21 +101,23 @@ function checkValid(f){
 
 //DDF
 function RequiredField(f)
-{var i,field;
-for(i=0; i<f.elements.length; i++){
-	field=f.elements[i].name;
-	value=trim(f.elements[i].value);
+{
+	var i,field;
+	for(i=0; i<f.elements.length; i++){
+		field=f.elements[i].name;
+		//value=trim(f.elements[i].value);
+		value = f.elements[i].value;
 
-	if(value=="" || value==null)
-	{
-		document.getElementById("error_"+field).innerHTML="* "+field+" Required";
-		f.elements[i].focus();
-		return false;
+		if(value=="" || value==null)
+		{
+			document.getElementById("error_"+field).innerHTML="* "+field+" Required";
+			f.elements[i].focus();
+			return false;
+
+		}
 
 	}
-
-}
-return true;
+	return true;
 }
 
 
@@ -122,8 +125,8 @@ return true;
 function validateEmail()
 {
 	var x=document.forms["frm"]["email"].value;
-	var atpos=x.indexOf("@");
-	var dotpos=x.lastIndexOf(".");
+	var atpos=x.indexOf('@');
+	var dotpos=x.lastIndexOf('.');
 	if (atpos<1 || dotpos<atpos+2 || dotpos+2>=x.length)
 	{
 		document.getElementById("error_email").innerHTML="* Invalid email id";
