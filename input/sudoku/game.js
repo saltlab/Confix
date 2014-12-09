@@ -2,6 +2,8 @@ var squareObjects = new Array();
 var level = 1;	// 1 is lowest level
 var countSquares = [36,36,34,32,31,30];
 var gameFinished = false;
+
+//DDF
 function shuffleBoard()
 {
 	for(var counter=0;counter<30;counter++){
@@ -29,6 +31,7 @@ function shuffleBoard()
 	showColumnsInGroup();
 }
 
+//NonDDF
 function resetVisibleNumberArray()
 {
 	for(var no=0;no<=9;no++){
@@ -36,6 +39,7 @@ function resetVisibleNumberArray()
 	}		
 }
 
+//DDF
 function newGame()
 {
 	var obj = document.getElementById('sudoku');
@@ -53,10 +57,12 @@ function newGame()
 
 var visibleNumberArray = new Array();
 
+//NonDDF
 function randomizeArray(a,b){
 	return Math.random() - Math.random();
 }
 
+//DDF
 function showCell(inputDiv)
 {
 	var span = inputDiv.getElementsByTagName('SPAN')[0];
@@ -68,6 +74,7 @@ function showCell(inputDiv)
 
 }
 
+//DDF
 function showColumnsInGroup(){		
 	var object = document.getElementById('sudoku');
 	var cellsRevealed = new Array();
@@ -95,6 +102,7 @@ function showColumnsInGroup(){
 	}
 }
 var higlightedCell;
+//DDF
 function highlightSquare(e,inputObj){
 	document.getElementById('hintDiv').style.display='none';
 	if(!inputObj)inputObj = this;	
@@ -108,6 +116,7 @@ function highlightSquare(e,inputObj){
 }
 
 
+//DDF
 function isGameFinished()
 {
 	var obj = document.getElementById('sudoku');
@@ -127,6 +136,7 @@ function isGameFinished()
 
 }
 
+//DDF
 function initSudoku()
 {
 	gameFinished = false;
@@ -210,6 +220,8 @@ function initSudoku()
 	newGame();
 	shuffleBoard();
 }
+
+//DDF
 function insertNumber(e)
 {
 	document.getElementById('hintDiv').style.display='none';
@@ -289,6 +301,7 @@ function insertNumber(e)
 	isGameFinished();
 }	
 
+//DDF
 function helpMe()
 {
 	if(gameFinished)return false;
@@ -317,6 +330,7 @@ function helpMe()
 
 }
 
+//DDF
 function isCorrect(divObj)
 {
 	var spans = divObj.getElementsByTagName('SPAN');
@@ -324,6 +338,7 @@ function isCorrect(divObj)
 	return false;		
 }
 
+//NonDDF
 function getTopPos(inputObj)
 {
 
@@ -334,6 +349,7 @@ function getTopPos(inputObj)
 	return returnValue;
 }
 
+//NonDDF
 function getLeftPos(inputObj)
 {
 	var returnValue = inputObj.offsetLeft;
@@ -341,6 +357,7 @@ function getLeftPos(inputObj)
 	return returnValue;
 }
 
+//DDF
 function getPossibleNumbers(inputObj)
 {
 	var noArray = new Array();
@@ -394,6 +411,7 @@ function getPossibleNumbers(inputObj)
 	return countNumbers;
 }
 
+//DDF
 function showHint()
 {
 	var hintDiv = document.getElementById('hintDiv');
@@ -432,6 +450,7 @@ function showHint()
 }
 
 
+//DDF
 function revealAll()
 {
 	for(var row=0;row<9;row++){
@@ -446,6 +465,7 @@ function revealAll()
 	gameFinished=true;
 }
 
+//DDF
 function switchLevel(initLevel,linkObj)
 {
 	var confirmSwitch = gameFinished;
@@ -461,7 +481,5 @@ function switchLevel(initLevel,linkObj)
 		setTimeout('initSudoku()',20);		
 	}
 }
-
-
 
 window.onload = initSudoku;

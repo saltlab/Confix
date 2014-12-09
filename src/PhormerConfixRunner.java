@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import core.ConcolicEngine;
 import core.utils.Method;
 
-public class ConfixRunner {
+public class PhormerConfixRunner {
 
 	static Method testGenerationMethod = Method.CONFIX;
 	
