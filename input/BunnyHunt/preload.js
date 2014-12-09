@@ -6,8 +6,7 @@ var imageObjects = [];
 var currImage = 0;
 	
 
-
-
+//DDF
 function preloadImages()
 {
 	var loadingMessage = document.getElementById("loadingMessage");
@@ -42,7 +41,7 @@ function preloadImages()
 
 
 
-
+//DDF
 function ready()
 {
 	var stage = document.getElementById("stage");
