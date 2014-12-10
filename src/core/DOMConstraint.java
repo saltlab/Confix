@@ -109,6 +109,7 @@ public class DOMConstraint {
 		String value = elementVariable.getValue_attribute();
 		String src = elementVariable.getSrc_attribute();
 		String innerHTML = elementVariable.getInnerHTML_attribute();
+		String checked = elementVariable.getChecked_attribute();
 
 
 		// select("html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/
@@ -131,6 +132,8 @@ public class DOMConstraint {
 			xpath += "and @value_" + value;
 		if(src!=null)
 			xpath += "and @src_" + src;
+		if(checked!=null)
+			xpath += "and @checked_" + src;
 
 		if (id!=null || type!=null || name!=null || Class!=null || value!=null || src!=null)
 			xpath += "]";

@@ -1,4 +1,4 @@
-// QUnit test cases generated @ Tue Dec 09 15:39:42 PST 2014
+// QUnit test cases generated @ Wed Dec 10 10:06:06 PST 2014
 
 module("output/HotelReservation_QUnits", {
     setup: function() {
@@ -36,7 +36,14 @@ test("Testing function checkValid() for path 1", function() {
 
 test("Testing function checkValid() for path 2", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="c2"/> <div id="c1"/> <div id="ConfixGeneID0" name="cardno"/> ');
+	$("#qunit-fixture").append(' <div id="c2"/> <input id="c1" checked="true"/> <div id="ConfixGeneID0" name="cardno"/> ');
+	checkValid();
+});
+
+
+test("Testing function checkValid() for path 3", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <input id="c1" checked="true"/> <div id="ConfixGeneID0" name="cardno"/> ');
 	checkValid();
 });
 

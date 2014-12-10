@@ -35,6 +35,7 @@ public class ElementTypeVariable {
 	private String value_attribute = null; // e.g. value="test"
 	private String src_attribute = null; // e.g. scr="/image.jpg"
 	private String innerHTML_attribute = null; // e.g. innerHTML="text"
+	private String checked_attribute = null; // e.g. checked="true"
 
 	// variables set by attribute values: e.g. a = document.getElementById("demo").innerHTML; then a is an innerHTML_attributeVariable
 	private String id_attributeVariable = ""; 
@@ -44,7 +45,7 @@ public class ElementTypeVariable {
 	private String value_attributeVariable = "";
 	private String src_attributeVariable = ""; 
 	private String innerHTML_attributeVariable = ""; 
-
+	private String checked_attributeVariable = ""; 
 
 
 	@Override
@@ -87,6 +88,8 @@ public class ElementTypeVariable {
 			attribues += (" src=\"" + src_attribute + "\"");		
 		if (innerHTML_attribute!=null)
 			attribues += (" innerHTML=\"" + innerHTML_attribute + "\"");	
+		if (checked_attribute!=null)
+			attribues += (" checked=\"" + checked_attribute + "\"");	
 
 		return attribues;
 	}
@@ -175,6 +178,14 @@ public class ElementTypeVariable {
 
 	public void setParentElementJSVariable(String parentElementJSVariable) {
 		this.parentElementJSVariable = parentElementJSVariable;
+	}
+
+	public String getChecked_attribute() {
+		return checked_attribute;
+	}
+
+	public void setChecked_attribute(String checked_attribute) {
+		this.checked_attribute = checked_attribute;
 	}
 
 	@Override
@@ -378,5 +389,13 @@ public class ElementTypeVariable {
 		RemoteWebElementID = remoteWebElementID;
 	}
 
+
+	public String getChecked_attributeVariable() {
+		return checked_attributeVariable;
+	}
+
+	public void setChecked_attributeVariable(String checked_attributeVariable) {
+		this.checked_attributeVariable = checked_attributeVariable;
+	}
 
 }

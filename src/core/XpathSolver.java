@@ -72,7 +72,7 @@ public class XpathSolver {
         DOMFixture = DOMFixture.replaceAll("_[0-9] ", " ").replaceAll("_[0-9]>", ">");
         DOMFixture = DOMFixture.replace("=\"_otherValue\"", "\"").replace("id_", "id=\"")
         		.replace("type_", "type=\"").replace("name_", "name=\"").replace("class_", "class=\"")
-        		.replace("value_", "value=\"").replace("src_", "src=\"");
+        		.replace("value_", "value=\"").replace("src_", "src=\"").replace("checked_", "checked=\"");
         
         DOMFixture = DOMFixture.replaceAll("[\n\r]", "").replace("    ", " ").replace("  ", " ");
         

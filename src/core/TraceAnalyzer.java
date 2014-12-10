@@ -543,6 +543,15 @@ public class TraceAnalyzer {
 			}
 		}
 
+		// 2.2) check if an attribute of a recently found DOMJSVariable attribute
+		for (String candidateVar :candidateDOMJSVariable){
+			if(candidateVar.equals("check") || candidateVar.equals("checked")){
+					System.out.println(candidateVar + " attribute was used!");
+					System.out.println("Condition: " + conditionNode.toSource() + " is DOM dependent");
+					return true;
+			}
+		}
+
 		return false;
 	}
 
@@ -677,6 +686,66 @@ public class TraceAnalyzer {
 				}
 			}
 
+		}else if (property.equals("checked")){
+			
+			
+			DOMConstraintList.get(DOMConstraintList.size()-1).getElementTypeVariable().setTag_attribute("input");
+			DOMConstraintList.get(DOMConstraintList.size()-1).getElementTypeVariable().setChecked_attribute("true");
+			
+			/*
+			// checking for different possibilities
+			AstNode leftNode = pg.getLeft();
+
+			//  e.g. x.children.length
+			if (leftNode instanceof PropertyGet){
+				PropertyGet pg2 = (PropertyGet)leftNode;
+				//System.out.println("pg2.getLeft().toSource(): " + pg2.getLeft().toSource());
+				//System.out.println("pg2.getRight().toSource(): " + pg2.getRight().toSource());
+				if (pg2.getRight().toSource().equals("children")){
+					System.out.println("pg2.getLeft().toSource(): " + pg2.getLeft().toSource());   // e.g. x
+					System.out.println("pg2.getRight().toSource(): " + pg2.getRight().toSource()); 
+
+					// add a child node to the parent node in the fixture
+
+					AstNode parentNode = conditionNode.getParent();
+					// if the parent is infix e.g. itemList.children.length === 0
+					if (parentNode.shortName().equals("InfixExpression")){
+						System.out.println("parentNode.toSource(): " + parentNode.toSource());
+						InfixExpression pie = (InfixExpression) parentNode;
+						String pLeft = pie.getLeft().toSource();	// e.g. itemList.children.length
+						String pOprator = ASTNodeUtility.operatorToString(pie.getOperator()); // e.g. ===
+						String pRight = pie.getRight().toSource(); // e.g. 0
+
+						ElementTypeVariable DOMElement = new ElementTypeVariable();
+						DOMElement.setParentElementJSVariable(pg2.getLeft().toSource());
+						// adding the child node to the list for the parent
+						for (DOMConstraint d: DOMConstraintList){
+							if (d.getElementTypeVariable().getDOMJSVariable().equals(pg2.getLeft().toSource()))
+								System.out.println("found " + d.getElementTypeVariable().getDOMJSVariable() + " as the parent of the new node!");
+						}
+
+						DOMElement.setDOMJSVariable("");
+						//DOMElement.setRemoteWebElementID(RemoteWebElement);
+						DOMConstraint dc = new DOMConstraint(DOMElement);
+						//dc.setEnclosingFunctionName(enclosingFunctionName);
+
+						// check if it is needed to add more than one child, else check if a child already exist
+						for (DOMConstraint d: DOMConstraintList){
+							if (d.getElementTypeVariable().getParentElementJSVariable().equals(pg2.getLeft().toSource())){
+								System.out.println("We already have " + d.getElementTypeVariable().getDOMJSVariable() + " as a child node of the parent node!");
+								boolean shouldAddMorethanOneChild = false;
+								if (!shouldAddMorethanOneChild){
+									return;
+								}
+							}
+						}
+						// now that the node is the first child, or we can add more than one children, add the new child to the DOMConstraintList  
+						if (!DOMConstraintList.contains(dc))
+							DOMConstraintList.add(dc);
+					}
+				}
+			}
+			*/
 		}
 
 	}
@@ -1272,6 +1341,7 @@ public class TraceAnalyzer {
 		String Class = currentConstraint.getElementTypeVariable().getClass_attribute();
 		String value = currentConstraint.getElementTypeVariable().getValue_attribute();
 		String src = currentConstraint.getElementTypeVariable().getSrc_attribute();
+		String checked = currentConstraint.getElementTypeVariable().getChecked_attribute();
 		if (numOfDOMElementsInFixture>0)
 			xpath += " and child::";
 		xpath += (tag + "_" + Integer.toString(numOfDOMElementsInFixture++) + "[");  // e.g. div_0[, p_1[, img_2[, ...
@@ -1287,6 +1357,8 @@ public class TraceAnalyzer {
 			xpath += " and @value_" + value;
 		if(src!=null)
 			xpath += " and @src_" + src;
+		if(checked!=null)
+			xpath += " and @checked_" + checked;
 
 		currentConstraint.setAddedToTheXpath(true); // this is to consider each constraint only once
 
