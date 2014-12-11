@@ -203,6 +203,13 @@ public class TraceAnalyzer {
 		DOMJSVariable = varName.toSource();
 		//System.out.println("parentNode.getChildBefore(ASTNode).getString() :" + parentNode.getChildBefore(ASTNode).getString());
 		System.out.println("Variable:" + varName.toSource() + " initialized to: " + varLiteral.toSource());
+		
+		if (varLiteral.toSource().contains(".value")){
+			System.out.println("Value of a DOM element assigned to JS variable: " + varName.toSource());
+			DOMConstraintList.get(DOMConstraintList.size()-1).getElementTypeVariable().setValue_attribute("ConfixGetValue");
+
+		}
+		
 
 	}
 

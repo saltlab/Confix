@@ -398,10 +398,10 @@ function bunnyJump1(bunny)
 		}
 	}
 
-	bunny.timer = setTimeout(function()
-			{
-		bunnyJump1(bunny);
-			}, interval);
+	//bunny.timer = setTimeout(function()
+	//		{
+	//	bunnyJump1(bunny);
+	//		}, interval);
 
 	return true;
 };
@@ -455,11 +455,11 @@ function bunnyJump2(bunny)
 		}
 	}
 
-	bunny.timer = setTimeout(function()
+	/*bunny.timer = setTimeout(function()
 			{
 		bunnyJump2(bunny);
 			}, interval);
-
+*/
 	return true;
 };
 
@@ -512,11 +512,11 @@ function bunnyJump3(bunny)
 		}
 	}
 
-	bunny.timer = setTimeout(function()
+	/*bunny.timer = setTimeout(function()
 			{
 		bunnyJump3(bunny);
 			}, interval);
-
+*/
 	return true;
 };
 
@@ -550,17 +550,17 @@ function dropBomb(bomb)
 
 	bomb.style.marginTop = marginTop + increment + "px";
 
-	bomb.timer = setTimeout(function()
+	/*bomb.timer = setTimeout(function()
 			{
 		dropBomb(bomb);
 			}, interval);
-
+*/
 	return true;
 };
 
 
 
-
+//DDF
 function clickStage(event)
 {
 	if (hasClass(this, "gameOver"))
@@ -608,11 +608,11 @@ function clickStage(event)
 					}
 					else
 					{
-						setTimeout(function()
+						/*setTimeout(function()
 								{
 							fade(bunny);
 								}, 750);
-
+						*/
 						var score = document.getElementById("score");
 						var scoreP = score.getElementsByTagName("p")[0];
 						scoreP.firstChild.nodeValue = parseInt(scoreP.firstChild.nodeValue) + 1;
@@ -629,7 +629,7 @@ function clickStage(event)
 
 
 
-
+//DDF
 function fade(bunny)
 {
 	bunny.style.marginRight = "0";
@@ -654,7 +654,7 @@ function fade(bunny)
 
 
 
-
+//DDF
 function blink(bunny)
 {
 	var display = bunny.style.display;
@@ -713,17 +713,18 @@ function blink(bunny)
 	{
 		bunny.blinkCounter++;
 
-		setTimeout(function()
+		/*setTimeout(function()
 				{
 			blink(bunny);
 				}, 500);
+				*/
 	}
 
 	return true;
 };
 
 
-
+//NonDDF
 function getPosition(theElement)
 {
 	var positionX = 0;

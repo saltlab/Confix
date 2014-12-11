@@ -1,12 +1,12 @@
 
-if (document.all && typeof window.opera == "undefined")
+/*if (document.all && typeof window.opera == "undefined")
 {
 	schedule("cloud2", cloudsInit);
 }
+*/
 
 
-
-
+//DDF
 function cloudsInit()
 {
 	moveCloud1();
@@ -17,11 +17,11 @@ function cloudsInit()
 
 
 
-
+//DDF
 function moveCloud1()
 {
 	var increment = 1;
-	var cloud1 = document.getElementById("cloud1");
+	var cloud1 = document.getElementById('cloud1');
 	
 	if (cloud1.style.left == null || cloud1.style.left == "" || parseInt(cloud1.style.left) + cloud1.offsetWidth < 0)
 	{
@@ -37,11 +37,11 @@ function moveCloud1()
 
 
 
-
+//DDF
 function moveCloud2()
 {
 	var increment = 1;
-	var cloud2 = document.getElementById("cloud2");
+	var cloud2 = document.getElementById('cloud2');
 	
 	if (cloud2.style.left == null || cloud2.style.left == "" || parseInt(cloud2.style.left) + cloud2.offsetWidth < 0)
 	{

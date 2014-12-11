@@ -9,14 +9,14 @@ var currImage = 0;
 //DDF
 function preloadImages()
 {
-	var loadingMessage = document.getElementById("loadingMessage");
-	var loadingMessageP = loadingMessage.getElementsByTagName("p")[0];
+	var loadingMessage = document.getElementById('loadingMessage');
+	var loadingMessageP = loadingMessage.getElementsByTagName('p')[0];
 	
 	if (currImage >= imageArray.length)
 	{
 		loadingMessageP.innerHTML = "<strong>DONE!</strong>";
 		
-		var buttonStart = document.createElement("input");
+		var buttonStart = document.createElement('input');
 		buttonStart.type = "image";
 		buttonStart.src = "images/button_start.gif";
 		buttonStart.onclick = ready;
@@ -30,7 +30,7 @@ function preloadImages()
 		
 		loadingMessageP.innerHTML = "Loading image <strong>" + (currImage + 1) + "</strong> of <strong>" + imageArray.length + "</strong>";
 
-		var loadingBar = loadingMessage.getElementsByTagName("div")[1];
+		var loadingBar = loadingMessage.getElementsByTagName('div')[1];
 		loadingBar.style.width = Math.ceil((currImage + 1) / imageArray.length * 100) + "%";
 
 		currImage++;
@@ -44,10 +44,10 @@ function preloadImages()
 //DDF
 function ready()
 {
-	var stage = document.getElementById("stage");
+	var stage = document.getElementById('stage');
 	stage.className = "ready";
 	
-	var splash = document.getElementById("splash");
+	var splash = document.getElementById('splash');
 	splash.className = "ready";
 	
 	initBunnies();
