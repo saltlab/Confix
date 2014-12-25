@@ -5,7 +5,7 @@ import core.utils.Method;
 
 public class ConfixRunner {
 
-	static Method testGenerationMethod = Method.CONFIX;
+	static Method testGenerationMethod = Method.MANUAL;
 	
 	private static String jsFolderNameToTest = "phormer";  // the folder should be available in the "input/" directory
 	private static String jsNameToTest = "phorm.js";

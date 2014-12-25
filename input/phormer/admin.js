@@ -2,7 +2,7 @@ var blured = false;
 var MAX_ADD_BOX = 20;
 var nowTime;
 
-// DDF
+//DDF
 function PrepareBody() {
 	try {
 		dg('newpasswd').focus();
@@ -24,9 +24,9 @@ function PrepareBody() {
 	for (var i=0; i<alli.length; i++)
 		if (alli[i].className != "submit")
 			try { alli[i].onfocus = alli[i].select; } catch(e) {}
-	var alli = document.getElementsByTagName('textarea');
-	for (var i=0; i<alli.length; i++)
-		try { alli[i].onfocus = alli[i].select; } catch(e) {}
+			var alli = document.getElementsByTagName('textarea');
+			for (var i=0; i<alli.length; i++)
+				try { alli[i].onfocus = alli[i].select; } catch(e) {}
 }
 
 //NonDDF
@@ -44,26 +44,26 @@ function wordize(s) {
 	return s[0].toUpperCase()+s.substring(1);
 }
 
-// DDF
+//DDF
 function dg(x) {
 	return document.getElementById(x);
 }
 
-// DDF
+//DDF
 function hideElem(x) {
 	try {
 		dg(x).style.display = 'none';
 	} catch(e) {}
 }
 
-// DDF
+//DDF
 function showElem(x) {
 	try {
 		dg(x).style.display = 'block';
 	} catch(e) {}
 }
 
-// DDF
+//DDF
 function inlineElem(x) {
 	try {
 		dg(x).style.display = 'inline';
@@ -225,35 +225,35 @@ function linkAddBelow(x) {
 	x++;
 	dg('nLink').value = ++n;
 
- 	var allTable = dg('allLinkLines').childNodes[dg('allLinkLines').childNodes.length - 1];
- 	var m = allTable.childNodes.length;
- 	for (m--; allTable.childNodes[m].tagName != "TR"; m--)
- 		;
+	var allTable = dg('allLinkLines').childNodes[dg('allLinkLines').childNodes.length - 1];
+	var m = allTable.childNodes.length;
+	for (m--; allTable.childNodes[m].tagName != "TR"; m--)
+		;
 	var lastTr = allTable.childNodes[m];
 
- 	var thisTr = lastTr.cloneNode("tr");
+	var thisTr = lastTr.cloneNode('tr');
 
- 	thisTr.id = 'linkline'+(n-1);
- 	m = thisTr.childNodes.length;
- 	for (i=0; thisTr.childNodes[i].tagName != "TD"; i++)
- 		;
- 	thisTr.childNodes[i].innerHTML = (n);
+	thisTr.id = 'linkline'+(n-1);
+	m = thisTr.childNodes.length;
+	for (i=0; thisTr.childNodes[i].tagName != "TD"; i++)
+		;
+	thisTr.childNodes[i].innerHTML = (n);
 
- 	for (i++; i<m; i++)
- 		if (thisTr.childNodes[i].tagName == "TD")
- 			if (thisTr.childNodes[i].childNodes[0].tagName == "INPUT") {
+	for (i++; i<m; i++)
+		if (thisTr.childNodes[i].tagName == "TD")
+			if (thisTr.childNodes[i].childNodes[0].tagName == "INPUT") {
 				var s = thisTr.childNodes[i].childNodes[0].id;
 				s = "l"+(n-1)+(s.charAt(s.length-1));
- 				thisTr.childNodes[i].childNodes[0].name = s;
- 				thisTr.childNodes[i].childNodes[0].id = s;
+				thisTr.childNodes[i].childNodes[0].name = s;
+				thisTr.childNodes[i].childNodes[0].id = s;
 			}
 
- 	allTable.appendChild(thisTr);
+	allTable.appendChild(thisTr);
 
 	for (var i=n-1; i>x; i--)
 		for (var l=0; l<3; l++) {
 			var j = i-1;
-			dg('l'+i+lets[l]).value = dg('l'+j+lets[l]).value;
+			//dg('l'+i+lets[l]).value = dg('l'+j+lets[l]).value;
 			dg('l'+i+lets[l]).style.fontWeight = dg('l'+j+lets[l]).style.fontWeight;
 		}
 	for (var l=0; l<3; l++)
@@ -281,7 +281,7 @@ function linkDelThis(x) {
 	for (var i=x; i<n; i++)
 		for (var l=0; l<3; l++) {
 			var j = i+1;
-			dg('l'+i+lets[l]).value = dg('l'+j+lets[l]).value;
+			//dg('l'+i+lets[l]).value = dg('l'+j+lets[l]).value;
 			dg('l'+i+lets[l]).style.fontWeight = dg('l'+j+lets[l]).style.fontWeight;
 		}
 	removeThisNode('linkline'+n);
@@ -297,37 +297,37 @@ function removeThisNode(node) {
 
 //DDF
 function addMainColDiv() {
- 	var allModes = dg('allModes');
+	var allModes = dg('allModes');
 
 	m = 0;
- 	for (; allModes.childNodes[m].tagName != "DIV"; m++)
- 		;
+	for (; allModes.childNodes[m].tagName != "DIV"; m++)
+		;
 	var firstDiv = allModes.childNodes[m];
 
- 	var thisDiv = firstDiv.cloneNode("DIV");
- 	thisDiv.innerHTML = "Then<br /><br />"+thisDiv.innerHTML;
+	var thisDiv = firstDiv.cloneNode('DIV');
+	thisDiv.innerHTML = "Then<br /><br />"+thisDiv.innerHTML;
 
 	m = allModes.childNodes.length;
- 	for (m--; allModes.childNodes[m].tagName != "A"; m--)
- 		;
+	for (m--; allModes.childNodes[m].tagName != "A"; m--)
+		;
 	var aDiv = allModes.childNodes[m];
 
- 	allModes.insertBefore(thisDiv, aDiv);
- 	updateMode();
+	allModes.insertBefore(thisDiv, aDiv);
+	updateMode();
 }
 
 //DDF
 function updateMode() {
- 	var allModes = dg('allModes');
+	var allModes = dg('allModes');
 
 	m = allModes.childNodes.length;
 	r = "";
- 	for (i=0; i<m; i++)
- 		if (allModes.childNodes[i].tagName == "DIV") {
+	for (i=0; i<m; i++)
+		if (allModes.childNodes[i].tagName == "DIV") {
 			k = 0;
-		 	for (; allModes.childNodes[i].childNodes[k].tagName != "SELECT"; k++)
- 				;
- 			r = r+'-'+allModes.childNodes[i].childNodes[k].value;
+			for (; allModes.childNodes[i].childNodes[k].tagName != "SELECT"; k++)
+				;
+			r = r+'-'+allModes.childNodes[i].childNodes[k].value;
 		}
 
 	r = r.substr(1, r.length);
@@ -447,16 +447,16 @@ function DraftsSelectBit(_and, _xor) {
 	for (var i=0; i<alli.length; i++)
 		if (alli[i].className == "checkbox") {
 			v = alli[i].checked;
-			v &= _and;
-			v ^= _xor;
+			v = v & _and;
+			v = v ^ _xor;
 			alli[i].checked = v;
-	}
+		}
 	updateSelCount();
 }
 
 //DDF
 function AddAddBox() {
-	dg('boxv').value = parseInt(dg('boxv').value) + 1;
+	//dg('boxv').value = parseInt(dg('boxv').value) + 1;
 	if (dg('boxv').value >= MAX_ADD_BOX)
 		alert("Maximum adding boxed reached, refresh page!");
 	else {

@@ -93,7 +93,7 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 		excludeFilenamePatterns.add(".*dojo.xd.js?.*");
 		excludeFilenamePatterns.add(".*yuiloader.js?.*");
 		excludeFilenamePatterns.add(".*google.*");
-		excludeFilenamePatterns.add(".*min.*.js?.*");
+		//excludeFilenamePatterns.add(".*min.*.js?.*");
 		excludeFilenamePatterns.add(".*pack.*.js?.*");
 		excludeFilenamePatterns.add(".*compressed.*.js?.*");
 		excludeFilenamePatterns.add(".*rpc.*.js?.*");
@@ -104,24 +104,6 @@ public class JSModifyProxyPlugin extends ProxyPlugin {
 
 		// QUnit
 		excludeFilenamePatterns.add(".*qunit.js");
-		//excludeFilenamePatterns.add(".*filesystem.js");
-		//excludeFilenamePatterns.add(".*functional.js");
-		//excludeFilenamePatterns.add(".*test.core.js");
-		//excludeFilenamePatterns.add(".*inject.js");
-		
-		//exclude list for tudu
-		/*excludeFilenamePatterns.add(".*builder.js");
-		excludeFilenamePatterns.add(".*controls.js");
-		excludeFilenamePatterns.add(".*dragdrop.js");
-		excludeFilenamePatterns.add(".*effects.js");
-		excludeFilenamePatterns.add(".*prototype.js");
-		excludeFilenamePatterns.add(".*scriptaculous.js");
-		excludeFilenamePatterns.add(".*slider.js");
-		excludeFilenamePatterns.add(".*unittest.js");
-	//	excludeFilenamePatterns.add(".*engine.js");
-		excludeFilenamePatterns.add(".*util.js");
-		excludeFilenamePatterns.add(".*cycle.js");
-		*/
 	}
 
 	@Override

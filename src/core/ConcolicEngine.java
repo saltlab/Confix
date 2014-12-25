@@ -153,10 +153,10 @@ public class ConcolicEngine {
 					// Generate a new fixture to execute another path. If all paths were exercised, fixture will be set to "" to terminate the loop
 					
 					
-					if (testGenerationMethod != Method.CONFIX)
-						fixture = ""; // not using Confix
-					else
+					if (testGenerationMethod == Method.CONFIX_NOINP || testGenerationMethod == Method.CONFIX_JALANGI || testGenerationMethod == Method.CONFIX_MANUAL)
 						fixture = DOMFixture;
+					else
+						fixture = ""; // not using Confix
 					
 					// Generating a new test method
 					tsg.addNewTestMethod(currentFunctionToTest, fixture, pathCounter);

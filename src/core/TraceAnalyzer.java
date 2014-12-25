@@ -919,9 +919,9 @@ public class TraceAnalyzer {
 	private void analyseInfixExpressionNode(Map<String, String> map) {
 		System.out.println("=== analyseInfixExpressionNode ===");
 		String statement = map.get("statement");
-		// TODO: needs refactoring. This is done temorary for the phormer app
+		// TODO: needs refactoring. This is done temporary for the phormer app
 		statement = statement.replace("\"document.cookie.split(\"; \")", "\"document.cookie.split(\\\"; \\\")");
-		//System.out.println(statement);
+		System.out.println(statement);
 		AstNode generatedNode = parse(statement);
 		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
 		InfixExpression infix = (InfixExpression) es.getExpression();

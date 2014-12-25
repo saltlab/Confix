@@ -5,7 +5,7 @@ import core.utils.Method;
 
 public class HotelReservationConfixRunner {
 
-	static Method testGenerationMethod = Method.CONFIX;
+	static Method testGenerationMethod = Method.MANUAL;
 
 	private static String jsFolderNameToTest = "HotelReservation";  // the folder should be available in the "input/" directory
 	private static String jsNameToTest = "validation.js";

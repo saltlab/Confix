@@ -1,4 +1,4 @@
-// QUnit test cases generated @ Wed Dec 03 13:14:08 PST 2014
+// QUnit test cases generated @ Wed Dec 24 23:10:52 PST 2014
 
 module("output/phormer_QUnits", {
     setup: function() {
@@ -128,6 +128,13 @@ test("Testing function reToggleInfo() for path 3", function() {
 test("Testing function reshuffle() for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append(' <div id="thumbscount"/> ');
+	reshuffle();
+});
+
+
+test("Testing function reshuffle() for path 2", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <input id="thumbscount" value="ConfixGetValue"/> ');
 	reshuffle();
 });
 
@@ -352,6 +359,13 @@ test("Testing function ss_toggleSmaller() for path 2", function() {
 test("Testing function ss_slideshow() for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append(' <div id="ss_refresh"/> ');
+	ss_slideshow();
+});
+
+
+test("Testing function ss_slideshow() for path 2", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <input id="ss_refresh" value="ConfixGetValue"/> <input id="ss_refresh" value="ConfixGetValue"/> <input id="ss_refresh" value="ConfixGetValue"/> <input id="ss_refresh" value="ConfixGetValue"/> ');
 	ss_slideshow();
 });
 
