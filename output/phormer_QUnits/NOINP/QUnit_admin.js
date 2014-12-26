@@ -1,4 +1,4 @@
-// QUnit test cases generated @ Thu Dec 25 22:18:59 PST 2014
+// QUnit test cases generated @ Fri Dec 26 01:44:30 PST 2014
 
 module("output/phormer_QUnits", {
     setup: function() {
@@ -20,24 +20,24 @@ test("Testing function PrepareBody() for path 1", function() {
 });
 
 
-test("Testing function dg('test') for path 1", function() {
+test("Testing function dg() for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	dg('test');
+	dg();
 });
 
 
-test("Testing function showElem('test') for path 1", function() {
+test("Testing function showElem() for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	showElem('test');
+	showElem();
 });
 
 
-test("Testing function tableRowElem('test') for path 1", function() {
+test("Testing function tableRowElem() for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	tableRowElem('test');
+	tableRowElem();
 });
 
 
@@ -90,38 +90,38 @@ test("Testing function ConfirmDelPhoto() for path 1", function() {
 });
 
 
-test("Testing function showlinkline('test') for path 1", function() {
+test("Testing function showlinkline() for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	showlinkline('test');
+	showlinkline();
 });
 
 
-test("Testing function hidelinkline('test') for path 1", function() {
+test("Testing function hidelinkline() for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	hidelinkline('test');
+	hidelinkline();
 });
 
 
-test("Testing function linkAddBelow('test') for path 1", function() {
+test("Testing function linkAddBelow() for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	linkAddBelow('test');
+	linkAddBelow();
 });
 
 
-test("Testing function linkDelThis('test') for path 1", function() {
+test("Testing function linkDelThis() for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	linkDelThis('test');
+	linkDelThis();
 });
 
 
-test("Testing function removeThisNode('test') for path 1", function() {
+test("Testing function removeThisNode() for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	removeThisNode('test');
+	removeThisNode();
 });
 
 
@@ -132,10 +132,10 @@ test("Testing function addMainColDiv() for path 1", function() {
 });
 
 
-test("Testing function fixBoldInput('test','test1') for path 1", function() {
+test("Testing function fixBoldInput() for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	fixBoldInput('test','test1');
+	fixBoldInput();
 });
 
 
@@ -146,10 +146,10 @@ test("Testing function changePrev() for path 1", function() {
 });
 
 
-test("Testing function rethumb_fill('test') for path 1", function() {
+test("Testing function rethumb_fill() for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	rethumb_fill('test');
+	rethumb_fill();
 });
 
 
@@ -160,10 +160,10 @@ test("Testing function ToggleAdvPref() for path 1", function() {
 });
 
 
-test("Testing function updateTimeDiffer('test') for path 1", function() {
+test("Testing function updateTimeDiffer() for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	updateTimeDiffer('test');
+	updateTimeDiffer();
 });
 
 
@@ -188,10 +188,10 @@ test("Testing function updateSelCount() for path 1", function() {
 });
 
 
-test("Testing function DraftsSelectBit('test','test1') for path 1", function() {
+test("Testing function DraftsSelectBit() for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	DraftsSelectBit('test','test1');
+	DraftsSelectBit();
 });
 
 

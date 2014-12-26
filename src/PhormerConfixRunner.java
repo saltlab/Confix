@@ -5,7 +5,7 @@ import core.utils.Method;
 
 public class PhormerConfixRunner {
 
-	static Method testGenerationMethod = Method.CONFIX_MANUAL;
+	static Method testGenerationMethod = Method.NOINP;
 
 	private static String jsFolderNameToTest = "phormer";  // the folder should be available in the "input/" directory
 	//private static String jsNameToTest = "phorm.js";
@@ -280,13 +280,21 @@ public class PhormerConfixRunner {
 				functionToTest.add("ExpandSkl()");
 				functionToTest.add("MouseMoveInside('test')");
 				functionToTest.add("UpdateThumbPrev()");
-				//functionToTest.add("()");
-				//functionToTest.add("()");
-				//functionToTest.add("()");
-				//functionToTest.add("()");			
 			}else if (testGenerationMethod == Method.JALANGI || testGenerationMethod == Method.CONFIX_JALANGI){
 			}else if (testGenerationMethod == Method.NOINP || testGenerationMethod == Method.CONFIX_NOINP){
+				functionToTest.add("SaveRatio()");
+				functionToTest.add("MouseDown()");
+				functionToTest.add("MouseDownTheSkeleton()");
+				functionToTest.add("ExpandSkl()");
+				functionToTest.add("MouseMoveInside()");
+				functionToTest.add("UpdateThumbPrev()");
 			}else if (testGenerationMethod == Method.FIXINP){
+				functionToTest.add("SaveRatio()");
+				functionToTest.add("MouseDown('test','test')");
+				functionToTest.add("MouseDownTheSkeleton('test')");
+				functionToTest.add("ExpandSkl()");
+				functionToTest.add("MouseMoveInside('test')");
+				functionToTest.add("UpdateThumbPrev()");
 			}
 		}
 

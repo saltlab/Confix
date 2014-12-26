@@ -8,16 +8,12 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.Alert;
-import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -34,7 +30,7 @@ import testgenerator.TestSuiteGenerator;
 public class ConcolicEngine {
 
 	private Method testGenerationMethod;
-	
+
 	private WebDriver driver;
 	private JSModifyProxyPlugin JSModifier;
 	private JSAnalyzer codeAnalyzer;
@@ -100,7 +96,8 @@ public class ConcolicEngine {
 
 				// To get coverage by JSCover the runner html should be loaded from a server not local directory
 				// Also the XHR replacement in the instrumented file should be removed as JSCover also changes XHR
-				driver.get("http://localhost:8888/concolic/phormer_tests/concolic.htm");
+				String concolicHTMLRunnerPath = "http://localhost:8888/concolic/phormer_tests/concolic_" + scopeName.replace(".js", "")  + ".htm";
+				driver.get(concolicHTMLRunnerPath);
 
 
 				// Apply the new fixture on htmlTestFile
@@ -114,50 +111,54 @@ public class ConcolicEngine {
 					System.out.println("Failed to execute function " + currentFunctionToTest + ": " + e);
 				}
 
-				// Get the execution trace
-				traceAnalyzer.resetDOMConstraintList();
-				ArrayList traceList = (ArrayList)((JavascriptExecutor) driver).executeScript("return getConfixTrace();");
-				System.out.println("traceList: " + traceList);
-				Map<String,String> map;
-				for (int i=0; i<traceList.size(); i++){
-					map = (Map<String,String>)(traceList.get(i));
-					traceAnalyzer.analyzeTrace(map);
-				}
+				// Concolic fixture generation
+				if (testGenerationMethod == Method.CONFIX_NOINP || testGenerationMethod == Method.CONFIX_JALANGI || testGenerationMethod == Method.CONFIX_MANUAL){
 
-				// check if all the new path condition is repeated i.e. all paths are exercised
-				ArrayList<DOMConstraint> currentPathCondition = new ArrayList<DOMConstraint>();
 
-				currentPathCondition.addAll(traceAnalyzer.getcurrentPathCondition());
-				if (traceAnalyzer.addToPathConditions(currentPathCondition)){
-					traceAnalyzer.clearCurrentPathCodition();
-					traceAnalyzer.getDOMConstraintList();
-					TraceAnalyzer.generatedID = 0;  // resetting the static auto-increment generatedID
-
-					for (DOMConstraint dc: traceAnalyzer.getDOMConstraintList()){
-						dc.getCorrespondingXpath();
+					// Get the execution trace
+					traceAnalyzer.resetDOMConstraintList();
+					ArrayList traceList = (ArrayList)((JavascriptExecutor) driver).executeScript("return getConfixTrace();");
+					System.out.println("traceList: " + traceList);
+					Map<String,String> map;
+					for (int i=0; i<traceList.size(); i++){
+						map = (Map<String,String>)(traceList.get(i));
+						traceAnalyzer.analyzeTrace(map);
 					}
 
-					// Generate DOM constraints from the trace
-					String DOMFixture = getDOMFixture();
+					// check if all the new path condition is repeated i.e. all paths are exercised
+					ArrayList<DOMConstraint> currentPathCondition = new ArrayList<DOMConstraint>();
 
-					System.out.println("DOMFixture: " + DOMFixture);
-					if (!DOMFixture.equals("") && DOMFixtureList.contains(DOMFixture)){
-						DOMFixtureList.clear();  // clearing the DOMFixtureList to avoid terminating fixture generation for other functions that have a same fixture
-						System.out.println("No new fixyture found!");
-						break;
-					}
-					DOMFixtureList.add(DOMFixture);
+					currentPathCondition.addAll(traceAnalyzer.getcurrentPathCondition());
+					if (traceAnalyzer.addToPathConditions(currentPathCondition)){
+						traceAnalyzer.clearCurrentPathCodition();
+						traceAnalyzer.getDOMConstraintList();
+						TraceAnalyzer.generatedID = 0;  // resetting the static auto-increment generatedID
 
-					// Transform the DOM constraints in into xpath constraint (xpath rule)
-					// Solve xpath constraints and generate corresponding DOMFixture
-					// Generate a new fixture to execute another path. If all paths were exercised, fixture will be set to "" to terminate the loop
-					
-					
-					if (testGenerationMethod == Method.CONFIX_NOINP || testGenerationMethod == Method.CONFIX_JALANGI || testGenerationMethod == Method.CONFIX_MANUAL)
+						for (DOMConstraint dc: traceAnalyzer.getDOMConstraintList()){
+							dc.getCorrespondingXpath();
+						}
+
+						// Generate DOM constraints from the trace
+						String DOMFixture = getDOMFixture();
+
+						System.out.println("DOMFixture: " + DOMFixture);
+						if (!DOMFixture.equals("") && DOMFixtureList.contains(DOMFixture)){
+							DOMFixtureList.clear();  // clearing the DOMFixtureList to avoid terminating fixture generation for other functions that have a same fixture
+							System.out.println("No new fixyture found!");
+							break;
+						}
+						DOMFixtureList.add(DOMFixture);
+
+						// Transform the DOM constraints in into xpath constraint (xpath rule)
+						// Solve xpath constraints and generate corresponding DOMFixture
+						// Generate a new fixture to execute another path. If all paths were exercised, fixture will be set to "" to terminate the loop
+
+						// Updating the fixture
 						fixture = DOMFixture;
+					}
 					else
 						fixture = ""; // not using Confix
-					
+
 					// Generating a new test method
 					tsg.addNewTestMethod(currentFunctionToTest, fixture, pathCounter);
 
@@ -181,8 +182,6 @@ public class ConcolicEngine {
 
 		// Generate a QUnit test file
 		tsg.generateTestSuite();
-
-		//driver.get("http://localhost:8888/concolic/phormer_tests/concolic1.htm");
 
 
 		driver.quit();
