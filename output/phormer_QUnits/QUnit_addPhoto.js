@@ -1,4 +1,4 @@
-// QUnit test cases generated @ Thu Dec 25 07:23:32 PST 2014
+// QUnit test cases generated @ Thu Dec 25 22:26:28 PST 2014
 
 module("output/phormer_QUnits", {
     setup: function() {
@@ -20,13 +20,6 @@ test("Testing function setExif('test') for path 1", function() {
 });
 
 
-test("Testing function imageUploaded(false, 'test') for path 1", function() {
-	expect(0);
-	$("#qunit-fixture").append('');
-	imageUploaded(false, 'test');
-});
-
-
 test("Testing function writeYet('test', false) for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
@@ -43,14 +36,35 @@ test("Testing function writeYet('test', true) for path 1", function() {
 
 test("Testing function uploadSubmitted('test', 'test', false, 'test')  for path 1", function() {
 	expect(0);
-	$("#qunit-fixture").append('');
+	$("#qunit-fixture").append(' <div id="thumb_note_test"/> <div id="PhotoTitleId"/> ');
+	uploadSubmitted('test', 'test', false, 'test') ;
+});
+
+
+test("Testing function uploadSubmitted('test', 'test', false, 'test')  for path 2", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="upload_uploading_txt_test"/> <div id="thumb_note_test"/> <div id="PhotoTitleId"/> ');
+	uploadSubmitted('test', 'test', false, 'test') ;
+});
+
+
+test("Testing function uploadSubmitted('test', 'test', false, 'test')  for path 3", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="upload_uploading_test"/> <div id="upload_iframe_test"/> <div id="upload_uploading_txt_test"/> <div id="thumb_note_test"/> <div id="PhotoTitleId"/> ');
 	uploadSubmitted('test', 'test', false, 'test') ;
 });
 
 
 test("Testing function uploadSubmitted('test', 'test', true, 'test')  for path 1", function() {
 	expect(0);
-	$("#qunit-fixture").append('');
+	$("#qunit-fixture").append(' <div id="upload_uploading_txt_test"/> ');
+	uploadSubmitted('test', 'test', true, 'test') ;
+});
+
+
+test("Testing function uploadSubmitted('test', 'test', true, 'test')  for path 2", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="upload_uploading_test"/> <div id="upload_iframe_test"/> <div id="upload_uploading_txt_test"/> ');
 	uploadSubmitted('test', 'test', true, 'test') ;
 });
 

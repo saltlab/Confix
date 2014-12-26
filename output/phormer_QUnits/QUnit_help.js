@@ -1,4 +1,4 @@
-// QUnit test cases generated @ Thu Dec 25 06:55:59 PST 2014
+// QUnit test cases generated @ Thu Dec 25 22:21:00 PST 2014
 
 module("output/phormer_QUnits", {
     setup: function() {
@@ -15,22 +15,29 @@ module("output/phormer_QUnits", {
 
 test("Testing function HideHelp() for path 1", function() {
 	expect(0);
-	$("#qunit-fixture").append('');
+	$("#qunit-fixture").append(' <div id="helpBox"/> ');
 	HideHelp();
 });
 
 
 test("Testing function dgp('id') for path 1", function() {
 	expect(0);
-	$("#qunit-fixture").append('');
+	$("#qunit-fixture").append(' <div id="id"/> ');
 	dgp('id');
 });
 
 
 test("Testing function ShowHelp('test', null, 'it') for path 1", function() {
 	expect(0);
-	$("#qunit-fixture").append('');
+	$("#qunit-fixture").append(' <div id="helpBoxLegend"/> ');
 	ShowHelp('test', null, 'it');
+});
+
+
+test("Testing function ShowHelp('test', null, 'test') for path 1", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="helpBoxLegend"/> ');
+	ShowHelp('test', null, 'test');
 });
 
 

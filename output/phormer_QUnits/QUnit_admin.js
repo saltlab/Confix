@@ -1,4 +1,4 @@
-// QUnit test cases generated @ Thu Dec 25 14:51:42 PST 2014
+// QUnit test cases generated @ Thu Dec 25 22:18:59 PST 2014
 
 module("output/phormer_QUnits", {
     setup: function() {
@@ -20,24 +20,24 @@ test("Testing function PrepareBody() for path 1", function() {
 });
 
 
-test("Testing function dg() for path 1", function() {
+test("Testing function dg('test') for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	dg();
+	dg('test');
 });
 
 
-test("Testing function showElem() for path 1", function() {
+test("Testing function showElem('test') for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	showElem();
+	showElem('test');
 });
 
 
-test("Testing function tableRowElem() for path 1", function() {
+test("Testing function tableRowElem('test') for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	tableRowElem();
+	tableRowElem('test');
 });
 
 
@@ -83,13 +83,6 @@ test("Testing function CheckAddPhotoTime() for path 1", function() {
 });
 
 
-test("Testing function CheckAddPhoto() for path 1", function() {
-	expect(0);
-	$("#qunit-fixture").append('');
-	CheckAddPhoto();
-});
-
-
 test("Testing function ConfirmDelPhoto() for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
@@ -97,38 +90,38 @@ test("Testing function ConfirmDelPhoto() for path 1", function() {
 });
 
 
-test("Testing function showlinkline() for path 1", function() {
+test("Testing function showlinkline('test') for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	showlinkline();
+	showlinkline('test');
 });
 
 
-test("Testing function hidelinkline() for path 1", function() {
+test("Testing function hidelinkline('test') for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	hidelinkline();
+	hidelinkline('test');
 });
 
 
-test("Testing function linkAddBelow() for path 1", function() {
+test("Testing function linkAddBelow('test') for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	linkAddBelow();
+	linkAddBelow('test');
 });
 
 
-test("Testing function linkDelThis() for path 1", function() {
+test("Testing function linkDelThis('test') for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	linkDelThis();
+	linkDelThis('test');
 });
 
 
-test("Testing function removeThisNode() for path 1", function() {
+test("Testing function removeThisNode('test') for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	removeThisNode();
+	removeThisNode('test');
 });
 
 
@@ -139,17 +132,10 @@ test("Testing function addMainColDiv() for path 1", function() {
 });
 
 
-test("Testing function updateMode() for path 1", function() {
+test("Testing function fixBoldInput('test','test1') for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	updateMode();
-});
-
-
-test("Testing function fixBoldInput() for path 1", function() {
-	expect(0);
-	$("#qunit-fixture").append('');
-	fixBoldInput();
+	fixBoldInput('test','test1');
 });
 
 
@@ -160,17 +146,10 @@ test("Testing function changePrev() for path 1", function() {
 });
 
 
-test("Testing function rethumb_fill() for path 1", function() {
+test("Testing function rethumb_fill('test') for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	rethumb_fill();
-});
-
-
-test("Testing function rethumb() for path 1", function() {
-	expect(0);
-	$("#qunit-fixture").append('');
-	rethumb();
+	rethumb_fill('test');
 });
 
 
@@ -181,10 +160,10 @@ test("Testing function ToggleAdvPref() for path 1", function() {
 });
 
 
-test("Testing function updateTimeDiffer() for path 1", function() {
+test("Testing function updateTimeDiffer('test') for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	updateTimeDiffer();
+	updateTimeDiffer('test');
 });
 
 
@@ -209,10 +188,10 @@ test("Testing function updateSelCount() for path 1", function() {
 });
 
 
-test("Testing function DraftsSelectBit() for path 1", function() {
+test("Testing function DraftsSelectBit('test','test1') for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
-	DraftsSelectBit();
+	DraftsSelectBit('test','test1');
 });
 
 

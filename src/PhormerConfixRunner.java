@@ -5,14 +5,14 @@ import core.utils.Method;
 
 public class PhormerConfixRunner {
 
-	static Method testGenerationMethod = Method.NOINP;
+	static Method testGenerationMethod = Method.CONFIX_MANUAL;
 
 	private static String jsFolderNameToTest = "phormer";  // the folder should be available in the "input/" directory
 	//private static String jsNameToTest = "phorm.js";
 	//private static String jsNameToTest = "help.js";
 	//private static String jsNameToTest = "addPhoto.js";
-	private static String jsNameToTest = "admin.js";
-	//private static String jsNameToTest = "skeleton.js";
+	//private static String jsNameToTest = "admin.js";
+	private static String jsNameToTest = "skeleton.js";
 
 
 	private static String jsPathToTest = "input/" + jsFolderNameToTest + "/" + jsNameToTest;
@@ -151,8 +151,9 @@ public class PhormerConfixRunner {
 		}if(jsNameToTest.equals("addPhoto.js")){
 			if (testGenerationMethod == Method.MANUAL || testGenerationMethod == Method.CONFIX_MANUAL){
 				functionToTest.add("setExif('test')");
-				functionToTest.add("imageUploaded(false, 'test')");
-				functionToTest.add("imageUploaded(true, 'test')");
+				// check for confix
+				//functionToTest.add("imageUploaded(false, 'test')");
+				//functionToTest.add("imageUploaded(true, 'test')");
 				functionToTest.add("writeYet('test', false)");
 				functionToTest.add("writeYet('test', true)");
 				functionToTest.add("uploadSubmitted('test', 'test', false, 'test') ");
@@ -279,10 +280,10 @@ public class PhormerConfixRunner {
 				functionToTest.add("ExpandSkl()");
 				functionToTest.add("MouseMoveInside('test')");
 				functionToTest.add("UpdateThumbPrev()");
-				functionToTest.add("()");
-				functionToTest.add("()");
-				functionToTest.add("()");
-				functionToTest.add("()");			
+				//functionToTest.add("()");
+				//functionToTest.add("()");
+				//functionToTest.add("()");
+				//functionToTest.add("()");			
 			}else if (testGenerationMethod == Method.JALANGI || testGenerationMethod == Method.CONFIX_JALANGI){
 			}else if (testGenerationMethod == Method.NOINP || testGenerationMethod == Method.CONFIX_NOINP){
 			}else if (testGenerationMethod == Method.FIXINP){

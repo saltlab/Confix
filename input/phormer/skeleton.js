@@ -132,7 +132,7 @@ function UpdateThumbPrev() {
 	dg('sklL').value = parseInt(dg('skeleton').style.left);
 	dg('sklT').value = parseInt(dg('skeleton').style.top);
 
-	dg('kines_l').style.width = dg('sklL').value+'px';
+	/*dg('kines_l').style.width = dg('sklL').value+'px';
 
 	dg('kines_r').style.width = Math.max(0, ImgW-dg('sklL').value-dg('sklW').value-1)+'px';
 
@@ -150,4 +150,5 @@ function UpdateThumbPrev() {
 	dg('thumbPrev').style.height = (parseInt(dg('thePhoto').style.height) 	/ rr)+'px';
 	dg('thumbPrev').style.left   = (-parseInt(dg('skeleton').style.left) 	/ rr)+'px';
 	dg('thumbPrev').style.top    = (-parseInt(dg('skeleton').style.top) 	/ rr)+'px';
+	*/
 }
