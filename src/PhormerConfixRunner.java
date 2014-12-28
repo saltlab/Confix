@@ -5,14 +5,21 @@ import core.utils.Method;
 
 public class PhormerConfixRunner {
 
-	static Method testGenerationMethod = Method.NOINP;
+	//static Method testGenerationMethod = Method.NOINP;
+	//static Method testGenerationMethod = Method.FIXINP;
+	//static Method testGenerationMethod = Method.JALANGI;
+	//static Method testGenerationMethod = Method.MANUAL;
+	//static Method testGenerationMethod = Method.CONFIX_NOINP;
+	//static Method testGenerationMethod = Method.CONFIX_JALANGI;
+	static Method testGenerationMethod = Method.CONFIX_MANUAL;
+
 
 	private static String jsFolderNameToTest = "phormer";  // the folder should be available in the "input/" directory
 	//private static String jsNameToTest = "phorm.js";
 	//private static String jsNameToTest = "help.js";
-	//private static String jsNameToTest = "addPhoto.js";
+	private static String jsNameToTest = "addPhoto.js";
 	//private static String jsNameToTest = "admin.js";
-	private static String jsNameToTest = "skeleton.js";
+	//private static String jsNameToTest = "skeleton.js";
 
 
 	private static String jsPathToTest = "input/" + jsFolderNameToTest + "/" + jsNameToTest;
@@ -54,7 +61,6 @@ public class PhormerConfixRunner {
 				functionToTest.add("ss_toggleSmaller()");
 				//functionToTest.add("ss_run()");  // Confix can't generate fixture due to dependency of local variable settings
 				functionToTest.add("ss_slideshow()");
-				functionToTest.add("sumTotalPrice()");
 			} else if (testGenerationMethod == Method.JALANGI || testGenerationMethod == Method.CONFIX_JALANGI){
 				functionToTest.add("dg('id')"); // check
 				functionToTest.add("toggleInfo()"); // check
@@ -81,7 +87,6 @@ public class PhormerConfixRunner {
 				functionToTest.add("ss_toggleSmaller()");
 				//functionToTest.add("ss_run()");  // Confix can't generate fixture due to dependency of local variable settings
 				functionToTest.add("ss_slideshow()");
-				functionToTest.add("sumTotalPrice()");
 			}else if (testGenerationMethod == Method.NOINP || testGenerationMethod == Method.CONFIX_NOINP){
 				functionToTest.add("dg()");
 				functionToTest.add("toggleInfo()");
@@ -103,7 +108,6 @@ public class PhormerConfixRunner {
 				functionToTest.add("ss_toggleSmaller()");
 				//functionToTest.add("ss_run()");  // Confix can't generate fixture due to dependency of local variable settings
 				functionToTest.add("ss_slideshow()");
-				functionToTest.add("sumTotalPrice()");
 			}else if (testGenerationMethod == Method.FIXINP){
 				functionToTest.add("dg('test')");
 				functionToTest.add("toggleInfo('test')");
@@ -126,7 +130,6 @@ public class PhormerConfixRunner {
 				functionToTest.add("ss_toggleSmaller()");
 				//functionToTest.add("ss_run()");  // Confix can't generate fixture due to dependency of local variable settings
 				functionToTest.add("ss_slideshow()");
-				functionToTest.add("sumTotalPrice()");
 			}
 		}if(jsNameToTest.equals("help.js")){
 			if (testGenerationMethod == Method.MANUAL || testGenerationMethod == Method.CONFIX_MANUAL){
@@ -152,8 +155,8 @@ public class PhormerConfixRunner {
 			if (testGenerationMethod == Method.MANUAL || testGenerationMethod == Method.CONFIX_MANUAL){
 				functionToTest.add("setExif('test')");
 				// check for confix
-				//functionToTest.add("imageUploaded(false, 'test')");
-				//functionToTest.add("imageUploaded(true, 'test')");
+				functionToTest.add("imageUploaded(false, 'test')");
+				functionToTest.add("imageUploaded(true, 'test')");
 				functionToTest.add("writeYet('test', false)");
 				functionToTest.add("writeYet('test', true)");
 				functionToTest.add("uploadSubmitted('test', 'test', false, 'test') ");
