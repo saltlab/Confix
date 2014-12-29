@@ -96,7 +96,7 @@ public class ConcolicEngine {
 
 				// To get coverage by JSCover the runner html should be loaded from a server not local directory
 				// Also the XHR replacement in the instrumented file should be removed as JSCover also changes XHR
-				String concolicHTMLRunnerPath = "http://localhost:8888/concolic/phormer_tests/concolic_" + scopeName.replace(".js", "")  + ".htm";
+				String concolicHTMLRunnerPath = "http://localhost:8888/concolic/concolic_" + scopeName.replace(".js", "")  + ".htm";
 				driver.get(concolicHTMLRunnerPath);
 
 

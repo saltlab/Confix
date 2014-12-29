@@ -5,7 +5,13 @@ import core.utils.Method;
 
 public class SudokuConfixRunner {
 
-	static Method testGenerationMethod = Method.MANUAL;
+	//static Method testGenerationMethod = Method.NOINP;
+	//static Method testGenerationMethod = Method.FIXINP;
+	//static Method testGenerationMethod = Method.JALANGI;
+	//static Method testGenerationMethod = Method.MANUAL;
+	//static Method testGenerationMethod = Method.CONFIX_NOINP;
+	//static Method testGenerationMethod = Method.CONFIX_JALANGI;
+	static Method testGenerationMethod = Method.CONFIX_MANUAL;
 
 	private static String jsFolderNameToTest = "sudoku";  // the folder should be available in the "input/" directory
 	private static String jsNameToTest = "game.js";
@@ -22,22 +28,77 @@ public class SudokuConfixRunner {
 		long startTime = System.currentTimeMillis();
 
 		// Testing game.js DDFs
-		functionToTest.add("shuffleBoard()");
-		functionToTest.add("newGame()");
-		//functionToTest.add("showCell()");  // The input should be a DOM element, ConFix can't handle it
-		functionToTest.add("showColumnsInGroup()");
-		//functionToTest.add("highlightSquare()");  // The input should be a DOM element, ConFix can't handle it
-		functionToTest.add("isGameFinished()");
-		functionToTest.add("initSudoku()");
-		//functionToTest.add("insertNumber()"); // The input should be a DOM element, ConFix can't handle it
-		functionToTest.add("helpMe()");
-		//functionToTest.add("isCorrect()"); // The input should be a DOM element, ConFix can't handle it
-		//functionToTest.add("getTopPos()"); // The input should be a DOM element, ConFix can't handle it
-		//functionToTest.add("getLeftPos()"); // The input should be a DOM element, ConFix can't handle it
-		//functionToTest.add("getPossibleNumbers()"); // The input should be a DOM element, ConFix can't handle it
-		functionToTest.add("showHint()");
-		functionToTest.add("revealAll()");
-		//functionToTest.add("switchLevel(initLevel,linkObj)");   // The input should be a DOM element, ConFix can't handle it
+
+
+		if (testGenerationMethod == Method.MANUAL || testGenerationMethod == Method.CONFIX_MANUAL){
+			functionToTest.add("shuffleBoard()");
+			functionToTest.add("newGame()");
+			//functionToTest.add("showCell()");  // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("showColumnsInGroup()");
+			//functionToTest.add("highlightSquare()");  // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("isGameFinished()");
+			functionToTest.add("initSudoku()");
+			//functionToTest.add("insertNumber()"); // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("helpMe()");
+			//functionToTest.add("isCorrect()"); // The input should be a DOM element, ConFix can't handle it
+			//functionToTest.add("getTopPos()"); // The input should be a DOM element, ConFix can't handle it
+			//functionToTest.add("getLeftPos()"); // The input should be a DOM element, ConFix can't handle it
+			//functionToTest.add("getPossibleNumbers()"); // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("showHint()");
+			functionToTest.add("revealAll()");
+			//functionToTest.add("switchLevel(initLevel,linkObj)");   // The input should be a DOM element, ConFix can't handle it
+		} else if (testGenerationMethod == Method.JALANGI || testGenerationMethod == Method.CONFIX_JALANGI){
+			functionToTest.add("shuffleBoard()");
+			functionToTest.add("newGame()");
+			//functionToTest.add("showCell()");  // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("showColumnsInGroup()");
+			//functionToTest.add("highlightSquare()");  // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("isGameFinished()");
+			functionToTest.add("initSudoku()");
+			//functionToTest.add("insertNumber()"); // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("helpMe()");
+			//functionToTest.add("isCorrect()"); // The input should be a DOM element, ConFix can't handle it
+			//functionToTest.add("getTopPos()"); // The input should be a DOM element, ConFix can't handle it
+			//functionToTest.add("getLeftPos()"); // The input should be a DOM element, ConFix can't handle it
+			//functionToTest.add("getPossibleNumbers()"); // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("showHint()");
+			functionToTest.add("revealAll()");
+			//functionToTest.add("switchLevel(initLevel,linkObj)");   // The input should be a DOM element, ConFix can't handle it
+		}else if (testGenerationMethod == Method.NOINP || testGenerationMethod == Method.CONFIX_NOINP){
+			functionToTest.add("shuffleBoard()");
+			functionToTest.add("newGame()");
+			//functionToTest.add("showCell()");  // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("showColumnsInGroup()");
+			//functionToTest.add("highlightSquare()");  // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("isGameFinished()");
+			functionToTest.add("initSudoku()");
+			//functionToTest.add("insertNumber()"); // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("helpMe()");
+			//functionToTest.add("isCorrect()"); // The input should be a DOM element, ConFix can't handle it
+			//functionToTest.add("getTopPos()"); // The input should be a DOM element, ConFix can't handle it
+			//functionToTest.add("getLeftPos()"); // The input should be a DOM element, ConFix can't handle it
+			//functionToTest.add("getPossibleNumbers()"); // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("showHint()");
+			functionToTest.add("revealAll()");
+			//functionToTest.add("switchLevel(initLevel,linkObj)");   // The input should be a DOM element, ConFix can't handle it
+		}else if (testGenerationMethod == Method.FIXINP){
+			functionToTest.add("shuffleBoard()");
+			functionToTest.add("newGame()");
+			//functionToTest.add("showCell()");  // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("showColumnsInGroup()");
+			//functionToTest.add("highlightSquare()");  // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("isGameFinished()");
+			functionToTest.add("initSudoku()");
+			//functionToTest.add("insertNumber()"); // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("helpMe()");
+			//functionToTest.add("isCorrect()"); // The input should be a DOM element, ConFix can't handle it
+			//functionToTest.add("getTopPos()"); // The input should be a DOM element, ConFix can't handle it
+			//functionToTest.add("getLeftPos()"); // The input should be a DOM element, ConFix can't handle it
+			//functionToTest.add("getPossibleNumbers()"); // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("showHint()");
+			functionToTest.add("revealAll()");
+			//functionToTest.add("switchLevel(initLevel,linkObj)");   // The input should be a DOM element, ConFix can't handle it
+		}
 
 
 		ConcolicEngine ce = new ConcolicEngine(jsPathToTest, jsNameToTest, functionToTest, testSuitePathToGenerate, testSuiteFileToGenerate, testGenerationMethod);
