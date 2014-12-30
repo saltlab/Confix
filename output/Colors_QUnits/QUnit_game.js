@@ -1,4 +1,4 @@
-// QUnit test cases generated @ Tue Dec 30 07:54:38 PST 2014
+// QUnit test cases generated @ Tue Dec 30 11:09:32 PST 2014
 
 module("output/Colors_QUnits", {
     setup: function() {
@@ -11,4 +11,11 @@ module("output/Colors_QUnits", {
     }
 });
 
+
+
+test("Testing function test() for path 1", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="div-board"/> ');
+	test();
+});
 

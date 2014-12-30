@@ -22,7 +22,7 @@ function Board() {
   }
 
   this.registerMouse = function() {
-    document.getElementById("div-selector").onclick = self.onClick;
+    document.getElementById('div-selector').onclick = self.onClick;
   }
 
   this.onClick = function(e) {
@@ -98,7 +98,7 @@ function Grid() {
   this.colors       = new Array("#FFFF00", "#FF7F00", "#CF0000");
   this.noColor      = -1;
   
-  this.div   = document.getElementById("div-board");
+  this.div   = document.getElementById('div-board');
   this.cells = new Array();
   this.busy  = this.rows * this.columns;
   
