@@ -28,8 +28,6 @@ public class SudokuConfixRunner {
 		long startTime = System.currentTimeMillis();
 
 		// Testing game.js DDFs
-
-
 		if (testGenerationMethod == Method.MANUAL || testGenerationMethod == Method.CONFIX_MANUAL){
 			functionToTest.add("shuffleBoard()");
 			functionToTest.add("newGame()");

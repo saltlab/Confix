@@ -123,7 +123,7 @@ function Grid() {
   }
 
   this.createCell = function(column, row, color) {
-    var div = document.createElement("div");
+    var div = document.createElement('div');
 
     div.id               = this.getCellId(column, row);
     div.className        = "cell";

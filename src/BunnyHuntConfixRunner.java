@@ -8,9 +8,9 @@ public class BunnyHuntConfixRunner {
 	static Method testGenerationMethod = Method.MANUAL;
 
 	private static String jsFolderNameToTest = "BunnyHunt";  // the folder should be available in the "input/" directory
-	//private static String jsNameToTest = "preload.js";
+	private static String jsNameToTest = "preload.js";
 	//private static String jsNameToTest = "clouds.js";
-	private static String jsNameToTest = "bunnies.js";
+	//private static String jsNameToTest = "bunnies.js";
 
 	private static String jsPathToTest = "input/" + jsFolderNameToTest + "/" + jsNameToTest;
 	private static String testSuitePathToGenerate = "output/" + jsFolderNameToTest + "_QUnits";

@@ -253,7 +253,7 @@ public class JSASTInstrumentor implements NodeVisitor{
 	private void instrumentForLoopNode(AstNode node) {
 		System.out.println("=== instrumentForLoopNode ===");
 		String enclosingFunction = "";
-		if (node.getEnclosingFunction()!=null)
+		if (node.getEnclosingFunction()!=null && ((FunctionNode) node.getEnclosingFunction()).getFunctionName()!=null)
 			enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
 
 		ForLoop fl = (ForLoop) node;
@@ -341,7 +341,8 @@ public class JSASTInstrumentor implements NodeVisitor{
 		System.out.println("=== instrumentReturnStatementNode ===");
 		String enclosingFunction = "";
 		if (node.getEnclosingFunction()!=null)
-			enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
+			if (((FunctionNode) node.getEnclosingFunction()).getFunctionName()!=null)
+				enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
 
 		ReturnStatement rs = (ReturnStatement) node;
 		System.out.println("rs.toSource(): " + rs.toSource());
@@ -373,7 +374,8 @@ public class JSASTInstrumentor implements NodeVisitor{
 
 		String enclosingFunction = "";
 		if (node.getEnclosingFunction()!=null)
-			enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
+			if (((FunctionNode) node.getEnclosingFunction()).getFunctionName()!=null)
+				enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
 
 		VariableInitializer vi = (VariableInitializer) node;
 
@@ -420,9 +422,10 @@ public class JSASTInstrumentor implements NodeVisitor{
 	private void instrumentInfixExpressionNode(AstNode node) {
 		System.out.println("=== instrumentInfixExpressionNode ===");
 		String enclosingFunction = "";
-		if (node.getEnclosingFunction()!=null)
-			enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
-
+		if (node.getEnclosingFunction()!=null){
+			if (((FunctionNode) node.getEnclosingFunction()).getFunctionName()!=null)
+				enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
+		}
 		InfixExpression infix = (InfixExpression) node;
 		String left = infix.getLeft().toSource();
 		String oprator = ASTNodeUtility.operatorToString(infix.getOperator());
@@ -488,7 +491,8 @@ public class JSASTInstrumentor implements NodeVisitor{
 		System.out.println("=== instrumentIfStatementNode ===");
 		String enclosingFunction = "";
 		if (node.getEnclosingFunction()!=null)
-			enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
+			if (((FunctionNode) node.getEnclosingFunction()).getFunctionName()!=null)
+				enclosingFunction = ((FunctionNode) node.getEnclosingFunction()).getFunctionName().getIdentifier();
 
 		IfStatement is = (IfStatement) node;
 		AstNode conditionNode = is.getCondition();
@@ -653,7 +657,7 @@ public class JSASTInstrumentor implements NodeVisitor{
 		//if (fcall.toSource().contains("alert(")){
 		//		
 		//}
-		
+
 		// e.g. Replacing functionCall: document.getElementById(x) with wrapperFunCall: confixWrapper("functionCall", "document.getElementById(x)", ["x"], [x], document.getElementById(x))
 		List<AstNode> args = new ArrayList<AstNode>(fcall.getArguments());
 		String wrapperCode = "confixWrapper(\"functionCall\", \""+ fcall.toSource().replace("\"", "\\\"") +"\", [";
@@ -776,12 +780,16 @@ public class JSASTInstrumentor implements NodeVisitor{
 				"    return xhr;" +
 				"};";
 
-		
+		// replacing alert() and confirm() functions to skip during concolic execution
+		code += "function alert() {};" +
+				"function confirm() {};";
+
+
 		/*// this is to get coverage, removed as we use JSCover instead
 		 * code += "var " + jsName + "_exec_counter = new Array(); " +
 				"for (var i=0;i<" + instrumentedLinesCounter + ";i++)" +
 				"if("+jsName + "_exec_counter[i]== undefined || "+jsName + "_exec_counter[i]== null) "+jsName + "_exec_counter[i]=0;";
-		*/
+		 */
 		// instrumentedLinesCounter resets to 0 for the next codes
 		instrumentedLinesCounter = 0;
 

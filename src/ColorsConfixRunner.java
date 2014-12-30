@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import core.ConcolicEngine;
 import core.utils.Method;
 
-public class MinesweeperConfixRunner {
+public class ColorsConfixRunner {
 
 	static Method testGenerationMethod = Method.NOINP;
 	//static Method testGenerationMethod = Method.FIXINP;
@@ -13,7 +13,7 @@ public class MinesweeperConfixRunner {
 	//static Method testGenerationMethod = Method.CONFIX_JALANGI;
 	//static Method testGenerationMethod = Method.CONFIX_MANUAL;
 
-	private static String jsFolderNameToTest = "Minesweeper";  // the folder should be available in the "input/" directory
+	private static String jsFolderNameToTest = "Colors";  // the folder should be available in the "input/" directory
 	private static String jsNameToTest = "game.js";
 
 	private static String jsPathToTest = "input/" + jsFolderNameToTest + "/" + jsNameToTest;
@@ -29,11 +29,11 @@ public class MinesweeperConfixRunner {
 
 		// Testing game.js DDFs
 		if (testGenerationMethod == Method.MANUAL || testGenerationMethod == Method.CONFIX_MANUAL){
-			//functionToTest.add("shuffleBoard()");
 			//functionToTest.add("newGame()");
 			//functionToTest.add("switchLevel(initLevel,linkObj)");   // The input should be a DOM element, ConFix can't handle it
 		} else if (testGenerationMethod == Method.JALANGI || testGenerationMethod == Method.CONFIX_JALANGI){
 		}else if (testGenerationMethod == Method.NOINP || testGenerationMethod == Method.CONFIX_NOINP){
+			functionToTest.add("test()");
 		}else if (testGenerationMethod == Method.FIXINP){
 		}
 

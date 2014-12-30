@@ -72,16 +72,16 @@ function Game() {
 	}
 
 	this.updateScore = function() {
-		document.getElementById("div-mines").innerHTML = String(self.board.mines - self.board.flags);
+		document.getElementById('div-mines').innerHTML = String(self.board.mines - self.board.flags);
 	}
 
 	this.showSmiley = function(pic) {
-		var img = document.getElementById("img-smiley");
+		var img = document.getElementById('img-smiley');
 		img.src = self.board.getImgSrc(pic);
 		img.style.visibility = "visible";
 	}
 	this.hideSmiley = function() {
-		document.getElementById("img-smiley").style.visibility = "hidden";
+		document.getElementById('img-smiley').style.visibility = "hidden";
 	}
 
 	this.startTimer = function() {
@@ -96,7 +96,7 @@ function Game() {
 			var diff = Math.floor( ( new Date().getTime() - self.startTime) / 1000);
 			var mins = "0" + String( Math.floor(diff / 60) );
 			var secs = "0" + String(diff % 60);
-			document.getElementById("div-time").innerHTML = 
+			document.getElementById('div-time').innerHTML = 
 				mins.substring(mins.length - 2) + ":" + secs.substring(secs.length - 2);
 			setTimeout(self.timer, 1000);
 		}
@@ -129,7 +129,7 @@ function Game() {
 function Board() {
 	var self = this;
 
-	this.div = document.getElementById("div-board");
+	this.div = document.getElementById('div-board');
 
 	this.cells = null;  
 	this.rows  = 0;
