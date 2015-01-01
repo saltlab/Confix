@@ -17,6 +17,10 @@ XMLHttpRequest = function() {
 };
   return xhr;
 };
+function alert() {
+}
+function confirm() {
+}
 var squareObjects = confixWrapper("initvar", "var squareObjects = new Array()", [""], [], "", new Array());
 var level = confixWrapper("initvar", "var level = 1", [""], [], "", 1);
 var countSquares = confixWrapper("initvar", "var countSquares = [36, 36, 34, 32, 31, 30]", [""], [], "", [36, 36, 34, 32, 31, 30]);
@@ -117,6 +121,8 @@ function highlightSquare(e, inputObj) {
   confixWrapper("functionCall", "document.getElementById('hintDiv')", ["hintDiv"], ['hintDiv'], "highlightSquare", document.getElementById('hintDiv')).style.display = confixWrapper("infix", "confixWrapper(\"functionCall\", \"document.getElementById('hintDiv')\", [\"hintDiv\"], ['hintDiv'], \"highlightSquare\", document.getElementById('hintDiv')).style.display = 'none'", [""], [], "highlightSquare", 'none');
   if (confixWrapper("condition", "!inputObj", [""], [], "highlightSquare", !inputObj)) 
   inputObj = confixWrapper("infix", "inputObj = this", [""], [], "highlightSquare", this);
+  if (confixWrapper("condition", "!inputObj.style", [""], [], "highlightSquare", !inputObj.style)) 
+  return;
   if (confixWrapper("condition", "inputObj.style.backgroundColor", [""], [], "highlightSquare", inputObj.style.backgroundColor)) 
   return;
   if (confixWrapper("condition", "gameFinished", [""], [], "highlightSquare", gameFinished)) 

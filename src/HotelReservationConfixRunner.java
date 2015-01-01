@@ -31,27 +31,27 @@ public class HotelReservationConfixRunner {
 		if (testGenerationMethod == Method.MANUAL || testGenerationMethod == Method.CONFIX_MANUAL){
 			functionToTest.add("checkPassConfirm()");
 			functionToTest.add("checkValid()");
-			//functionToTest.add("RequiredField()");  // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("RequiredField(null)");  // The input should be a DOM element, ConFix can't handle it
 			functionToTest.add("validateEmail()");
-			//functionToTest.add("validateNumber()");  // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("validateNumber(null)");  // The input should be a DOM element, ConFix can't handle it
 		} else if (testGenerationMethod == Method.JALANGI || testGenerationMethod == Method.CONFIX_JALANGI){
 			functionToTest.add("checkPassConfirm()");
 			functionToTest.add("checkValid()");
-			//functionToTest.add("RequiredField()");  // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("RequiredField()");  // The input should be a DOM element, ConFix can't handle it
 			functionToTest.add("validateEmail()");
-			//functionToTest.add("validateNumber()");  // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("validateNumber()");  // The input should be a DOM element, ConFix can't handle it
 		}else if (testGenerationMethod == Method.NOINP || testGenerationMethod == Method.CONFIX_NOINP){
 			functionToTest.add("checkPassConfirm()");
 			functionToTest.add("checkValid()");
-			//functionToTest.add("RequiredField()");  // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("RequiredField()");  // The input should be a DOM element, ConFix can't handle it
 			functionToTest.add("validateEmail()");
-			//functionToTest.add("validateNumber()");  // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("validateNumber()");  // The input should be a DOM element, ConFix can't handle it
 		}else if (testGenerationMethod == Method.FIXINP){
 			functionToTest.add("checkPassConfirm()");
 			functionToTest.add("checkValid()");
-			//functionToTest.add("RequiredField()");  // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("RequiredField()");  // The input should be a DOM element, ConFix can't handle it
 			functionToTest.add("validateEmail()");
-			//functionToTest.add("validateNumber()");  // The input should be a DOM element, ConFix can't handle it
+			functionToTest.add("validateNumber()");  // The input should be a DOM element, ConFix can't handle it
 		}
 		
 

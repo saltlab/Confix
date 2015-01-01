@@ -105,7 +105,8 @@ var higlightedCell;
 //DDF
 function highlightSquare(e,inputObj){
 	document.getElementById('hintDiv').style.display='none';
-	if(!inputObj)inputObj = this;	
+	if(!inputObj)inputObj = this;
+	if (!inputObj.style) return;
 	if(inputObj.style.backgroundColor)return;
 	if(gameFinished)return;
 	inputObj.className='sudokuSquareHighlighted';

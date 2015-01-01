@@ -14,7 +14,7 @@ public class ColorsConfixRunner {
 	static Method testGenerationMethod = Method.CONFIX_MANUAL;
 
 	private static String jsFolderNameToTest = "Colors";  // the folder should be available in the "input/" directory
-	private static String jsNameToTest = "game.js";
+	private static String jsNameToTest = "colorsgame.js";
 
 	private static String jsPathToTest = "input/" + jsFolderNameToTest + "/" + jsNameToTest;
 	private static String testSuitePathToGenerate = "output/" + jsFolderNameToTest + "_QUnits";

@@ -17,6 +17,10 @@ XMLHttpRequest = function() {
 };
   return xhr;
 };
+function alert() {
+}
+function confirm() {
+}
 function isValidCard(cardNumber) {
   var ccard = confixWrapper("initvar", "var ccard = new Array(cardNumber.length)", [""], [], "isValidCard", new Array(cardNumber.length));
   var i = confixWrapper("initvar", "var i = 0", [""], [], "isValidCard", 0);

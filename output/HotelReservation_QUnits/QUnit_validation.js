@@ -1,4 +1,4 @@
-// QUnit test cases generated @ Mon Dec 29 10:54:16 PST 2014
+// QUnit test cases generated @ Thu Jan 01 15:40:41 PST 2015
 
 module("output/HotelReservation_QUnits", {
     setup: function() {
@@ -55,9 +55,23 @@ test("Testing function checkValid() for path 3", function() {
 });
 
 
+test("Testing function RequiredField(null) for path 1", function() {
+	expect(0);
+	$("#qunit-fixture").append('');
+	RequiredField(null);
+});
+
+
 test("Testing function validateEmail() for path 1", function() {
 	expect(0);
 	$("#qunit-fixture").append('');
 	validateEmail();
+});
+
+
+test("Testing function validateNumber(null) for path 1", function() {
+	expect(0);
+	$("#qunit-fixture").append('');
+	validateNumber(null);
 });
 

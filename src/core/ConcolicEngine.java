@@ -117,7 +117,14 @@ public class ConcolicEngine {
 
 					// Get the execution trace
 					traceAnalyzer.resetDOMConstraintList();
-					ArrayList traceList = (ArrayList)((JavascriptExecutor) driver).executeScript("return getConfixTrace();");
+					ArrayList traceList = null;
+					try{
+						traceList = (ArrayList)((JavascriptExecutor) driver).executeScript("return getConfixTrace();");
+					}
+					catch(Exception e){
+						System.out.println("Failed to execute getConfixTrace();" + e);
+					}
+
 					System.out.println("traceList: " + traceList);
 					Map<String,String> map;
 					for (int i=0; i<traceList.size(); i++){
