@@ -17,6 +17,10 @@ XMLHttpRequest = function() {
 };
   return xhr;
 };
+function alert() {
+}
+function confirm() {
+}
 var stickToMouse = confixWrapper("initvar", "var stickToMouse = -1", [""], [], "", -1);
 var wasX, wasY, wasSklW, wasSklH, wasSklT, wasSklL;
 var theRatio = confixWrapper("initvar", "var theRatio = 1", [""], [], "", 1);

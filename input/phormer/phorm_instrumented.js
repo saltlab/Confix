@@ -17,6 +17,10 @@ XMLHttpRequest = function() {
 };
   return xhr;
 };
+function alert() {
+}
+function confirm() {
+}
 var AjaxVal = confixWrapper("initvar", "var AjaxVal = \"\"", [""], [], "", "");
 var isAjaxing = confixWrapper("initvar", "var isAjaxing = false", [""], [], "", false);
 var md5 = confixWrapper("initvar", "var md5 = \"\"", [""], [], "", "");

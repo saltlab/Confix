@@ -152,3 +152,18 @@ function UpdateThumbPrev() {
 	dg('thumbPrev').style.top    = (-parseInt(dg('skeleton').style.top) 	/ rr)+'px';
 	*/
 }
+
+//NonDDF
+function getMyXY(eve, t) {
+	var tt
+	if(!eve)
+		var eve=window.event;
+	if (document.all)
+		tt = document.body.scrollTop?document.body.scrollTop:document.documentElement.scrollTop;
+	return t?document.all?eve.clientY+tt:eve.pageY:document.all?eve.clientX:eve.pageX;
+}
+
+//DDF
+function dg(x) {
+	return document.getElementById(x);
+}

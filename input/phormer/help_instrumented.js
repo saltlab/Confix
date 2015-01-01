@@ -17,6 +17,10 @@ XMLHttpRequest = function() {
 };
   return xhr;
 };
+function alert() {
+}
+function confirm() {
+}
 var dont_help = confixWrapper("initvar", "var dont_help = false", [""], [], "", false);
 var _AIDIN_MAIL = confixWrapper("initvar", "var _AIDIN_MAIL = \"p@horm.org\"", [""], [], "", "p@horm.org");
 document.onmouseup = confixWrapper("infix", "document.onmouseup = captureMousedown", [""], [], "", captureMousedown);

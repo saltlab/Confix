@@ -154,7 +154,6 @@ public class PhormerConfixRunner {
 		}if(jsNameToTest.equals("addPhoto.js")){
 			if (testGenerationMethod == Method.MANUAL || testGenerationMethod == Method.CONFIX_MANUAL){
 				functionToTest.add("setExif('test')");
-				// check for confix
 				functionToTest.add("imageUploaded(false, 'test')");
 				functionToTest.add("imageUploaded(true, 'test')");
 				functionToTest.add("writeYet('test', false)");

@@ -17,6 +17,10 @@ XMLHttpRequest = function() {
 };
   return xhr;
 };
+function alert() {
+}
+function confirm() {
+}
 var AjaxVal = confixWrapper("initvar", "var AjaxVal = new Array()", [""], [], "", new Array());
 var seedArr = confixWrapper("initvar", "var seedArr = new Array()", [""], [], "", new Array());
 var ImgW = confixWrapper("initvar", "var ImgW = 0", [""], [], "", 0);
@@ -108,7 +112,6 @@ function imageUploaded(indeed, seed) {
     confixWrapper("functionCall", "dg('thePhoto')", ["thePhoto"], ['thePhoto'], "imageUploaded", dg('thePhoto')).style.height = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('thePhoto')\", [\"thePhoto\"], ['thePhoto'], \"imageUploaded\", dg('thePhoto')).style.height = ImgH + 'px'", [""], [], "imageUploaded", ImgH + 'px');
     confixWrapper("functionCall", "dg('kines_l')", ["kines_l"], ['kines_l'], "imageUploaded", dg('kines_l')).style.height = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('kines_l')\", [\"kines_l\"], ['kines_l'], \"imageUploaded\", dg('kines_l')).style.height = ImgH + 'px'", [""], [], "imageUploaded", ImgH + 'px');
     confixWrapper("functionCall", "dg('kines_r')", ["kines_r"], ['kines_r'], "imageUploaded", dg('kines_r')).style.height = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('kines_r')\", [\"kines_r\"], ['kines_r'], \"imageUploaded\", dg('kines_r')).style.height = ImgH + 'px'", [""], [], "imageUploaded", ImgH + 'px');
-    confixWrapper("functionCall", "ExpandSkl()", [], [], "imageUploaded", ExpandSkl());
     if (confixWrapper("condition", "indeed", [""], [], "imageUploaded", indeed)) 
     confixWrapper("functionCall", "AttemptEXIF(seed, ImgPath9)", ["seed", "ImgPath9"], [seed, ImgPath9], "imageUploaded", AttemptEXIF(seed, ImgPath9));
     confixWrapper("functionCall", "rethumb()", [], [], "imageUploaded", rethumb());

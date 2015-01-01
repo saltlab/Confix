@@ -17,6 +17,10 @@ XMLHttpRequest = function() {
 };
   return xhr;
 };
+function alert() {
+}
+function confirm() {
+}
 var blured = confixWrapper("initvar", "var blured = false", [""], [], "", false);
 var MAX_ADD_BOX = confixWrapper("initvar", "var MAX_ADD_BOX = 20", [""], [], "", 20);
 var nowTime;

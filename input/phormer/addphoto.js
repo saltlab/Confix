@@ -94,7 +94,7 @@ function imageUploaded(indeed, seed) {
 		dg('kines_l').style.height = ImgH+'px';
 		dg('kines_r').style.height = ImgH+'px';
 
-		ExpandSkl();
+		//ExpandSkl();
 		if (indeed)
 			AttemptEXIF(seed, ImgPath9);
 		//showElem('upload_iframe');
@@ -260,4 +260,37 @@ function uploadSubmitted(theseed, gd, tdraft, pcup) {
 	hideElem('upload_iframe_'+seed);
 	showElem('upload_uploading_'+seed);
 	setTimeout("writeYet('"+seed+"', draft)", AjaxDelay/2);
+}
+
+//DDF
+function dg(x) {
+	return document.getElementById(x);
+}
+
+//DDF
+function hideElem(x) {
+	try {
+		dg(x).style.display = 'none';
+	} catch(e) {}
+}
+
+//DDF
+function showElem(x) {
+	try {
+		dg(x).style.display = 'block';
+	} catch(e) {}
+}
+
+//DDF
+function rethumb_fill(ImgPath) {
+	dg('thumbPrev').src = ImgPath;
+	dg('thePhoto').style.backgroundImage = "url('"+ImgPath+"')";
+}
+
+//DDF
+function rethumb() {
+	var ImgPath = dg('thumbPrev').src;
+	dg('thumbPrev').src = '';
+	dg('thePhoto').style.backgroundImage = "url('"+"')";
+	setTimeout("rethumb_fill(ImgPath)", 1000);
 }
