@@ -111,3 +111,14 @@ function UpdateThumbPrev() {
   confixWrapper("functionCall", "dg('sklL')", ["sklL"], ['sklL'], "UpdateThumbPrev", dg('sklL')).value = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('sklL')\", [\"sklL\"], ['sklL'], \"UpdateThumbPrev\", dg('sklL')).value = parseInt(confixWrapper(\"functionCall\", \"dg('skeleton')\", [\"skeleton\"], ['skeleton'], \"UpdateThumbPrev\", dg('skeleton')).style.left)", [""], [], "UpdateThumbPrev", parseInt(confixWrapper("functionCall", "dg('skeleton')", ["skeleton"], ['skeleton'], "UpdateThumbPrev", dg('skeleton')).style.left));
   confixWrapper("functionCall", "dg('sklT')", ["sklT"], ['sklT'], "UpdateThumbPrev", dg('sklT')).value = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('sklT')\", [\"sklT\"], ['sklT'], \"UpdateThumbPrev\", dg('sklT')).value = parseInt(confixWrapper(\"functionCall\", \"dg('skeleton')\", [\"skeleton\"], ['skeleton'], \"UpdateThumbPrev\", dg('skeleton')).style.top)", [""], [], "UpdateThumbPrev", parseInt(confixWrapper("functionCall", "dg('skeleton')", ["skeleton"], ['skeleton'], "UpdateThumbPrev", dg('skeleton')).style.top));
 }
+function getMyXY(eve, t) {
+  var tt;
+  if (confixWrapper("condition", "!eve", [""], [], "getMyXY", !eve)) 
+  var eve = confixWrapper("initvar", "var eve = window.event", [""], [], "getMyXY", window.event);
+  if (confixWrapper("condition", "document.all", [""], [], "getMyXY", document.all)) 
+  tt = confixWrapper("infix", "tt = document.body.scrollTop ? document.body.scrollTop : document.documentElement.scrollTop", [""], [], "getMyXY", document.body.scrollTop ? document.body.scrollTop : document.documentElement.scrollTop);
+  return confixWrapper("return", "return t ? document.all ? eve.clientY + tt : eve.pageY : document.all ? eve.clientX : eve.pageX;", [""], [], "getMyXY", t ? document.all ? eve.clientY + tt : eve.pageY : document.all ? eve.clientX : eve.pageX);
+}
+function dg(x) {
+  return confixWrapper("return", "return confixWrapper(\"functionCall\", \"document.getElementById(x)\", [\"x\"], [x], \"dg\", document.getElementById(x));", [""], [], "dg", confixWrapper("functionCall", "document.getElementById(x)", ["x"], [x], "dg", document.getElementById(x)));
+}

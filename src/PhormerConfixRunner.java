@@ -17,8 +17,8 @@ public class PhormerConfixRunner {
 	private static String jsFolderNameToTest = "phormer";  // the folder should be available in the "input/" directory
 	//private static String jsNameToTest = "phorm.js";
 	//private static String jsNameToTest = "help.js";
-	private static String jsNameToTest = "addPhoto.js";
-	//private static String jsNameToTest = "admin.js";
+	//private static String jsNameToTest = "addPhoto.js";
+	private static String jsNameToTest = "admin.js";
 	//private static String jsNameToTest = "skeleton.js";
 
 

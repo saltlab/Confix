@@ -255,3 +255,28 @@ function uploadSubmitted(theseed, gd, tdraft, pcup) {
   confixWrapper("functionCall", "showElem('upload_uploading_' + seed)", ["upload_uploading_ + seed"], ['upload_uploading_' + seed], "uploadSubmitted", showElem('upload_uploading_' + seed));
   confixWrapper("functionCall", "setTimeout(\"writeYet('\" + seed + \"', draft)\", AjaxDelay / 2)", ["writeYet( + seed + , draft)", "AjaxDelay / 2"], ["writeYet('" + seed + "', draft)", AjaxDelay / 2], "uploadSubmitted", setTimeout("writeYet('" + seed + "', draft)", AjaxDelay / 2));
 }
+function dg(x) {
+  return confixWrapper("return", "return confixWrapper(\"functionCall\", \"document.getElementById(x)\", [\"x\"], [x], \"dg\", document.getElementById(x));", [""], [], "dg", confixWrapper("functionCall", "document.getElementById(x)", ["x"], [x], "dg", document.getElementById(x)));
+}
+function hideElem(x) {
+  try {
+    confixWrapper("functionCall", "dg(x)", ["x"], [x], "hideElem", dg(x)).style.display = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg(x)\", [\"x\"], [x], \"hideElem\", dg(x)).style.display = 'none'", [""], [], "hideElem", 'none');
+  }  catch (e) {
+}
+}
+function showElem(x) {
+  try {
+    confixWrapper("functionCall", "dg(x)", ["x"], [x], "showElem", dg(x)).style.display = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg(x)\", [\"x\"], [x], \"showElem\", dg(x)).style.display = 'block'", [""], [], "showElem", 'block');
+  }  catch (e) {
+}
+}
+function rethumb_fill(ImgPath) {
+  confixWrapper("functionCall", "dg('thumbPrev')", ["thumbPrev"], ['thumbPrev'], "rethumb_fill", dg('thumbPrev')).src = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('thumbPrev')\", [\"thumbPrev\"], ['thumbPrev'], \"rethumb_fill\", dg('thumbPrev')).src = ImgPath", [""], [], "rethumb_fill", ImgPath);
+  confixWrapper("functionCall", "dg('thePhoto')", ["thePhoto"], ['thePhoto'], "rethumb_fill", dg('thePhoto')).style.backgroundImage = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('thePhoto')\", [\"thePhoto\"], ['thePhoto'], \"rethumb_fill\", dg('thePhoto')).style.backgroundImage = \"url('\" + ImgPath + \"')\"", [""], [], "rethumb_fill", "url('" + ImgPath + "')");
+}
+function rethumb() {
+  var ImgPath = confixWrapper("initvar", "var ImgPath = confixWrapper(\"functionCall\", \"dg('thumbPrev')\", [\"thumbPrev\"], ['thumbPrev'], \"rethumb\", dg('thumbPrev')).src", [""], [], "rethumb", confixWrapper("functionCall", "dg('thumbPrev')", ["thumbPrev"], ['thumbPrev'], "rethumb", dg('thumbPrev')).src);
+  confixWrapper("functionCall", "dg('thumbPrev')", ["thumbPrev"], ['thumbPrev'], "rethumb", dg('thumbPrev')).src = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('thumbPrev')\", [\"thumbPrev\"], ['thumbPrev'], \"rethumb\", dg('thumbPrev')).src = ''", [""], [], "rethumb", '');
+  confixWrapper("functionCall", "dg('thePhoto')", ["thePhoto"], ['thePhoto'], "rethumb", dg('thePhoto')).style.backgroundImage = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('thePhoto')\", [\"thePhoto\"], ['thePhoto'], \"rethumb\", dg('thePhoto')).style.backgroundImage = \"url('\" + \"')\"", [""], [], "rethumb", "url('" + "')");
+  confixWrapper("functionCall", "setTimeout(\"rethumb_fill(ImgPath)\", 1000)", ["rethumb_fill(ImgPath)", "1000"], ["rethumb_fill(ImgPath)", 1000], "rethumb", setTimeout("rethumb_fill(ImgPath)", 1000));
+}
