@@ -257,8 +257,11 @@ public class TraceAnalyzer {
 		String RemoteWebElement = "";
 		String actualStatement = String.format("%s", map.get("actualStatement"));
 		if (actualStatement.contains("RemoteWebElement")){
+			int start = actualStatement.lastIndexOf("@") + 1;
+			int end = actualStatement.indexOf(" ", start);
+			//System.out.println("contains RemoteWebElement from " + start + " to " + end);
 			// extract RemoteWebElementID
-			RemoteWebElement = actualStatement.substring(actualStatement.lastIndexOf("@") + 1, actualStatement.indexOf(" "));
+			RemoteWebElement = actualStatement.substring(start, end);
 			System.out.println("RemoteWebElement: " + RemoteWebElement);
 		}
 
