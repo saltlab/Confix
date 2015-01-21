@@ -764,25 +764,29 @@ public class JSASTInstrumentor implements NodeVisitor{
 				"}";
 
 		// this is XHR replacing
-		code += // Storing the original XMLHTTPRequest object
-				"var _XMLHttpRequest = XMLHttpRequest;" +
-				// Redefining XHR
-				"XMLHttpRequest = function() {" +
-				"    var xhr = new _XMLHttpRequest();" +
-				// Replacing the function for opening a new request
-				"    var _open = xhr.open;" +
-				"    xhr.open = function(method, url, async) {" +
-				// fake URL
-				"        url = \"http://localhost:8888\";" +
-				"        method = 'GET';" +
-				"        return _open.apply(this, [ method, url, async ]);" +
-				"    };" +
-				"    return xhr;" +
-				"};";
+		boolean shouldReplaceXHR = false;
+		if (shouldReplaceXHR)
+			code += // Storing the original XMLHTTPRequest object
+			"var _XMLHttpRequest = XMLHttpRequest;" +
+			// Redefining XHR
+			"XMLHttpRequest = function() {" +
+			"    var xhr = new _XMLHttpRequest();" +
+			// Replacing the function for opening a new request
+			"    var _open = xhr.open;" +
+			"    xhr.open = function(method, url, async) {" +
+			// fake URL
+			"        url = \"http://localhost:8888\";" +
+			"        method = 'GET';" +
+			"        return _open.apply(this, [ method, url, async ]);" +
+			"    };" +
+			"    return xhr;" +
+			"};";
 
 		// replacing alert() and confirm() functions to skip during concolic execution
-		code += "function alert() {};" +
-				"function confirm() {};";
+		boolean shouldReplaceAlertConfirm = true;
+		if (shouldReplaceAlertConfirm)
+			code += "function alert() {};" +
+					"function confirm() {return true;};";
 
 
 		/*// this is to get coverage, removed as we use JSCover instead

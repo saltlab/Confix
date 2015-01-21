@@ -8,10 +8,10 @@ public class HotelReservationConfixRunner {
 	//static Method testGenerationMethod = Method.NOINP;
 	//static Method testGenerationMethod = Method.FIXINP;
 	//static Method testGenerationMethod = Method.JALANGI;
-	//static Method testGenerationMethod = Method.MANUAL;
+	static Method testGenerationMethod = Method.MANUAL;
 	//static Method testGenerationMethod = Method.CONFIX_NOINP;
 	//static Method testGenerationMethod = Method.CONFIX_JALANGI;
-	static Method testGenerationMethod = Method.CONFIX_MANUAL;
+	//static Method testGenerationMethod = Method.CONFIX_MANUAL;
 
 	private static String jsFolderNameToTest = "HotelReservation";  // the folder should be available in the "input/" directory
 	private static String jsNameToTest = "validation.js";

@@ -27,14 +27,15 @@ public class ColorsConfixRunner {
 
 		long startTime = System.currentTimeMillis();
 
-		// Testing game.js DDFs
+		// Testing colorsgame.js DDFs
 		if (testGenerationMethod == Method.MANUAL || testGenerationMethod == Method.CONFIX_MANUAL){
 			functionToTest.add("test()");
-			//functionToTest.add("switchLevel(initLevel,linkObj)");   // The input should be a DOM element, ConFix can't handle it
 		} else if (testGenerationMethod == Method.JALANGI || testGenerationMethod == Method.CONFIX_JALANGI){
+			functionToTest.add("test()");
 		}else if (testGenerationMethod == Method.NOINP || testGenerationMethod == Method.CONFIX_NOINP){
 			functionToTest.add("test()");
 		}else if (testGenerationMethod == Method.FIXINP){
+			functionToTest.add("test()");
 		}
 
 		ConcolicEngine ce = new ConcolicEngine(jsPathToTest, jsNameToTest, functionToTest, testSuitePathToGenerate, testSuiteFileToGenerate, testGenerationMethod);

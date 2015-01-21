@@ -19,4 +19,5 @@ function sumTotalPrice(){
 		}
 		dg('total').innerHTML = sum;
 	}
+    return sum;
 }

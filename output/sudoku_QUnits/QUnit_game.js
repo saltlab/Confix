@@ -1,4 +1,4 @@
-// QUnit test cases generated @ Thu Jan 01 15:41:11 PST 2015
+// QUnit test cases generated @ Wed Jan 07 02:07:46 PST 2015
 
 module("output/sudoku_QUnits", {
     setup: function() {
@@ -99,14 +99,105 @@ test("Testing function insertNumber(null) for path 1", function() {
 
 test("Testing function helpMe() for path 1", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="sudoku"/> <div id="hintDiv"/> ');
+	$("#qunit-fixture").append(' <div id="square_3_8"/> <div id="hintDiv"/> ');
 	helpMe();
 });
 
 
 test("Testing function helpMe() for path 2", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <DIV id="ConfixGeneID2"/> <div id="sudoku"/> <div id="hintDiv"/> ');
+	$("#qunit-fixture").append(' <div id="square_2_6"/> <div id="hintDiv"/> ');
+	helpMe();
+});
+
+
+test("Testing function helpMe() for path 3", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="square_7_5"/> <div id="hintDiv"/> ');
+	helpMe();
+});
+
+
+test("Testing function helpMe() for path 4", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="square_6_7"/> <div id="hintDiv"/> ');
+	helpMe();
+});
+
+
+test("Testing function helpMe() for path 5", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="square_5_8"/> <div id="hintDiv"/> ');
+	helpMe();
+});
+
+
+test("Testing function helpMe() for path 6", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="square_6_3"/> <div id="hintDiv"/> ');
+	helpMe();
+});
+
+
+test("Testing function helpMe() for path 7", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="square_4_4"/> <div id="hintDiv"/> ');
+	helpMe();
+});
+
+
+test("Testing function helpMe() for path 8", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="square_6_5"/> <div id="hintDiv"/> ');
+	helpMe();
+});
+
+
+test("Testing function helpMe() for path 9", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="square_6_1"/> <div id="hintDiv"/> ');
+	helpMe();
+});
+
+
+test("Testing function helpMe() for path 10", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="square_1_4"/> <div id="hintDiv"/> ');
+	helpMe();
+});
+
+
+test("Testing function helpMe() for path 11", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="square_1_5"/> <div id="hintDiv"/> ');
+	helpMe();
+});
+
+
+test("Testing function helpMe() for path 12", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="square_7_4"/> <div id="hintDiv"/> ');
+	helpMe();
+});
+
+
+test("Testing function helpMe() for path 13", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="square_5_3"/> <div id="hintDiv"/> ');
+	helpMe();
+});
+
+
+test("Testing function helpMe() for path 14", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="square_4_3"/> <div id="hintDiv"/> ');
+	helpMe();
+});
+
+
+test("Testing function helpMe() for path 15", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <div id="square_6_8"/> <div id="hintDiv"/> ');
 	helpMe();
 });
 

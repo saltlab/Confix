@@ -81,7 +81,6 @@ public class ConcolicEngine {
 		//System.out.println(htmlTestFile);
 		codeAnalyzer.generateHTMLTestFile(htmlTestFile);
 
-
 		// for each function in the functionsToTest
 		for (String fname: functionsToTest){
 			currentFunctionToTest = fname;
@@ -101,7 +100,12 @@ public class ConcolicEngine {
 
 
 				// Apply the new fixture on htmlTestFile
-				((JavascriptExecutor) driver).executeScript("$(\"#confixTestFixture\").append('" + fixture + "');");
+				try{
+					((JavascriptExecutor) driver).executeScript("$(\"#confixTestFixture\").append('" + fixture + "');");
+				}
+				catch(Exception e){
+					System.out.println("Failed to append DOM fixture!" + e);
+				}
 
 				try{
 					// Execute the function under test according to the user input value
@@ -138,7 +142,7 @@ public class ConcolicEngine {
 					currentPathCondition.addAll(traceAnalyzer.getcurrentPathCondition());
 					if (traceAnalyzer.addToPathConditions(currentPathCondition)){
 						traceAnalyzer.clearCurrentPathCodition();
-						traceAnalyzer.getDOMConstraintList();
+						//traceAnalyzer.getDOMConstraintList();
 						TraceAnalyzer.generatedID = 0;  // resetting the static auto-increment generatedID
 
 						for (DOMConstraint dc: traceAnalyzer.getDOMConstraintList()){
@@ -151,7 +155,7 @@ public class ConcolicEngine {
 						System.out.println("DOMFixture: " + DOMFixture);
 						if (!DOMFixture.equals("") && DOMFixtureList.contains(DOMFixture)){
 							DOMFixtureList.clear();  // clearing the DOMFixtureList to avoid terminating fixture generation for other functions that have a same fixture
-							System.out.println("No new fixyture found!");
+							System.out.println("No new fixture found!");
 							break;
 						}
 						DOMFixtureList.add(DOMFixture);
