@@ -1,3 +1,4 @@
+#*
 // QUnit test cases generated @ ${date}
 
 module("${moduleName}", {
@@ -10,13 +11,15 @@ module("${moduleName}", {
 		//${testTearDownCode}
     }
 });
-
+*#
 
 #foreach( $function in $testFunctions )
 
 test("${function.functionName}", function() {
 	expect(0);
+#if( ${function.fixture}!='' )
 	$("#qunit-fixture").append('${function.fixture}');
+#end
 #foreach( $statement in $function.statements )
 	$statement
 #end
