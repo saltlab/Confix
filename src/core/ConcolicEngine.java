@@ -96,6 +96,7 @@ public class ConcolicEngine {
 				// To get coverage by JSCover the runner html should be loaded from a server not local directory
 				// Also the XHR replacement in the instrumented file should be removed as JSCover also changes XHR
 				String concolicHTMLRunnerPath = "http://localhost:8888/concolic/concolic_" + scopeName.replace(".js", "")  + ".htm";
+				// Resetting the trace collected in the previous run
 				driver.get(concolicHTMLRunnerPath);
 
 
@@ -116,7 +117,8 @@ public class ConcolicEngine {
 				}
 
 				// Concolic fixture generation
-				if (testGenerationMethod == Method.CONFIX_NOINP || testGenerationMethod == Method.CONFIX_JALANGI || testGenerationMethod == Method.CONFIX_MANUAL){
+				if (testGenerationMethod == Method.CONFIX_NOINP || testGenerationMethod == Method.CONFIX_FIXINP || 
+						testGenerationMethod == Method.CONFIX_JALANGI || testGenerationMethod == Method.CONFIX_MANUAL){
 
 
 					// Get the execution trace
@@ -175,9 +177,15 @@ public class ConcolicEngine {
 
 					System.out.println("=======> Path #" + pathCounter++ + ": DOM fixture: " + fixture);
 
+					if (pathCounter==10)  // generate for at most 10 paths
+						fixture="";
+
+				
 				}else{
 					System.out.println("=======> No new path was found. Terminating the concolic engine...");
 					fixture="";
+					// Generating a new test method
+					tsg.addNewTestMethod(currentFunctionToTest, fixture, pathCounter);
 				}
 
 				// updating the coverage report
@@ -188,6 +196,10 @@ public class ConcolicEngine {
 					System.out.println("Failed to execute function " + e);
 				}
 
+				//driver.quit();
+				//instrumentDynamically(false);  // No need for dynamic instrumentation at proxy level.
+
+				
 			} while (fixture!="");
 		}
 
