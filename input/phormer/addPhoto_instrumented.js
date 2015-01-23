@@ -6,20 +6,10 @@ function confixWrapper(statementType, statement, varList, varValueList, enclosin
 function getConfixTrace() {
   return trace;
 }
-var _XMLHttpRequest = XMLHttpRequest;
-XMLHttpRequest = function() {
-  var xhr = new _XMLHttpRequest();
-  var _open = xhr.open;
-  xhr.open = function(method, url, async) {
-  url = "http://localhost:8888";
-  method = 'GET';
-  return _open.apply(this, [method, url, async]);
-};
-  return xhr;
-};
 function alert() {
 }
 function confirm() {
+  return true;
 }
 var AjaxVal = confixWrapper("initvar", "var AjaxVal = new Array()", [""], [], "", new Array());
 var seedArr = confixWrapper("initvar", "var seedArr = new Array()", [""], [], "", new Array());

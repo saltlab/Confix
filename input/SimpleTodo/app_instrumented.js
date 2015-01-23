@@ -6,20 +6,10 @@ function confixWrapper(statementType, statement, varList, varValueList, enclosin
 function getConfixTrace() {
   return trace;
 }
-var _XMLHttpRequest = XMLHttpRequest;
-XMLHttpRequest = function() {
-  var xhr = new _XMLHttpRequest();
-  var _open = xhr.open;
-  xhr.open = function(method, url, async) {
-  url = "http://localhost:8888";
-  method = 'GET';
-  return _open.apply(this, [method, url, async]);
-};
-  return xhr;
-};
 function alert() {
 }
 function confirm() {
+  return true;
 }
 var taskInput = confixWrapper("initvar", "var taskInput = confixWrapper(\"functionCall\", \"document.getElementById('new-task')\", [\"new-task\"], ['new-task'], \"\", document.getElementById('new-task'))", [""], [], "", confixWrapper("functionCall", "document.getElementById('new-task')", ["new-task"], ['new-task'], "", document.getElementById('new-task')));
 var addButton = confixWrapper("initvar", "var addButton = confixWrapper(\"functionCall\", \"document.getElementsByTagName('button')\", [\"button\"], ['button'], \"\", document.getElementsByTagName('button'))[0]", [""], [], "", confixWrapper("functionCall", "document.getElementsByTagName('button')", ["button"], ['button'], "", document.getElementsByTagName('button'))[0]);

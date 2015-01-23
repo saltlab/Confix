@@ -9,16 +9,16 @@ public class SudokuConfixRunner {
 	//static Method testGenerationMethod = Method.FIXINP;
 	//static Method testGenerationMethod = Method.JALANGI;
 	//static Method testGenerationMethod = Method.MANUAL;
-	//static Method testGenerationMethod = Method.CONFIX_NOINP;
+	static Method testGenerationMethod = Method.CONFIX_NOINP;
 	//static Method testGenerationMethod = Method.CONFIX_JALANGI;
-	static Method testGenerationMethod = Method.CONFIX_MANUAL;
+	//static Method testGenerationMethod = Method.CONFIX_MANUAL;
 
 	private static String jsFolderNameToTest = "sudoku";  // the folder should be available in the "input/" directory
 	private static String jsNameToTest = "game.js";
 
 	private static String jsPathToTest = "input/" + jsFolderNameToTest + "/" + jsNameToTest;
 	private static String testSuitePathToGenerate = "output/" + jsFolderNameToTest + "_QUnits";
-	private static String testSuiteFileToGenerate = "QUnit_" + jsNameToTest;
+	private static String testSuiteFileToGenerate = testGenerationMethod + "_QUnit_" + jsNameToTest;
 
 	// provide input values for a DOM dependent function 
 	private static ArrayList<String> functionToTest = new ArrayList<String>();

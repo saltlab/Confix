@@ -924,8 +924,20 @@ public class TraceAnalyzer {
 		String statement = map.get("statement");
 		// TODO: needs refactoring. This is done temporary for the phormer app
 		statement = statement.replace("\"document.cookie.split(\"; \")", "\"document.cookie.split(\\\"; \\\")");
+		statement = statement.replace("'url(''+val+'')'", "'url(\\''+val+'\\')'");
+		statement = statement.replace("'url('' + val + '')'", "'url(\\''+val+'\\')'");
 		System.out.println(statement);
-		AstNode generatedNode = parse(statement);
+		AstNode generatedNode = null;
+		try{
+			// check if missing ; before statement
+			parse(statement);
+		}catch(Exception e){
+			System.out.println("statement: " + statement);
+			statement += ";";
+			System.out.println("new statement: " + statement);
+		}
+		generatedNode = parse(statement);
+		
 		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
 		InfixExpression infix = (InfixExpression) es.getExpression();
 		String left = infix.getLeft().toSource();

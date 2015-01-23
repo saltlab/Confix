@@ -397,7 +397,7 @@ public class JSASTInstrumentor implements NodeVisitor{
 
 		String originalSource = vi.toSource().replace("\"", "\\\"");		
 		originalSource = originalSource.replace("\n", "").replace("\r", ""); // if it contains a function body		
-		// e.g. var a = b -> a = confixWrapper("infix", "var a=b", [""], [], b)
+						// e.g. var a = b -> a = confixWrapper("infix", "var a=b", [""], [], b)
 		String wrapperCode = "var " + left + " = confixWrapper(\"initvar\", \"var "+ originalSource +"\", [\"\"], [], \"" + enclosingFunction + "\", " + right + ")";
 		System.out.println("wrapperCode : " + wrapperCode );
 		AstNode wrapperNode = parse(wrapperCode);

@@ -1,15 +1,3 @@
-// QUnit test cases generated @ Sun Dec 28 07:20:53 PST 2014
-
-module("output/phormer_QUnits", {
-    setup: function() {
-        // generate fixture before each test
-		//$("#qunit-fixture").append('${fixture}');
-    },
-    teardown: function() {
-        // runs after each test
-		//${testTearDownCode}
-    }
-});
 
 
 
@@ -43,7 +31,6 @@ test("Testing function ShowHelp('test', null, 'test') for path 1", function() {
 
 test("Testing function SwitchSelectIE() for path 1", function() {
 	expect(0);
-	$("#qunit-fixture").append('');
 	SwitchSelectIE();
 });
 

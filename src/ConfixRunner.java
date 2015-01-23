@@ -12,7 +12,7 @@ public class ConfixRunner {
 
 	private static String jsPathToTest = "input/" + jsFolderNameToTest + "/" + jsNameToTest;
 	private static String testSuitePathToGenerate = "output/" + jsFolderNameToTest + "_QUnits";
-	private static String testSuiteFileToGenerate = "QUnit_" + jsNameToTest;
+	private static String testSuiteFileToGenerate = testGenerationMethod + "_QUnit_" + jsNameToTest;
 
 
 	// provide input values for a DOM dependent function 

@@ -8,10 +8,11 @@ public class PhormerConfixRunner {
 	//static Method testGenerationMethod = Method.NOINP;
 	//static Method testGenerationMethod = Method.FIXINP;
 	//static Method testGenerationMethod = Method.JALANGI;
-	static Method testGenerationMethod = Method.MANUAL;
+	//static Method testGenerationMethod = Method.MANUAL;
 	//static Method testGenerationMethod = Method.CONFIX_NOINP;
+	//static Method testGenerationMethod = Method.CONFIX_FIXINP;
 	//static Method testGenerationMethod = Method.CONFIX_JALANGI;
-	//static Method testGenerationMethod = Method.CONFIX_MANUAL;
+	static Method testGenerationMethod = Method.CONFIX_MANUAL;
 
 
 	private static String jsFolderNameToTest = "phormer";  // the folder should be available in the "input/" directory
@@ -24,7 +25,7 @@ public class PhormerConfixRunner {
 
 	private static String jsPathToTest = "input/" + jsFolderNameToTest + "/" + jsNameToTest;
 	private static String testSuitePathToGenerate = "output/" + jsFolderNameToTest + "_QUnits";
-	private static String testSuiteFileToGenerate = "QUnit_" + jsNameToTest;
+	private static String testSuiteFileToGenerate = testGenerationMethod + "_QUnit_" + jsNameToTest;
 
 
 	// provide input values for a DOM dependent function 
@@ -108,7 +109,7 @@ public class PhormerConfixRunner {
 				functionToTest.add("ss_toggleSmaller()");
 				functionToTest.add("ss_run()");  // Confix can't generate fixture due to dependency of local variable settings
 				functionToTest.add("ss_slideshow()");
-			}else if (testGenerationMethod == Method.FIXINP){
+			}else if (testGenerationMethod == Method.FIXINP || testGenerationMethod == Method.CONFIX_FIXINP){
 				functionToTest.add("dg('test')");
 				functionToTest.add("toggleInfo('test')");
 				functionToTest.add("reToggleInfo()");
@@ -144,7 +145,7 @@ public class PhormerConfixRunner {
 				functionToTest.add("dgp()");
 				functionToTest.add("ShowHelp()");
 				functionToTest.add("SwitchSelectIE()");
-			}else if (testGenerationMethod == Method.FIXINP){
+			}else if (testGenerationMethod == Method.FIXINP || testGenerationMethod == Method.CONFIX_FIXINP){
 				functionToTest.add("HideHelp()");
 				functionToTest.add("dgp('test')");
 				functionToTest.add("ShowHelp('test', 'test', 'test')");
@@ -166,7 +167,7 @@ public class PhormerConfixRunner {
 				functionToTest.add("imageUploaded()");
 				functionToTest.add("writeYet()");
 				functionToTest.add("uploadSubmitted() ");
-			}else if (testGenerationMethod == Method.FIXINP){
+			}else if (testGenerationMethod == Method.FIXINP || testGenerationMethod == Method.CONFIX_FIXINP){
 				functionToTest.add("setExif('test')");
 				functionToTest.add("imageUploaded('test', 'test')");
 				functionToTest.add("writeYet('test', 'test')");
@@ -240,7 +241,7 @@ public class PhormerConfixRunner {
 				functionToTest.add("updateSelCount()");
 				functionToTest.add("DraftsSelectBit()");
 				functionToTest.add("AddAddBox()");
-			}else if (testGenerationMethod == Method.FIXINP){
+			}else if (testGenerationMethod == Method.FIXINP || testGenerationMethod == Method.CONFIX_FIXINP){
 				functionToTest.add("PrepareBody()");
 				functionToTest.add("dg('test')");
 				functionToTest.add("hideElem('test')");
@@ -290,7 +291,7 @@ public class PhormerConfixRunner {
 				functionToTest.add("ExpandSkl()");
 				functionToTest.add("MouseMoveInside()");
 				functionToTest.add("UpdateThumbPrev()");
-			}else if (testGenerationMethod == Method.FIXINP){
+			}else if (testGenerationMethod == Method.FIXINP || testGenerationMethod == Method.CONFIX_FIXINP){
 				functionToTest.add("SaveRatio()");
 				functionToTest.add("MouseDown('test','test')");
 				functionToTest.add("MouseDownTheSkeleton('test')");
