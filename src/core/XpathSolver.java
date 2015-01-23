@@ -63,12 +63,11 @@ public class XpathSolver {
 		DOMFixture = new String(b);
 	} 
 
-	// TODO: Solve xpath using xpath solver
 	public String getDOMFixture(){
-		// Calling  xpth solver from here!
-		// Should then read the XML from the generated output file and return it
+		// returning the processed XML as DOM fixture
 		//System.out.println(DOMFixture);
         DOMFixture = StringUtils.substringBetween(DOMFixture, "<document solver:target=\"true\">", "</document>");
+        DOMFixture = DOMFixture.replaceAll("_[0-9][0-9] ", " ").replaceAll("_[0-9][0-9]>", ">");
         DOMFixture = DOMFixture.replaceAll("_[0-9] ", " ").replaceAll("_[0-9]>", ">");
         DOMFixture = DOMFixture.replace("=\"_otherValue\"", "\"").replace("id_", "id=\"")
         		.replace("type_", "type=\"").replace("name_", "name=\"").replace("class_", "class=\"")
