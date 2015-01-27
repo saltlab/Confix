@@ -23,9 +23,6 @@ package instrumentor;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import com.crawljax.core.CrawljaxException;
-import com.crawljax.util.Helper;
-
 /**
  * Representation of a Daikon variable.
  * 
@@ -66,7 +63,7 @@ public class Variable {
 	 *             When the type is unsupported.
 	 * @throws JSONException
 	 */
-	private String getValue(Object value) throws CrawljaxException, JSONException {
+	private String getValue(Object value) throws JSONException {
 		if (isArray() && value instanceof JSONArray) {
 			return getArray((JSONArray) value, type);
 		} else {
@@ -82,16 +79,14 @@ public class Variable {
 	 * @param type
 	 *            Type of the value.
 	 * @return Daikon representation.
-	 * @throws CrawljaxException
-	 *             When the type is unsupported.
 	 */
-	private String getValue(Object value, String type) throws CrawljaxException {
+	private String getValue(Object value, String type) {
 		if (value == null) {
 			return "null";
 		}
 		if (type.equals("string")) {
 			/* make sure it fits on 1 line by removing new line chars */
-			value = Helper.removeNewLines(value.toString());
+			value = removeNewLines(value.toString());
 			/* escape quotes */
 			value = ((String) value).replaceAll("\\\"", "\\\\\"");
 			return "\"" + value.toString() + "\"";
@@ -108,10 +103,21 @@ public class Variable {
 		} else if (type.equals("object")) {
 			return "\"" + value.toString() + "\"";
 		}
-
-		throw new CrawljaxException("Unhandled type when converting to trace file " + type);
+		return null;
 	}
 
+
+	/**
+	* Removes newlines from a string.
+	*
+	* @param html
+	* The string.
+	* @return The new string without the newlines or tabs.
+	*/
+	private static String removeNewLines(String html) {
+	return html.replaceAll("[\\t\\n\\x0B\\f\\r]", "");
+	}
+	
 	/**
 	 * Traverse an array and create a representation in Daikon trace file format.
 	 * 
@@ -120,11 +126,9 @@ public class Variable {
 	 * @param type
 	 *            Type of the elements.
 	 * @return Daikon representation of the list.
-	 * @throws CrawljaxException
-	 *             When type is not supported.
 	 * @throws JSONException
 	 */
-	private String getArray(JSONArray array, String type) throws CrawljaxException, JSONException {
+	private String getArray(JSONArray array, String type) throws JSONException {
 		String result = "[";
 
 		for (int i = 0; i < array.length(); i++) {
@@ -143,7 +147,7 @@ public class Variable {
 	 * @throws CrawljaxException
 	 *             If type is unsupported.
 	 */
-	String getDeclaration() throws CrawljaxException {
+	String getDeclaration() {
 		StringBuffer varDecl = new StringBuffer();
 
 		if (isArray()) {
@@ -171,9 +175,7 @@ public class Variable {
 		} else if (type.equals("number")) {
 			/* number might be int or double. for now use double to be sure */
 			varDecl.append("double");
-		} else {
-			throw new CrawljaxException("Unhandled type: " + type);
-		}
+		} 
 
 		if (isArray()) {
 			varDecl.append("[]");
@@ -202,7 +204,7 @@ public class Variable {
 		} catch (JSONException e) {
 			value = var.getString(2);
 			/* make sure it fits on 1 line by removing new line chars */
-			value = Helper.removeNewLines((String) value);
+			value = removeNewLines((String) value);
 			/* escape quotes */
 			value = ((String) value).replaceAll("\\\"", "\\\\\"");
 		}
@@ -230,7 +232,7 @@ public class Variable {
 	 * @throws JSONException
 	 *             On error.
 	 */
-	public String getData(Object value) throws CrawljaxException, JSONException {
+	public String getData(Object value) throws JSONException {
 		/*FROLIN'S CODE*/
 		/*
 		if (value.toString().equals("undefined")) {
