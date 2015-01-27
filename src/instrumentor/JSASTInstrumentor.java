@@ -2,56 +2,35 @@ package instrumentor;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.StringTokenizer;
 
 import org.mozilla.javascript.CompilerEnvirons;
 import org.mozilla.javascript.Parser;
-import org.mozilla.javascript.Token;
-import org.mozilla.javascript.ast.Assignment;
 import org.mozilla.javascript.ast.AstNode;
 import org.mozilla.javascript.ast.AstRoot;
 import org.mozilla.javascript.ast.Block;
-import org.mozilla.javascript.ast.BreakStatement;
-import org.mozilla.javascript.ast.ContinueStatement;
 import org.mozilla.javascript.ast.ExpressionStatement;
 import org.mozilla.javascript.ast.ForLoop;
 import org.mozilla.javascript.ast.FunctionCall;
 import org.mozilla.javascript.ast.FunctionNode;
 import org.mozilla.javascript.ast.IfStatement;
 import org.mozilla.javascript.ast.InfixExpression;
-import org.mozilla.javascript.ast.KeywordLiteral;
 import org.mozilla.javascript.ast.Name;
 import org.mozilla.javascript.ast.NodeVisitor;
-import org.mozilla.javascript.ast.ObjectLiteral;
 import org.mozilla.javascript.ast.ObjectProperty;
-import org.mozilla.javascript.ast.ParenthesizedExpression;
 import org.mozilla.javascript.ast.PropertyGet;
 import org.mozilla.javascript.ast.ReturnStatement;
-import org.mozilla.javascript.ast.Scope;
-import org.mozilla.javascript.ast.StringLiteral;
 import org.mozilla.javascript.ast.SwitchCase;
-import org.mozilla.javascript.ast.Symbol;
-import org.mozilla.javascript.ast.ThrowStatement;
-import org.mozilla.javascript.ast.TryStatement;
-import org.mozilla.javascript.ast.UnaryExpression;
 import org.mozilla.javascript.ast.VariableDeclaration;
 import org.mozilla.javascript.ast.VariableInitializer;
 import org.mozilla.javascript.ast.WhileLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import core.DOMConstraint;
-import core.ElementTypeVariable;
 
 
 /**
- * This class is used to visit AST nodes of the given JS code. When a node matches a certain condition, it will be instrumentated with a wrapper function.
+ * This class is used to visit AST nodes of the given JS code. When a node matches a certain condition, it will be instrumented with a wrapper function.
  */
 
 public class JSASTInstrumentor implements NodeVisitor{
