@@ -87,63 +87,56 @@ test("Testing function insertNumber() for path 1", function() {
 
 test("Testing function helpMe() for path 1", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="square_4_8"/> <div id="hintDiv"/> ');
+	$("#qunit-fixture").append(' <div id="square_6_3"/> <div id="hintDiv"/> ');
 	helpMe();
 });
 
 
 test("Testing function helpMe() for path 2", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="square_7_5"/> <div id="hintDiv"/> ');
+	$("#qunit-fixture").append(' <div id="square_4_2"/> <div id="hintDiv"/> ');
 	helpMe();
 });
 
 
 test("Testing function helpMe() for path 3", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="square_3_5"/> <div id="hintDiv"/> ');
+	$("#qunit-fixture").append(' <div id="square_4_7"/> <div id="hintDiv"/> ');
 	helpMe();
 });
 
 
 test("Testing function helpMe() for path 4", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="square_4_1"/> <div id="hintDiv"/> ');
+	$("#qunit-fixture").append(' <div id="square_4_0"/> <div id="hintDiv"/> ');
 	helpMe();
 });
 
 
 test("Testing function helpMe() for path 5", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="square_6_6"/> <div id="hintDiv"/> ');
+	$("#qunit-fixture").append(' <div id="square_5_4"/> <div id="hintDiv"/> ');
 	helpMe();
 });
 
 
 test("Testing function helpMe() for path 6", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="square_7_1"/> <div id="hintDiv"/> ');
+	$("#qunit-fixture").append(' <div id="square_1_1"/> <div id="hintDiv"/> ');
 	helpMe();
 });
 
 
 test("Testing function helpMe() for path 7", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="square_2_8"/> <div id="hintDiv"/> ');
+	$("#qunit-fixture").append(' <div id="square_0_6"/> <div id="hintDiv"/> ');
 	helpMe();
 });
 
 
 test("Testing function helpMe() for path 8", function() {
 	expect(0);
-	$("#qunit-fixture").append(' <div id="square_2_4"/> <div id="hintDiv"/> ');
-	helpMe();
-});
-
-
-test("Testing function helpMe() for path 9", function() {
-	expect(0);
-	$("#qunit-fixture").append(' <div id="square_3_1"/> <div id="hintDiv"/> ');
+	$("#qunit-fixture").append(' <div id="square_4_5"/> <div id="hintDiv"/> ');
 	helpMe();
 });
 

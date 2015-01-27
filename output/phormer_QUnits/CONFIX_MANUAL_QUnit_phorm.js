@@ -362,3 +362,10 @@ test("Testing function ss_slideshow() for path 2", function() {
 	ss_slideshow();
 });
 
+
+test("Testing function ss_slideshow() for path 3", function() {
+	expect(0);
+	$("#qunit-fixture").append(' <input id="ss_refresh" value="ConfixGetValue"/> <input id="ss_refresh" value="ConfixGetValue"/> <input id="ss_refresh" value="ConfixGetValue"/> <input id="ss_refresh" value="ConfixGetValue"/> <input id="ss_refresh" value="ConfixGetValue"/> ');
+	ss_slideshow();
+});
+

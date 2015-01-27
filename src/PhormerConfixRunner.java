@@ -17,10 +17,10 @@ public class PhormerConfixRunner {
 
 	private static String jsFolderNameToTest = "phormer";  // the folder should be available in the "input/" directory
 	//private static String jsNameToTest = "phorm.js";
-	//private static String jsNameToTest = "help.js";
+	private static String jsNameToTest = "help.js";
 	//private static String jsNameToTest = "addPhoto.js";
 	//private static String jsNameToTest = "admin.js";
-	private static String jsNameToTest = "skeleton.js";
+	//private static String jsNameToTest = "skeleton.js";
 
 
 	private static String jsPathToTest = "input/" + jsFolderNameToTest + "/" + jsNameToTest;
@@ -138,6 +138,7 @@ public class PhormerConfixRunner {
 				functionToTest.add("dgp('id')");
 				functionToTest.add("ShowHelp('test', null, 'it')");
 				functionToTest.add("ShowHelp('test', null, 'test')"); // more combinations
+				functionToTest.add("ShowHelp('test', 'test', 'test')");
 				functionToTest.add("SwitchSelectIE()");
 			}else if (testGenerationMethod == Method.JALANGI || testGenerationMethod == Method.CONFIX_JALANGI){
 			}else if (testGenerationMethod == Method.NOINP || testGenerationMethod == Method.CONFIX_NOINP){

@@ -9,9 +9,10 @@ public class HotelReservationConfixRunner {
 	//static Method testGenerationMethod = Method.FIXINP;
 	//static Method testGenerationMethod = Method.JALANGI;
 	//static Method testGenerationMethod = Method.MANUAL;
-	static Method testGenerationMethod = Method.CONFIX_NOINP;
+	//static Method testGenerationMethod = Method.CONFIX_NOINP;
+	//static Method testGenerationMethod = Method.CONFIX_FIXINP;
 	//static Method testGenerationMethod = Method.CONFIX_JALANGI;
-	//static Method testGenerationMethod = Method.CONFIX_MANUAL;
+	static Method testGenerationMethod = Method.CONFIX_MANUAL;
 
 	private static String jsFolderNameToTest = "HotelReservation";  // the folder should be available in the "input/" directory
 	private static String jsNameToTest = "validation.js";
@@ -46,7 +47,7 @@ public class HotelReservationConfixRunner {
 			functionToTest.add("RequiredField()");  // The input should be a DOM element, ConFix can't handle it
 			functionToTest.add("validateEmail()");
 			functionToTest.add("validateNumber()");  // The input should be a DOM element, ConFix can't handle it
-		}else if (testGenerationMethod == Method.FIXINP){
+		}else if (testGenerationMethod == Method.FIXINP || testGenerationMethod == Method.CONFIX_FIXINP){
 			functionToTest.add("checkPassConfirm()");
 			functionToTest.add("checkValid()");
 			functionToTest.add("RequiredField()");  // The input should be a DOM element, ConFix can't handle it

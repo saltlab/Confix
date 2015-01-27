@@ -9,9 +9,10 @@ public class SudokuConfixRunner {
 	//static Method testGenerationMethod = Method.FIXINP;
 	//static Method testGenerationMethod = Method.JALANGI;
 	//static Method testGenerationMethod = Method.MANUAL;
-	static Method testGenerationMethod = Method.CONFIX_NOINP;
+	//static Method testGenerationMethod = Method.CONFIX_NOINP;
+	//static Method testGenerationMethod = Method.CONFIX_FIXINP;
 	//static Method testGenerationMethod = Method.CONFIX_JALANGI;
-	//static Method testGenerationMethod = Method.CONFIX_MANUAL;
+	static Method testGenerationMethod = Method.CONFIX_MANUAL;
 
 	private static String jsFolderNameToTest = "sudoku";  // the folder should be available in the "input/" directory
 	private static String jsNameToTest = "game.js";
@@ -79,7 +80,7 @@ public class SudokuConfixRunner {
 			functionToTest.add("showHint()");
 			functionToTest.add("revealAll()");
 			functionToTest.add("switchLevel()");   // The input should be a DOM element, ConFix can't handle it
-		}else if (testGenerationMethod == Method.FIXINP){
+		}else if (testGenerationMethod == Method.FIXINP || testGenerationMethod == Method.CONFIX_FIXINP){
 			functionToTest.add("shuffleBoard()");
 			functionToTest.add("newGame()");
 			functionToTest.add("showCell()");  // The input should be a DOM element, ConFix can't handle it
