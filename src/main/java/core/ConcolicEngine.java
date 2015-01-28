@@ -44,6 +44,8 @@ public class ConcolicEngine {
 	private String testSuiteFileToGenerate;
 	private String fixture = "";
 
+	private boolean shouldGetCoverage  = false;
+
 	private List<String> DOMFixtureList = new ArrayList<String>();
 
 	public ConcolicEngine(String jsAdderess, String scopeName, ArrayList<String> functionsToTest, String testSuitePathToGenerate, String testSuiteFileToGenerate, Method testGenerationMethod){
@@ -81,6 +83,8 @@ public class ConcolicEngine {
 		//System.out.println(htmlTestFile);
 		codeAnalyzer.generateHTMLTestFile(htmlTestFile);
 
+		String concolicHTMLRunnerPath = "";
+
 		// for each function in the functionsToTest
 		for (String fname: functionsToTest){
 			currentFunctionToTest = fname;
@@ -91,14 +95,16 @@ public class ConcolicEngine {
 			int pathCounter = 1;
 			do {
 				// Loading the htmlTestFile and reset the fixture
-				//driver.get("file:///" + htmlTestFile);
+				if (shouldGetCoverage)
+					concolicHTMLRunnerPath = "file:///" + htmlTestFile;
+				else{
+					// To get coverage by JSCover the runner html should be loaded from a server not local directory
+					// Also the XHR replacement in the instrumented file should be removed as JSCover also changes XHR
+					concolicHTMLRunnerPath = "http://localhost:8888/concolic/concolic_" + scopeName.replace(".js", "")  + ".htm";
+				}
 
-				// To get coverage by JSCover the runner html should be loaded from a server not local directory
-				// Also the XHR replacement in the instrumented file should be removed as JSCover also changes XHR
-				String concolicHTMLRunnerPath = "http://localhost:8888/concolic/concolic_" + scopeName.replace(".js", "")  + ".htm";
 				// Resetting the trace collected in the previous run
 				driver.get(concolicHTMLRunnerPath);
-
 
 				// Apply the new fixture on htmlTestFile
 				try{
@@ -180,7 +186,7 @@ public class ConcolicEngine {
 					if (pathCounter==10)  // generate for at most 10 paths
 						fixture="";
 
-				
+
 				}else{
 					System.out.println("=======> No new path was found. Terminating the concolic engine...");
 					fixture="";
@@ -188,18 +194,20 @@ public class ConcolicEngine {
 					tsg.addNewTestMethod(currentFunctionToTest, fixture, pathCounter);
 				}
 
-				// updating the coverage report
-				try{
-					((JavascriptExecutor) driver).executeScript("return jscoverage_report('CoverageReport');");
-				}
-				catch(Exception e){
-					System.out.println("Failed to execute function " + e);
+				if (shouldGetCoverage){
+					// updating the coverage report
+					try{
+						((JavascriptExecutor) driver).executeScript("return jscoverage_report('CoverageReport');");
+					}
+					catch(Exception e){
+						System.out.println("Failed to execute function " + e);
+					}
 				}
 
 				//driver.quit();
 				//instrumentDynamically(false);  // No need for dynamic instrumentation at proxy level.
 
-				
+
 			} while (fixture!="");
 		}
 
@@ -228,10 +236,17 @@ public class ConcolicEngine {
 			profile.setPreference("network.proxy.no_proxies_on", "");
 			//FirefoxProfile profile = new FirefoxProfile();
 
-			FirefoxBinary binary = new FirefoxBinary(new File("/Applications/Firefox 2.app/Contents/MacOS/firefox"));
-			//driver = new FirefoxDriver(binary, profile);
-			// setting the webdriver without proxy
-			driver = new FirefoxDriver();
+
+			
+			// Setting the webdriver with proxy
+			if (shouldGetCoverage){
+				//FirefoxBinary binary = new FirefoxBinary(new File("/Applications/Firefox 2.app/Contents/MacOS/firefox"));
+				//driver = new FirefoxDriver(binary, profile);
+				driver = new FirefoxDriver(profile);	// Setting the webdriver for older version of FF with proxy
+			}
+			else
+				driver = new FirefoxDriver();  // setting the webdriver without proxy
+			
 			driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
 		}
 	}
@@ -339,11 +354,11 @@ public class ConcolicEngine {
 		/* use proxy for everything, including localhost */
 		profile.setPreference("network.proxy.no_proxies_on", "");
 
-		FirefoxBinary binary = new FirefoxBinary(new File("/Applications/Firefox 2.app/Contents/MacOS/firefox"));
+		// using older version of FF
+		//FirefoxBinary binary = new FirefoxBinary(new File("/Applications/Firefox 2.app/Contents/MacOS/firefox"));
 		//driver = new FirefoxDriver(binary, profile);
-		
+		// using current version of FF
 		driver = new FirefoxDriver();
-
 
 		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
 
