@@ -926,6 +926,8 @@ public class TraceAnalyzer {
 		statement = statement.replace("\"document.cookie.split(\"; \")", "\"document.cookie.split(\\\"; \\\")");
 		statement = statement.replace("'url(''+val+'')'", "'url(\\''+val+'\\')'");
 		statement = statement.replace("'url('' + val + '')'", "'url(\\''+val+'\\')'");
+		statement = statement.replace("href=\"", "href=\\\"").replace("\">","\\\">");
+
 		System.out.println(statement);
 		AstNode generatedNode = null;
 		try{
@@ -936,6 +938,8 @@ public class TraceAnalyzer {
 			statement += ";";
 			System.out.println("new statement: " + statement);
 		}
+		
+		
 		generatedNode = parse(statement);
 		
 		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
