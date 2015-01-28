@@ -95,7 +95,7 @@ public class ConcolicEngine {
 			int pathCounter = 1;
 			do {
 				// Loading the htmlTestFile and reset the fixture
-				if (shouldGetCoverage)
+				if (!shouldGetCoverage)
 					concolicHTMLRunnerPath = "file:///" + htmlTestFile;
 				else{
 					// To get coverage by JSCover the runner html should be loaded from a server not local directory

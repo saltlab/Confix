@@ -418,7 +418,9 @@ public class JSASTInstrumentor implements NodeVisitor{
 		System.out.println("Right.shortName: " + infix.getRight().shortName());
 
 		String originalSource = infix.toSource().replace("\"", "\\\"");		
-		originalSource = originalSource.replace("\n", "").replace("\r", ""); // if it contains a function body		
+		originalSource = originalSource.replace("\n", "").replace("\r", ""); // if it contains a function body
+		originalSource = originalSource.replace("\\d", "\\\\d").replace("\\/", "\\\\/").replace("d{", "\\d{").replace("}\\/", "}\\\\/"); // for regular expressions
+
 		if (oprator.equals("=")){
 			// e.g. a = b -> a = confixWrapper("infix", "a=b", [""], [], b)
 			//String wrapperCode = left + " = confixWrapper(\"infix\", \""+ originalSource +"\", [\"\"], [], \"" + enclosingFunction + "\", " + right + ")";
