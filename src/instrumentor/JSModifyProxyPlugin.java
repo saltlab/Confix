@@ -22,10 +22,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-
-
-import com.crawljax.util.Helper;
-
+import core.Helper;
 
 
 public class JSModifyProxyPlugin extends ProxyPlugin {
