@@ -146,7 +146,7 @@ function checkDate() {
     confixWrapper("functionCall", "alert('Date is required')", ["Date is required"], ['Date is required'], "checkDate", alert('Date is required'));
     return confixWrapper("return", "return false;", [""], [], "checkDate", false);
   }
-  re = confixWrapper("infix", "re = /^d{4}/d{2}/d{2}$/", [""], [], "checkDate", /^\d{4}\/\d{2}\/\d{2}$/);
+  re = confixWrapper("infix", "re = /^\\d{4}\\/\\d{2}\\/\\d{2}$/", [""], [], "checkDate", /^\d{4}\/\d{2}\/\d{2}$/);
   if (confixWrapper("condition", "!confixWrapper(\"functionCall\", \"re.test(dg('date').value)\", [\"dg(date).value\"], [confixWrapper(\"functionCall\", \"dg('date')\", [\"date\"], ['date'], \"checkDate\", dg('date')).value], \"checkDate\", re.test(confixWrapper(\"functionCall\", \"dg('date')\", [\"date\"], ['date'], \"checkDate\", dg('date')).value))", [""], [], "checkDate", !confixWrapper("functionCall", "re.test(dg('date').value)", ["dg(date).value"], [confixWrapper("functionCall", "dg('date')", ["date"], ['date'], "checkDate", dg('date')).value], "checkDate", re.test(confixWrapper("functionCall", "dg('date')", ["date"], ['date'], "checkDate", dg('date')).value)))) 
   {
     confixWrapper("functionCall", "alert('Date must be in YYYY/MM/DD format')", ["Date must be in YYYY/MM/DD format"], ['Date must be in YYYY/MM/DD format'], "checkDate", alert('Date must be in YYYY/MM/DD format'));
@@ -155,9 +155,9 @@ function checkDate() {
   return confixWrapper("return", "return true;", [""], [], "checkDate", true);
 }
 function CheckAddPhotoTime() {
-  retime = confixWrapper("infix", "retime = /^d{4}/d{2}/d{2}[ ]d{2}[:]d{2}$/", [""], [], "CheckAddPhotoTime", /^\d{4}\/\d{2}\/\d{2}[ ]\d{2}[:]\d{2}$/);
-  re = confixWrapper("infix", "re = /^d{4}/d{2}/d{2}$/", [""], [], "CheckAddPhotoTime", /^\d{4}\/\d{2}\/\d{2}$/);
-  rehit = confixWrapper("infix", "rehit = /^d+ d+/d+$/", [""], [], "CheckAddPhotoTime", /^\d+ \d+\/\d+$/);
+  retime = confixWrapper("infix", "retime = /^\\d{4}\\/\\d{2}\\/\\d{2}[ ]\\d{2}[:]\\d{2}$/", [""], [], "CheckAddPhotoTime", /^\d{4}\/\d{2}\/\d{2}[ ]\d{2}[:]\d{2}$/);
+  re = confixWrapper("infix", "re = /^\\d{4}\\/\\d{2}\\/\\d{2}$/", [""], [], "CheckAddPhotoTime", /^\d{4}\/\d{2}\/\d{2}$/);
+  rehit = confixWrapper("infix", "rehit = /^\\d+ \\d+\\/\\d+$/", [""], [], "CheckAddPhotoTime", /^\d+ \d+\/\d+$/);
   if (confixWrapper("condition", "!confixWrapper(\"functionCall\", \"re.test(dg('datetake').value)\", [\"dg(datetake).value\"], [confixWrapper(\"functionCall\", \"dg('datetake')\", [\"datetake\"], ['datetake'], \"CheckAddPhotoTime\", dg('datetake')).value], \"CheckAddPhotoTime\", re.test(confixWrapper(\"functionCall\", \"dg('datetake')\", [\"datetake\"], ['datetake'], \"CheckAddPhotoTime\", dg('datetake')).value))", [""], [], "CheckAddPhotoTime", !confixWrapper("functionCall", "re.test(dg('datetake').value)", ["dg(datetake).value"], [confixWrapper("functionCall", "dg('datetake')", ["datetake"], ['datetake'], "CheckAddPhotoTime", dg('datetake')).value], "CheckAddPhotoTime", re.test(confixWrapper("functionCall", "dg('datetake')", ["datetake"], ['datetake'], "CheckAddPhotoTime", dg('datetake')).value)))) 
   {
     confixWrapper("functionCall", "alert('Date Taken must be in YYYY/MM/DD HH:mm format')", ["Date Taken must be in YYYY/MM/DD HH:mm format"], ['Date Taken must be in YYYY/MM/DD HH:mm format'], "CheckAddPhotoTime", alert('Date Taken must be in YYYY/MM/DD HH:mm format'));
@@ -336,7 +336,7 @@ function updateTimeDiffer(x) {
       confixWrapper("functionCall", "dg('timeDiffShow')", ["timeDiffShow"], ['timeDiffShow'], "updateTimeDiffer", dg('timeDiffShow')).innerHTML = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dg('timeDiffShow')\", [\"timeDiffShow\"], ['timeDiffShow'], \"updateTimeDiffer\", dg('timeDiffShow')).innerHTML = hours + \":\" + minutes", [""], [], "updateTimeDiffer", hours + ":" + minutes);
 }
 function CheckDateDrafts() {
-  retime = confixWrapper("infix", "retime = /^d{4}/d{2}/d{2}[ ]d{2}[:]d{2}$/", [""], [], "CheckDateDrafts", /^\d{4}\/\d{2}\/\d{2}[ ]\d{2}[:]\d{2}$/);
+  retime = confixWrapper("infix", "retime = /^\\d{4}\\/\\d{2}\\/\\d{2}[ ]\\d{2}[:]\\d{2}$/", [""], [], "CheckDateDrafts", /^\d{4}\/\d{2}\/\d{2}[ ]\d{2}[:]\d{2}$/);
   if (confixWrapper("condition", "confixWrapper(\"functionCall\", \"dg('dateadd')\", [\"dateadd\"], ['dateadd'], \"CheckDateDrafts\", dg('dateadd')).value.length == 0", [""], [], "CheckDateDrafts", confixWrapper("functionCall", "dg('dateadd')", ["dateadd"], ['dateadd'], "CheckDateDrafts", dg('dateadd')).value.length == 0)) 
   {
     confixWrapper("functionCall", "alert('Date is required')", ["Date is required"], ['Date is required'], "CheckDateDrafts", alert('Date is required'));
