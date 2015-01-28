@@ -229,9 +229,9 @@ public class ConcolicEngine {
 			//FirefoxProfile profile = new FirefoxProfile();
 
 			FirefoxBinary binary = new FirefoxBinary(new File("/Applications/Firefox 2.app/Contents/MacOS/firefox"));
-			driver = new FirefoxDriver(binary, profile);
+			//driver = new FirefoxDriver(binary, profile);
 			// setting the webdriver without proxy
-			//driver = new FirefoxDriver();
+			driver = new FirefoxDriver();
 			driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
 		}
 	}
@@ -340,7 +340,10 @@ public class ConcolicEngine {
 		profile.setPreference("network.proxy.no_proxies_on", "");
 
 		FirefoxBinary binary = new FirefoxBinary(new File("/Applications/Firefox 2.app/Contents/MacOS/firefox"));
-		driver = new FirefoxDriver(binary, profile);
+		//driver = new FirefoxDriver(binary, profile);
+		
+		driver = new FirefoxDriver();
+
 
 		driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
 
