@@ -63,24 +63,20 @@ public class PhormerConfixRunner {
 				functionToTest.add("ss_run()");  // Confix can't generate fixture due to dependency of local variable settings
 				functionToTest.add("ss_slideshow()");
 			} else if (testGenerationMethod == Method.JALANGI || testGenerationMethod == Method.CONFIX_JALANGI){
-				functionToTest.add("dg('id')"); // check
-				functionToTest.add("toggleInfo()"); // check
-				functionToTest.add("toggleInfo('')");
+				functionToTest.add("dg('test')"); // check
 				functionToTest.add("toggleInfo('Show')");
-				functionToTest.add("toggleInfo('Hide')");
+				functionToTest.add("toggleInfo('a')");
 				functionToTest.add("reToggleInfo()");
 				functionToTest.add("reshuffle()");
 				functionToTest.add("updateIndic()");
-				functionToTest.add("SaveRating(0,1)"); // check
-				functionToTest.add("SaveRating(0,0)");
+				functionToTest.add("SaveRating('','')");
 				functionToTest.add("prepareBody()"); // check
-				functionToTest.add("hideElem('id')"); // check
-				functionToTest.add("showElem('id')"); // check
-				functionToTest.add("inlineElem('id')"); // check
-				functionToTest.add("tableRowElem('id')"); // check
+				functionToTest.add("hideElem('test')"); // check
+				functionToTest.add("showElem('test')"); // check
+				functionToTest.add("inlineElem('test')"); // check
+				functionToTest.add("tableRowElem('test')"); // check
 				functionToTest.add("checkWV()");
-				functionToTest.add("doReply(0)"); // check
-				functionToTest.add("doReply(1)");
+				functionToTest.add("doReply('test')");
 				functionToTest.add("ss_next()");
 				functionToTest.add("ss_prev()");
 				functionToTest.add("ss_update()");
@@ -141,6 +137,10 @@ public class PhormerConfixRunner {
 				functionToTest.add("ShowHelp('test', 'test', 'test')");
 				functionToTest.add("SwitchSelectIE()");
 			}else if (testGenerationMethod == Method.JALANGI || testGenerationMethod == Method.CONFIX_JALANGI){
+				functionToTest.add("HideHelp()");
+				functionToTest.add("dgp('id')");
+				functionToTest.add("ShowHelp('test', 'test', 'test')");
+				functionToTest.add("SwitchSelectIE()");
 			}else if (testGenerationMethod == Method.NOINP || testGenerationMethod == Method.CONFIX_NOINP){
 				functionToTest.add("HideHelp()");
 				functionToTest.add("dgp()");
@@ -163,6 +163,10 @@ public class PhormerConfixRunner {
 				functionToTest.add("uploadSubmitted('test', 'test', false, 'test') ");
 				functionToTest.add("uploadSubmitted('test', 'test', true, 'test') ");
 			}else if (testGenerationMethod == Method.JALANGI || testGenerationMethod == Method.CONFIX_JALANGI){
+				functionToTest.add("setExif('test')");
+				functionToTest.add("imageUploaded('test', 'test')");
+				functionToTest.add("writeYet('test', 'test')");
+				functionToTest.add("uploadSubmitted('a', 'a', 'a', '') ");
 			}else if (testGenerationMethod == Method.NOINP || testGenerationMethod == Method.CONFIX_NOINP){
 				functionToTest.add("setExif()");
 				functionToTest.add("imageUploaded()");
@@ -209,6 +213,38 @@ public class PhormerConfixRunner {
 				functionToTest.add("DraftsSelectBit('test','test1')");
 				functionToTest.add("AddAddBox()");
 			}else if (testGenerationMethod == Method.JALANGI || testGenerationMethod == Method.CONFIX_JALANGI){
+				functionToTest.add("PrepareBody()");
+				functionToTest.add("dg('test')");
+				functionToTest.add("hideElem('test')");
+				functionToTest.add("showElem('test')");
+				functionToTest.add("inlineElem('test')");
+				functionToTest.add("tableRowElem('test')");
+				functionToTest.add("checkChangePass()");
+				functionToTest.add("checkInstallPass()");
+				functionToTest.add("checkPrivacyRow()");
+				functionToTest.add("checkHasPass()");
+				functionToTest.add("checkDate()");
+				functionToTest.add("CheckAddPhotoTime()");
+				functionToTest.add("CheckAddPhoto()");
+				functionToTest.add("ConfirmDelPhoto()");
+				functionToTest.add("showlinkline('test')");
+				functionToTest.add("hidelinkline('test')");
+				functionToTest.add("linkAddBelow('test')");
+				functionToTest.add("linkDelThis('test')");
+				functionToTest.add("removeThisNode('test')");
+				functionToTest.add("addMainColDiv()");
+				functionToTest.add("updateMode()");
+				functionToTest.add("fixBoldInput('test','test1')");
+				functionToTest.add("changePrev()");
+				functionToTest.add("rethumb_fill('test')");
+				functionToTest.add("rethumb()");
+				functionToTest.add("ToggleAdvPref()");
+				functionToTest.add("updateTimeDiffer('test')");
+				functionToTest.add("CheckDateDrafts()");
+				functionToTest.add("CheckActionDrafts()");
+				functionToTest.add("updateSelCount()");
+				functionToTest.add("DraftsSelectBit('test','test1')");
+				functionToTest.add("AddAddBox()");
 			}else if (testGenerationMethod == Method.NOINP || testGenerationMethod == Method.CONFIX_NOINP){
 				functionToTest.add("PrepareBody()");
 				functionToTest.add("dg()");
@@ -285,6 +321,12 @@ public class PhormerConfixRunner {
 				functionToTest.add("MouseMoveInside('test')");
 				functionToTest.add("UpdateThumbPrev()");
 			}else if (testGenerationMethod == Method.JALANGI || testGenerationMethod == Method.CONFIX_JALANGI){
+				functionToTest.add("SaveRatio()");
+				functionToTest.add("MouseDown('a','a')");
+				functionToTest.add("MouseDownTheSkeleton('a')");
+				functionToTest.add("ExpandSkl()");
+				functionToTest.add("MouseMoveInside('test')");
+				functionToTest.add("UpdateThumbPrev()");
 			}else if (testGenerationMethod == Method.NOINP || testGenerationMethod == Method.CONFIX_NOINP){
 				functionToTest.add("SaveRatio()");
 				functionToTest.add("MouseDown()");
