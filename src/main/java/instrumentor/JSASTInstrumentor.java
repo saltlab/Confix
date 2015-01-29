@@ -745,7 +745,7 @@ public class JSASTInstrumentor implements NodeVisitor{
 				"}";
 
 		// this is XHR replacing
-		boolean shouldReplaceXHR = false;
+		boolean shouldReplaceXHR = true;
 		if (shouldReplaceXHR)
 			code += // Storing the original XMLHTTPRequest object
 			"var _XMLHttpRequest = XMLHttpRequest;" +

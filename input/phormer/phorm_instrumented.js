@@ -6,6 +6,17 @@ function confixWrapper(statementType, statement, varList, varValueList, enclosin
 function getConfixTrace() {
   return trace;
 }
+var _XMLHttpRequest = XMLHttpRequest;
+XMLHttpRequest = function() {
+  var xhr = new _XMLHttpRequest();
+  var _open = xhr.open;
+  xhr.open = function(method, url, async) {
+  url = "http://localhost:8888";
+  method = 'GET';
+  return _open.apply(this, [method, url, async]);
+};
+  return xhr;
+};
 function alert() {
 }
 function confirm() {
@@ -211,7 +222,7 @@ function tableRowElem(x) {
 }
 }
 function checkWV() {
-  re = confixWrapper("infix", "re = /^d{5}$/", [""], [], "checkWV", /^\d{5}$/);
+  re = confixWrapper("infix", "re = /^\\d{5}$/", [""], [], "checkWV", /^\d{5}$/);
   if (confixWrapper("condition", "!confixWrapper(\"functionCall\", \"re.test(dg('wvinput').value)\", [\"dg(wvinput).value\"], [confixWrapper(\"functionCall\", \"dg('wvinput')\", [\"wvinput\"], ['wvinput'], \"checkWV\", dg('wvinput')).value], \"checkWV\", re.test(confixWrapper(\"functionCall\", \"dg('wvinput')\", [\"wvinput\"], ['wvinput'], \"checkWV\", dg('wvinput')).value))", [""], [], "checkWV", !confixWrapper("functionCall", "re.test(dg('wvinput').value)", ["dg(wvinput).value"], [confixWrapper("functionCall", "dg('wvinput')", ["wvinput"], ['wvinput'], "checkWV", dg('wvinput')).value], "checkWV", re.test(confixWrapper("functionCall", "dg('wvinput')", ["wvinput"], ['wvinput'], "checkWV", dg('wvinput')).value)))) 
   {
     confixWrapper("functionCall", "alert('Word Verification box should have an string of length 5 with digits')", ["Word Verification box should have an string of length 5 with digits"], ['Word Verification box should have an string of length 5 with digits'], "checkWV", alert('Word Verification box should have an string of length 5 with digits'));
