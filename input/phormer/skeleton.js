@@ -153,7 +153,7 @@ function UpdateThumbPrev() {
 	*/
 }
 
-//NonDDF
+//NonDDF, browser dependent
 function getMyXY(eve, t) {
 	var tt
 	if(!eve)
@@ -161,6 +161,7 @@ function getMyXY(eve, t) {
 	if (document.all)
 		tt = document.body.scrollTop?document.body.scrollTop:document.documentElement.scrollTop;
 	return t?document.all?eve.clientY+tt:eve.pageY:document.all?eve.clientX:eve.pageX;
+	//return t?eve.pageY:eve.pageX;
 }
 
 //DDF

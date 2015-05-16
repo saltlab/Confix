@@ -25,8 +25,20 @@ test("Testing function ShowHelp('test', null, 'test') for path 1", function() {
 });
 
 
+test("Testing function ShowHelp('test', 'test', 'test') for path 1", function() {
+	expect(0);
+	ShowHelp('test', 'test', 'test');
+});
+
+
 test("Testing function SwitchSelectIE() for path 1", function() {
 	expect(0);
 	SwitchSelectIE();
+});
+
+
+test("Testing function GetItHelpMsg('test') for path 1", function() {
+	expect(0);
+	GetItHelpMsg('test');
 });
 

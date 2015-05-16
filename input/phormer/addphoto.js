@@ -55,12 +55,12 @@ function setExif(seed) {
 		AttemptEXIF(seed, ImgPath9);
 	else {
 		av = AjaxVal[seedId(seed)];
-		if (av.indexOf(';') == av.length)
+		if (av.indexOf(';') == av.length) // make true
 			return;
 		var exifDate = av.substr(1, av.indexOf(';')-1);
 		var exifInfo = av.substr(av.indexOf(';')+1, av.length);
 
-		if (exifInfo.length) {
+		if (exifInfo.length) {  // make false
 			if ((dg('photoinfo').value != "") && (dg('photoinfo').value != exifInfo)) {
 				if (confirm('Replace current photo info with EXIF info?'))
 					dg('photoinfo').value = exifInfo;
@@ -70,7 +70,7 @@ function setExif(seed) {
 		}
 
 
-		if (exifDate.length)
+		if (exifDate.length) // make true
 			if ((dg('datetake').value != "") && (dg('datetake').value != exifDate) && !isFakeDateTaken) {
 				if (confirm('Replace current Date taken ('+dg('datetake').value+') with EXIF date ('+exifDate+')?'))
 					dg('datetake').value = exifDate;
@@ -101,8 +101,7 @@ function imageUploaded(indeed, seed) {
 		rethumb();
 	}
 	else {
-		dg('thumb_note_'+seed).innerHTML = "Photo catched but phpgd not found! "
-								+ "(<a class=\"q\" onclick=\"ShowHelp('GD Not Found', event)\"> ? </a>)";
+		dg('thumb_note_'+seed).innerHTML = "Photo catched but phpgd not found! (<a onclick=\"ShowHelp('GD Not Found', event)\"> ? </a>)";
 	}
 	dg('theImgPath').value = ImgPath;
 	dg('finallyAdd').style.display = 'inline';
@@ -111,7 +110,6 @@ function imageUploaded(indeed, seed) {
 }
 
 //NonDDF
-/* might be externally called */
 function AttemptEXIF(_seed, _ImgPath9) {
 	seed = _seed;
 	ImgPath9 = _ImgPath9;
@@ -142,14 +140,14 @@ function writeYet(seed, draft) {
 		return;
 	}
 
-	var AjaxProp = AjaxVal[seedId(seed)].substr(6, AjaxVal[seedId(seed)].length);
+	/*var AjaxProp = AjaxVal[seedId(seed)].substr(6, AjaxVal[seedId(seed)].length);
 	var AjaxTkn = new Array();
 	var c, i;
 	AjaxProp += ";"
 	for (i=0; (c = AjaxProp.indexOf(';')) != -1; i++) {
 		AjaxTkn[i] = AjaxProp.substr(0, c);
 		AjaxProp = AjaxProp.substr(c+1);
-	}
+	}*/
 
 	AjaxVal[seedId(seed)] = AjaxVal[seedId(seed)].substr(0, 5);
 
@@ -189,8 +187,8 @@ function writeYet(seed, draft) {
 		if (!draft)
 			dg('thumb_note_'+seed).innerHTML = "Creating Thumbnails ... Please, wait!";
 		var str = "Creating Thumbnails ";
-		if (draft && (i>1) && (parseInt(AjaxTkn[1]) > 1))
-			str += " of File \"" + AjaxTkn[2] + "\" (#" + AjaxTkn[0] + " of Total " + AjaxTkn[1] + " files)";
+		//if (draft && (i>1) && (parseInt(AjaxTkn[1]) > 1))
+		//	str += " of File \"" + AjaxTkn[2] + "\" (#" + AjaxTkn[0] + " of Total " + AjaxTkn[1] + " files)";
 
 		dg('upload_uploading_txt_'+seed).innerHTML = str+"...";
 		setTimeout("writeYet('"+seed+"', draft)", AjaxDelay);
@@ -202,25 +200,6 @@ function writeYet(seed, draft) {
 			dg('upload_uploading_txt_'+seed).innerHTML = "Unzipping... Found " + AjaxTkn[0] + " Files...";
 		}
 		setTimeout("writeYet('"+seed+"', draft)", AjaxDelay);
-		return;
-	}
-
-	if (AjaxVal[seedId(seed)] == "ENDED") {
-		ImgW 	 = parseInt(AjaxTkn[0]);
-		ImgH 	 = parseInt(AjaxTkn[1]);
-		FileName = AjaxTkn[2];//"temp/"+seed+"_1.jpg";
-		ImgPath9 = AjaxTkn[3];//(draft)?AjaxTkn[3]:("temp/"+seed+"_9.jpg");
-		ImgPath  = ImgPath9.substr(0, ImgPath9.length-5)+"1.jpg";
-		if (draft && parseInt(AjaxTkn[4]) > 1)//ImgPath9.substr(ImgPath9.length-4) == ".zip")
-			s =	"\""+FileName+"\" is uploaded successfully "
-				+" and "+AjaxTkn[4]+" photos in it saved in Drafts folder!";
-		else
-			s =	"The photo \""+FileName+"\" is uploaded successfully "
-				+" and is <a href=\""+ImgPath9+"\">saved</a> in <a href=\"admin.php?page=drafts\">Drafts</a> part!";
-		dg('upload_note_'+seed).innerHTML = s;
-		if (!draft)
-			imageUploaded(1, seed);
-		Ajaxify("delphr", seed);
 		return;
 	}
 }

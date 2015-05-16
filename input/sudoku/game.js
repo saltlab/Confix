@@ -57,14 +57,13 @@ function newGame()
 
 var visibleNumberArray = new Array();
 
-//NonDDF
-function randomizeArray(a,b){
-	return Math.random() - Math.random();
-}
-
 //DDF
 function showCell(inputDiv)
 {
+	
+	if (inputDiv == 'generateDOMInput')
+		inputDiv = document.getElementById('ConfixDummyNode1');
+
 	var span = inputDiv.getElementsByTagName('SPAN')[0];
 	span.style.display='';
 	inputDiv.style.backgroundColor='#DDD';
@@ -104,15 +103,17 @@ function showColumnsInGroup(){
 var higlightedCell;
 //DDF
 function highlightSquare(e,inputObj){
-	document.getElementById('hintDiv').style.display='none';
-	if(!inputObj)inputObj = this;
-	if (!inputObj.style) return;
-	if(inputObj.style.backgroundColor)return;
+	var hintDiv = document.getElementById('hintDiv');
+	if (hintDiv)
+		hintDiv.style.display='none';
+	//if(!inputObj)inputObj = this;
+	if(inputObj.style == undefined) return;
+	//if(inputObj.style.backgroundColor)return;
 	if(gameFinished)return;
 	inputObj.className='sudokuSquareHighlighted';
 	if(higlightedCell && higlightedCell!=inputObj)higlightedCell.className='sudokuSquare';
-	higlightedCell = inputObj;
-	if(document.all)inputObj.focus();
+	//higlightedCell = inputObj;
+	//if(document.all)inputObj.focus();
 
 }
 
@@ -223,6 +224,7 @@ function initSudoku()
 }
 
 //DDF
+var code = 0;
 function insertNumber(e)
 {
 	document.getElementById('hintDiv').style.display='none';
@@ -230,13 +232,13 @@ function insertNumber(e)
 	if(document.all)e = event;
 	if(!higlightedCell)return;
 	if(gameFinished)return;
-	if (e.keyCode) code = e.keyCode; else if (e.which) code = e.which;
+	//if (e.keyCode) code = e.keyCode; else if (e.which) code = e.which;
 	var span = higlightedCell.getElementsByTagName('SPAN')[1];
 
 	var numbers = higlightedCell.id.split('_');
 
-	var row = numbers[1]/1;
-	var col = numbers[2]/1;
+	var row = numbers[1]/1;  //_0_1_8
+	var col = numbers[2]/1;  //_0_1_8
 	var nextObject = false;
 
 	if(code==39){ // Right arrow
@@ -317,7 +319,7 @@ function helpMe()
 			var el = document.getElementById('square_'+row+'_'+col);	
 
 			var spans = el.getElementsByTagName('SPAN');
-			if(spans[1].innerHTML.length==0){
+				if(spans[1].innerHTML.length==0){
 				spans[1].innerHTML = spans[0].innerHTML;
 				spans[1].style.color='#FF0000';
 				allreadyRevealed =  false;					
@@ -334,6 +336,10 @@ function helpMe()
 //DDF
 function isCorrect(divObj)
 {
+	if (divObj == 'generateDOMInput')
+		divObj = document.getElementByID('ConfixDummyNode1');
+
+	
 	var spans = divObj.getElementsByTagName('SPAN');
 	if(spans[0].innerHTML==spans[1].innerHTML || spans[1].innerHTML.length==0)return true;
 	return false;		
@@ -361,6 +367,9 @@ function getLeftPos(inputObj)
 //DDF
 function getPossibleNumbers(inputObj)
 {
+	if (inputObj == 'generateDOMInput')
+		inputObj = document.getElementByID('ConfixDummyNode1');
+	
 	var noArray = new Array();
 	var countNumbers = 0;
 	var spans = inputObj.getElementsByTagName('SPAN');
@@ -469,6 +478,10 @@ function revealAll()
 //DDF
 function switchLevel(initLevel,linkObj)
 {
+	if (linkObj == 'generateDOMInput')
+		linkObj = document.getElementByID('ConfixDummyNode1');
+
+	
 	var confirmSwitch = gameFinished;
 	if(!confirmSwitch)confirmSwitch = confirm('Click OK to finish the current game');
 	if(confirmSwitch){

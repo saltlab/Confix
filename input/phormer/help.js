@@ -88,28 +88,6 @@ function ShowHelp(s, eve, lang) {
 }
 
 
-//NonDDF
-function getMyXY(eve, t) {
-	var myY, myX;
-	if(!eve)
-		var eve=window.event;
-	if (document.all){
-		myX=eve.clientX;
-		var dY = 0;
-		if (document.body.scrollTop)
-			dY=document.body.scrollTop;
-		else
-			dY=document.documentElement.scrollTop;
-		myY=eve.clientY+dY;
-	}
-	else {
-		myX=eve.pageX;
-		myY=eve.pageY;
-	}
-	return ((t)?myY:myX);
-}
-
-
 //DDF
 function SwitchSelectIE(t) {
 	if (isIE()) {

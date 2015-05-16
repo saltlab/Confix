@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.UnhandledAlertException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -44,7 +45,7 @@ public class ConcolicEngine {
 	private String testSuiteFileToGenerate;
 	private String fixture = "";
 
-	private boolean shouldGetCoverage  = false;
+	private boolean shouldGetCoverage  = true;
 
 	private List<String> DOMFixtureList = new ArrayList<String>();
 
@@ -89,11 +90,18 @@ public class ConcolicEngine {
 		for (String fname: functionsToTest){
 			currentFunctionToTest = fname;
 
+			System.out.println("Generating fixture for function :" + fname);
+
 			// e.g of a fixture is "<div id=\"rateStatus\"/>";
 			fixture = "";
 
+			int tryNext = 1;
+
 			int pathCounter = 1;
 			do {
+
+				System.out.println("do-while!");
+
 				// Loading the htmlTestFile and reset the fixture
 				if (!shouldGetCoverage)
 					concolicHTMLRunnerPath = "file:///" + htmlTestFile;
@@ -108,8 +116,20 @@ public class ConcolicEngine {
 
 				// Apply the new fixture on htmlTestFile
 				try{
-					((JavascriptExecutor) driver).executeScript("$(\"#confixTestFixture\").append('" + fixture + "');");
+					if (fixture!=""){
+						((JavascriptExecutor) driver).executeScript("$(\"#confixTestFixture\").append('" + fixture + "');");
+						System.out.println("The new fixture appended!");
+					}else{
+						System.out.println("No fixture to append!");
+					}
 				}
+				catch (UnhandledAlertException ue)
+				{
+					try{((JavascriptExecutor) driver).executeScript("window.onbeforeunload = function(e){};");}
+					catch(Exception e){System.out.println("Failed to close the popup!" + e);}
+					//Alert alert = driver.switchTo().alert();
+				    //System.out.println(alert.getText());
+				}   
 				catch(Exception e){
 					System.out.println("Failed to append DOM fixture!" + e);
 				}
@@ -117,32 +137,35 @@ public class ConcolicEngine {
 				try{
 					// Execute the function under test according to the user input value
 					((JavascriptExecutor) driver).executeScript(currentFunctionToTest + ";");
+					System.out.println("The function under test executed!");
 				}
 				catch(Exception e){
 					System.out.println("Failed to execute function " + currentFunctionToTest + ": " + e);
 				}
 
 				// Concolic fixture generation
-				if (testGenerationMethod == Method.CONFIX_NOINP || testGenerationMethod == Method.CONFIX_FIXINP || 
-						testGenerationMethod == Method.CONFIX_JALANGI || testGenerationMethod == Method.CONFIX_MANUAL){
-
+				if (testGenerationMethod == Method.CONFIX_NOINP || testGenerationMethod == Method.CONFIX_JALANGI || testGenerationMethod == Method.CONFIX_MANUAL){
 
 					// Get the execution trace
 					traceAnalyzer.resetDOMConstraintList();
 					ArrayList traceList = null;
 					try{
+						System.out.println("Getting the traceList...");
 						traceList = (ArrayList)((JavascriptExecutor) driver).executeScript("return getConfixTrace();");
+						System.out.println("The traceList is returned from the code!");
 					}
 					catch(Exception e){
 						System.out.println("Failed to execute getConfixTrace();" + e);
 					}
 
-					System.out.println("traceList: " + traceList);
+					//System.out.println("traceList: " + traceList);
+					System.out.println("########## Processiong a new traceList ##########");
 					Map<String,String> map;
 					for (int i=0; i<traceList.size(); i++){
 						map = (Map<String,String>)(traceList.get(i));
 						traceAnalyzer.analyzeTrace(map);
 					}
+					System.out.println("########## Finished processiong the traceList ##########");
 
 					// check if all the new path condition is repeated i.e. all paths are exercised
 					ArrayList<DOMConstraint> currentPathCondition = new ArrayList<DOMConstraint>();
@@ -153,18 +176,25 @@ public class ConcolicEngine {
 						//traceAnalyzer.getDOMConstraintList();
 						TraceAnalyzer.generatedID = 0;  // resetting the static auto-increment generatedID
 
-						for (DOMConstraint dc: traceAnalyzer.getDOMConstraintList()){
-							dc.getCorrespondingXpath();
-						}
+						//for (DOMConstraint dc: traceAnalyzer.getDOMConstraintList()){
+						//	dc.getCorrespondingXpath();
+						//}
+
+						//make sure that all parentElementJSVariables actually exist in the DOMConstraintList. This is due to DOM element (manually generated) as function arguments
+						traceAnalyzer.makeSureAllParentsExist();
 
 						// Generate DOM constraints from the trace
 						String DOMFixture = getDOMFixture();
 
 						System.out.println("DOMFixture: " + DOMFixture);
 						if (!DOMFixture.equals("") && DOMFixtureList.contains(DOMFixture)){
-							DOMFixtureList.clear();  // clearing the DOMFixtureList to avoid terminating fixture generation for other functions that have a same fixture
-							System.out.println("No new fixture found!");
-							break;
+							tryNext++;
+							if (tryNext == 3){ 
+								DOMFixtureList.clear();  // clearing the DOMFixtureList to avoid terminating fixture generation for other functions that have a same fixture
+								System.out.println("No new fixture found!");
+								tryNext = 1;
+								break;
+							}
 						}
 						DOMFixtureList.add(DOMFixture);
 
@@ -220,7 +250,6 @@ public class ConcolicEngine {
 
 
 
-
 	private void instrumentDynamically(boolean useproxy) throws Exception {
 		if (useproxy){
 			// setting a proxy for intercepting and instrument the JavaScript code
@@ -237,7 +266,7 @@ public class ConcolicEngine {
 			//FirefoxProfile profile = new FirefoxProfile();
 
 
-			
+
 			// Setting the webdriver with proxy
 			if (shouldGetCoverage){
 				//FirefoxBinary binary = new FirefoxBinary(new File("/Applications/Firefox 2.app/Contents/MacOS/firefox"));
@@ -246,7 +275,7 @@ public class ConcolicEngine {
 			}
 			else
 				driver = new FirefoxDriver();  // setting the webdriver without proxy
-			
+
 			driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
 		}
 	}
@@ -325,11 +354,17 @@ public class ConcolicEngine {
 		String DOMFixture = "";
 		String xpathToSolve = traceAnalyzer.generateXpathConstraints();
 		System.out.println("DOM fixture for function: " + currentFunctionToTest);
+
+		if (xpathToSolve.length()>1000)
+			return DOMFixture;
+
 		if (!xpathToSolve.equals("select(\"document[]\")")){
 			xpathsolver.setXpath(xpathToSolve);
 			xpathsolver.solve();
 			DOMFixture = xpathsolver.getDOMFixture();
 		}
+		DOMFixture = DOMFixture.replace("DOLLAR_", "$");
+
 		System.out.println(DOMFixture);
 		return DOMFixture;
 	}
@@ -393,5 +428,33 @@ public class ConcolicEngine {
 		return DOMFixtureList;
 	}
 	 */
+
+	
+	
+	private void waitForPageToLoad() {  // could be used to make sure the js code execution happens after the page is fully loaded
+		String pageLoadStatus = null;
+		int secons = 5;
+		do {
+			pageLoadStatus = (String)((JavascriptExecutor) driver).executeScript("return document.readyState");
+			System.out.print(".");
+		} while ( !pageLoadStatus.equals("complete") );
+		System.out.println();
+		System.out.println("Page Loaded.");
+
+		// even pausing for more few seconds!
+		/*System.out.print("Pausing for " + secons + " seconds: ");
+		try {
+			Thread.currentThread();		
+			int x = 1;
+			while(x <= secons) {
+				Thread.sleep(1000);
+				System.out.print(" " + x );
+				x = x + 1;
+			}
+			System.out.print('\n');
+		} catch (InterruptedException ex) {
+			ex.printStackTrace();
+		}*/	
+	}
 
 }

@@ -24,3 +24,15 @@ test("Testing function uploadSubmitted()  for path 1", function() {
 	uploadSubmitted() ;
 });
 
+
+test("Testing function rethumb_fill() for path 1", function() {
+	expect(0);
+	rethumb_fill();
+});
+
+
+test("Testing function rethumb() for path 1", function() {
+	expect(0);
+	rethumb();
+});
+

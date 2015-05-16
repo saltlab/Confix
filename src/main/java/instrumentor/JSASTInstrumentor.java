@@ -2,10 +2,12 @@ package instrumentor;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.mozilla.javascript.CompilerEnvirons;
 import org.mozilla.javascript.Parser;
+import org.mozilla.javascript.Token;
 import org.mozilla.javascript.ast.AstNode;
 import org.mozilla.javascript.ast.AstRoot;
 import org.mozilla.javascript.ast.Block;
@@ -21,6 +23,7 @@ import org.mozilla.javascript.ast.ObjectProperty;
 import org.mozilla.javascript.ast.PropertyGet;
 import org.mozilla.javascript.ast.ReturnStatement;
 import org.mozilla.javascript.ast.SwitchCase;
+import org.mozilla.javascript.ast.Symbol;
 import org.mozilla.javascript.ast.VariableDeclaration;
 import org.mozilla.javascript.ast.VariableInitializer;
 import org.mozilla.javascript.ast.WhileLoop;
@@ -246,7 +249,7 @@ public class JSASTInstrumentor implements NodeVisitor{
 
 
 		// Extracting variables used in the condition.
-		ArrayList<String> VarList = getVarListFromDebugPrint(conditionNode.debugPrint());
+		ArrayList<String> VarList = getVarListFromDebugPrint(conditionNode.debugPrint(), conditionNode.toSource());
 
 
 		// instrumenting the condition
@@ -254,24 +257,16 @@ public class JSASTInstrumentor implements NodeVisitor{
 		// e.g. if(x>5) -> confixWrapper("condition", "x>5", ["x"], [x], x>5)
 		String wrapperCode = "if (confixWrapper(\"loopCondition\", \""+ originalCondition +"\", [";
 		if (VarList.size()>0)
-			for (String v: VarList){
-				if (v.equals("children") || v.equals("length") || v.equals("lengt") || v.equals("leng")){
-
-				}else
-					wrapperCode += ("\"" + v + "\", "); 
-			}
+			for (String v: VarList)
+				wrapperCode += ("\"" + v + "\", "); 
 		else
 			wrapperCode += "\"\""; 
 
 		wrapperCode += "], [";
 
 		if (VarList.size()>0)
-			for (String v: VarList){
-				if (v.equals("children") || v.equals("length") || v.equals("lengt") || v.equals("leng")){
-
-				}else
-					wrapperCode += (v + ", "); 
-			}
+			for (String v: VarList)
+				wrapperCode += (v + ", "); 
 
 		wrapperCode += "], \"" + enclosingFunction + "\", " + conditionNode.toSource() + ")) temp;";
 		System.out.println("wrapperCode before: " + wrapperCode );
@@ -286,13 +281,14 @@ public class JSASTInstrumentor implements NodeVisitor{
 		fl.setCondition(tempIS.getCondition());
 		System.out.println("New condition: " + fl.getCondition().toSource());	
 
-
 	}
 
 
-	private ArrayList<String> getVarListFromDebugPrint(String debugPrint) {
+	private ArrayList<String> getVarListFromDebugPrint(String debugPrint, String source) {
+		System.out.println("----- getVarListFromDebugPrint -----");
 		// Extracting variables used in the condition.
 		ArrayList<String> result = new ArrayList<String>();
+		List<String> skipList = Arrays.asList("confixWrapper", "undefined", "children", "charAt", "window", "length", "getAttribute", "toLowerCase", "toUpperCase", "substring", "display", "document", "body", "scrollTop", "innerHTML", "style", "backgroundColor", "display", "span", "tagName", "className", "checked", "tagName", "cssFloat");
 		int index = debugPrint.indexOf("NAME");
 		while (index>=0){
 			String token  = debugPrint.substring(debugPrint.indexOf("NAME"));
@@ -300,14 +296,28 @@ public class JSASTInstrumentor implements NodeVisitor{
 			token = token.substring(token.indexOf(" ")+1);
 			token = token.substring(token.indexOf(" ")+1);
 			if (token.indexOf("\n")>0){
-				result.add(token.substring(0,token.indexOf("\n")));
-				System.out.println(token.substring(0,token.indexOf("\n")));
+				String newToken = token.substring(0,token.indexOf("\n"));
+				if (!result.contains(newToken)  && !skipList.contains(newToken) && newToken.contains(".style")){
+					if (newToken.equals("value")){  // e.g This + value => This.value
+						String candidate  = result.get(result.size()-1) + ".value";
+						if (source.contains(candidate)){  // should be in the orig source and not the case of dg.value instead of dg(x).value 
+							newToken = candidate;
+							System.out.println("Merged new token is: " + newToken);
+							result.add(newToken);
+						}
+					}else{
+						result.add(newToken);
+						System.out.println("newToken: " + newToken);
+					}
+				}
 			}
 			else{ 
-				System.out.println(token);
-				result.add(token);
+				if (!result.contains(token) && !skipList.contains(token)){
+					result.add(token);
+					System.out.println("token: " + token);
+				}
 			}
-			debugPrint = debugPrint.substring(debugPrint.indexOf("NAME")+1, debugPrint.length()-1);
+			debugPrint = debugPrint.substring(debugPrint.indexOf("NAME")+1);
 			index = debugPrint.indexOf("NAME");
 		}
 		return result;
@@ -376,7 +386,7 @@ public class JSASTInstrumentor implements NodeVisitor{
 
 		String originalSource = vi.toSource().replace("\"", "\\\"");		
 		originalSource = originalSource.replace("\n", "").replace("\r", ""); // if it contains a function body		
-						// e.g. var a = b -> a = confixWrapper("infix", "var a=b", [""], [], b)
+		// e.g. var a = b -> a = confixWrapper("infix", "var a=b", [""], [], b)
 		String wrapperCode = "var " + left + " = confixWrapper(\"initvar\", \"var "+ originalSource +"\", [\"\"], [], \"" + enclosingFunction + "\", " + right + ")";
 		System.out.println("wrapperCode : " + wrapperCode );
 		AstNode wrapperNode = parse(wrapperCode);
@@ -442,7 +452,7 @@ public class JSASTInstrumentor implements NodeVisitor{
 
 			wrapperCode += "], \"" + enclosingFunction + "\", " + right + ")";
 
-			System.out.println("wrapperCode before: " + wrapperCode );
+			//System.out.println("wrapperCode before: " + wrapperCode );
 			wrapperCode = wrapperCode.replace("\\\\\"", "\\\"");
 			System.out.println("wrapperCode : " + wrapperCode );
 			AstNode wrapperNode = parse(wrapperCode);
@@ -486,10 +496,69 @@ public class JSASTInstrumentor implements NodeVisitor{
 		System.out.println("conditionNode.getAstRoot() : " + conditionNode.getAstRoot());
 		System.out.println("conditionNode.debugPrint() : \n" + conditionNode.debugPrint());
 
+		
+
+
+		/*String conditionShortName = conditionNode.shortName();
+		if (conditionShortName.equals("InfixExpression")){		// e.g. x<5
+			InfixExpression infix = (InfixExpression) conditionNode;
+			String leftOperand = infix.getLeft().toSource();
+			String oprator = ASTNodeUtility.operatorToString(infix.getOperator());
+			String rightOperand = infix.getRight().toSource();
+			System.out.println("Left: " + leftOperand);
+			System.out.println("Operator: " + oprator);
+			System.out.println("Right: " + rightOperand);	
+		}else if (conditionShortName.equals("Name")){				// e.g. t  -> variable should be true to go in
+			System.out.println("conditionShortName.equals(Name)");
+		}else if (conditionShortName.equals("UnaryExpression"))	// e.g. !t  -> variable should be false to go in
+			System.out.println("conditionShortName.equals(UnaryExpression)");
+		else if (conditionShortName.equals("PropertyGet"))		// e.g. a.innerHTML
+			System.out.println("conditionShortName.equals(PropertyGet)");
+		else if (conditionShortName.equals("ParenthesizedExpression"))		// e.g. (x<4  && y)
+			System.out.println("conditionShortName.equals(ParenthesizedExpression)");
+		else {
+			System.out.println("Condition is of type: " + conditionShortName + ". Not supported yet!");
+		}*/
+
+
+
 		// instrumenting the condition
-		String originalCondition = conditionNode.toSource().replace("\"", "\\\"");		
+		String originalCondition = conditionNode.toSource().replace("\"", "\\\"");	
+
+		// Extracting variables used in the condition.
+		ArrayList<String> VarList = new ArrayList<String>();// ArrayList<String> VarList = getVarListFromDebugPrint(conditionNode.debugPrint(), conditionNode.toSource());
+
+		// adding local variables and arguments
+		for (Symbol s: node.getEnclosingFunction().getSymbols()){
+			System.out.println("local variable: " + s.getName()); // + " s.getDeclType(): " + s.getDeclType());
+			VarList.add(s.getName());
+		}
+		// adding globals
+		for (Symbol s: node.getAstRoot().getSymbols()){
+			int sType = s.getDeclType();
+			if (sType == Token.LP || sType == Token.VAR || sType == Token.LET || sType == Token.CONST){
+				System.out.println("global variable: " + s.getName()); // + " s.getDeclType(): " + s.getDeclType());
+				VarList.add(s.getName());
+			}
+		}
+
+		
 		// e.g. if(x>5) -> confixWrapper("condition", "x>5", ["x"], [x], x>5)
-		String wrapperCode = "if (confixWrapper(\"condition\", \""+ originalCondition +"\", [\"\"], [], \"" + enclosingFunction + "\", " + conditionNode.toSource() + ")) temp;";
+		String wrapperCode = "if (confixWrapper(\"condition\", \""+ originalCondition +"\", [";
+		if (VarList.size()>0)
+			for (String v: VarList)
+				wrapperCode += ("\"" + v + "\", "); 
+		else
+			wrapperCode += "\"\""; 
+
+		wrapperCode += "], [";
+
+		if (VarList.size()>0)
+			for (String v: VarList)
+				wrapperCode += (v + ", "); 
+
+		wrapperCode += "], \"" + enclosingFunction + "\", " + conditionNode.toSource() + ")) temp;";
+
 		System.out.println("wrapperCode before: " + wrapperCode );
 		wrapperCode = wrapperCode.replace("\\\\\"", "\\\"");
 		System.out.println("wrapperCode : " + wrapperCode );

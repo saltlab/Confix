@@ -5,6 +5,7 @@ import instrumentor.ConsoleErrorReporter;
 import instrumentor.JSASTInstrumentor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import org.mozilla.javascript.ast.InfixExpression;
 import org.mozilla.javascript.ast.Name;
 import org.mozilla.javascript.ast.ParenthesizedExpression;
 import org.mozilla.javascript.ast.PropertyGet;
+import org.mozilla.javascript.ast.StringLiteral;
 import org.mozilla.javascript.ast.UnaryExpression;
 import org.mozilla.javascript.ast.VariableDeclaration;
 import org.mozilla.javascript.ast.VariableInitializer;
@@ -47,14 +49,10 @@ public class TraceAnalyzer {
 
 	private CompilerEnvirons compilerEnvirons = new CompilerEnvirons();
 
-	private List<String> xpathsToSolve = new ArrayList<String>();
 	public HashSet<String> DOMDependentFunctions = new HashSet<String>();
 
 	//private static HashSet<DOMConstraint> DOMConstraintList = new HashSet<DOMConstraint>();
 	private static ArrayList<DOMConstraint> DOMConstraintList = new ArrayList<DOMConstraint>();
-
-	private static ArrayList<DOMConstraint> ConditionalConstraints = new ArrayList<DOMConstraint>();     // e.g. in the case of $('#id')
-	private static ArrayList<DOMConstraint> NonConditionalConstraints = new ArrayList<DOMConstraint>();  // e.g. in the case of if (d.innerHTML === 'bla')
 
 	private static String xpath="";
 	private static int numOfDOMElementsInFixture = 0;
@@ -66,6 +64,8 @@ public class TraceAnalyzer {
 
 	private List<ArrayList<DOMConstraint>> pathConditions = new ArrayList<ArrayList<DOMConstraint>>();
 	private ArrayList<DOMConstraint> currentPathCondition = new ArrayList<DOMConstraint>();
+
+	private String currentDOMJSVariable = "";
 	public ArrayList<DOMConstraint> getcurrentPathCondition() {
 		System.out.println("Adding DOMConstraintList:" + DOMConstraintList + " to currentPathCondition: " + currentPathCondition);
 		System.out.println("pathConditions:" + pathConditions);
@@ -95,17 +95,12 @@ public class TraceAnalyzer {
 		currentPathCondition.clear();
 	}
 
-
-
-
-
 	public TraceAnalyzer(){
 		// adding the initial "document" node to be used for xpath generation
 		ElementTypeVariable DOMElement = new ElementTypeVariable();
 		DOMElement.setDOMJSVariable("document");
 		DOMConstraint dc = new DOMConstraint(DOMElement);
 		DOMConstraintList.add(dc);
-
 	}
 
 	public void resetDOMConstraintList(){
@@ -115,14 +110,14 @@ public class TraceAnalyzer {
 	public void analyzeTrace(Map<String, String> map) {
 
 		System.out.println("****** Analyzing a new trace ******");
-		System.out.println("map: " + map);
-
+		//System.out.println("map: " + map);
 		System.out.printf("statementType: %s\n", map.get("statementType"));
 		System.out.printf("enclosingFunction: %s\n", map.get("enclosingFunction"));
 		System.out.printf("statement: %s\n", map.get("statement"));
 		System.out.printf("varList: %s\n", map.get("varList"));
 		System.out.printf("varValueList: %s\n", map.get("varValueList"));
 		System.out.printf("actualStatement: %s\n", map.get("actualStatement"));
+		System.out.println("***********************************");
 
 		// parsing the original statement for analysis
 		if (map.get("statementType").equals("functionCall"))
@@ -142,7 +137,6 @@ public class TraceAnalyzer {
 
 
 	/*
-
 	The following properties can be used on all HTML elements:
 
 	element.attribute = 	Change the attribute of an HTML element
@@ -179,15 +173,13 @@ public class TraceAnalyzer {
 	element.tagName 	Returns the tag name of an element
 	element.textContent 	Sets or returns the textual content of a node and its descendants
 	element.title 	Sets or returns the title attribute of an element
-
 	 */
 
 
+	// TODO: Still not adding DOMJSVariable to DOMConstraintList. It should be checked if it is a DOM referring variable
 	private void analyseVariableInitializerNode(Map<String, String> map) {
 		System.out.println("=== analyseVariableInitializerNode ===");
-
 		AstNode generatedNode = parse(map.get("statement"));
-
 		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
 		//System.out.println("ES: " + es.toSource());
 		VariableDeclaration vd = (VariableDeclaration) (AstNode) es.getExpression();
@@ -197,19 +189,79 @@ public class TraceAnalyzer {
 		String DOMJSVariable = "";
 		//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); 
 
-		// if a DOM element is assigned to a variable, e.g. var x = document.getElemenyById('id1')
+		// a DOM element is assigned to a variable, e.g. var x = document.getElemenyById('id1')
 		Name varName = (Name) vi.getTarget();
 		AstNode varLiteral = vi.getInitializer();
 		DOMJSVariable = varName.toSource();
 		//System.out.println("parentNode.getChildBefore(ASTNode).getString() :" + parentNode.getChildBefore(ASTNode).getString());
 		System.out.println("Variable:" + varName.toSource() + " initialized to: " + varLiteral.toSource());
-		
-		if (varLiteral.toSource().contains(".value")){
-			System.out.println("Value of a DOM element assigned to JS variable: " + varName.toSource());
-			DOMConstraintList.get(DOMConstraintList.size()-1).getElementTypeVariable().setValue_attribute("ConfixGetValue");
 
+		// check if varName refers to a DOM element  
+		String returenedValue = String.format("%s", map.get("actualStatement"));
+		if (returenedValue.contains("org.openqa.selenium.remote.RemoteWebElement")){
+			System.out.println("Variable "+ varName.toSource() + " referes to a DOM element.");
+			// parsing actual statement to see if there is a DOM element access. e.g. actualStatement: [org.openqa.selenium.remote.RemoteWebElement@1e2123e2 -> unknown locator]
+			String RemoteWebElement = "";
+			// extract RemoteWebElementID
+
+			//System.out.println("returenedValue:" + returenedValue);
+			//System.out.println("selecting from returenedValue.indexOf('@') + 1" + (returenedValue.indexOf("@") + 1) + " to returenedValue.indexOf(' ->')" + returenedValue.indexOf(" ->"));
+
+			RemoteWebElement = returenedValue.substring(returenedValue.indexOf("@") + 1, returenedValue.indexOf(" ->"));
+			System.out.println("RemoteWebElement: " + RemoteWebElement);
+
+			for (DOMConstraint dc: DOMConstraintList)
+				if (dc.getElementTypeVariable().getRemoteWebElementID().equals(RemoteWebElement)){
+					dc.getElementTypeVariable().setDOMJSVariable(varName.toSource());
+					System.out.println("Set the RemoteWebElement for " + dc.getElementTypeVariable());
+					break;
+				}
 		}
-		
+
+
+		if (varLiteral.toSource().contains(".value")){
+			// DOMConstraintList.get(DOMConstraintList.size()-1) is the currently accessed DOM element
+			ElementTypeVariable currentAccessedDOM = DOMConstraintList.get(DOMConstraintList.size()-1).getElementTypeVariable();
+			System.out.println("Value of a DOM element assigned to JS variable: " + varName.toSource());
+			currentAccessedDOM.setValue_attributeVariable(varName.toSource());
+			if (varLiteral.toSource().contains("parseInt("))  // generate an initial number, can be changed if evaluated in a condition
+				currentAccessedDOM.setValue_attribute("1");
+			else
+				currentAccessedDOM.setValue_attribute("ConfixGenValue");
+		}
+		if (varLiteral.toSource().contains(".checked")){
+			// DOMConstraintList.get(DOMConstraintList.size()-1) is the currently accessed DOM element
+			ElementTypeVariable currentAccessedDOM = DOMConstraintList.get(DOMConstraintList.size()-1).getElementTypeVariable();
+			System.out.println("checked status of a DOM element assigned to JS variable: " + varName.toSource());
+			currentAccessedDOM.setChecked_attributeVariable(varName.toSource());
+			currentAccessedDOM.setChecked_attribute("true");
+		}
+		if (varLiteral.toSource().contains("childNodes") || varLiteral.toSource().contains("children")){
+			// DOMConstraintList.get(DOMConstraintList.size()-1) is the currently accessed DOM element
+			ElementTypeVariable theCurrentAccessedDOM = DOMConstraintList.get(DOMConstraintList.size()-1).getElementTypeVariable();
+			System.out.println("childNodes/children of a DOM element reffered to in the assignment of JS variable: " + varName.toSource());
+			// add a child node to the parent node in the fixture
+
+			ElementTypeVariable DOMElement = new ElementTypeVariable();
+			DOMElement.setParentElementJSVariable(theCurrentAccessedDOM.getDOMJSVariable());
+			// adding the child node to the list for the parent
+			DOMElement.setDOMJSVariable(varName.toSource());
+			DOMConstraint dc = new DOMConstraint(DOMElement);
+
+			// check if it is needed to add more than one child, else check if a child already exist
+			/*for (DOMConstraint d: DOMConstraintList){
+				if (d.getElementTypeVariable().getParentElementJSVariable().equals(pg2.getLeft().toSource())){
+					System.out.println("We already have " + d.getElementTypeVariable().getDOMJSVariable() + " as a child node of the parent node!");
+					boolean shouldAddMorethanOneChild = false;
+					if (!shouldAddMorethanOneChild){
+						return;
+					}
+				}
+			}*/
+			// now that the node is the first child, or we can add more than one children, add the new child to the DOMConstraintList  
+			if (!DOMConstraintList.contains(dc))
+				DOMConstraintList.add(dc);
+		}
 
 	}
 
@@ -240,31 +292,17 @@ public class TraceAnalyzer {
 		String DOMJSVariable = "";
 		//String DOMJSVariable = "anonym"+Integer.toString((new Random()).nextInt(100)); 
 
-
-		/*
-
-		System.out.printf("statementType: %s\n", map.get("statementType"));
-		System.out.printf("enclosingFunction: %s\n", map.get("enclosingFunction"));
-		System.out.printf("statement: %s\n", map.get("statement"));
-		System.out.printf("varList: %s\n", map.get("varList"));
-		System.out.printf("varValueList: %s\n", map.get("varValueList"));
-		System.out.printf("actualStatement: %s\n", map.get("actualStatement"));
-
-		 */
-
-
 		// parsing actual statement to see if there is a DOM element access. e.g. actualStatement: [org.openqa.selenium.remote.RemoteWebElement@1e2123e2 -> unknown locator]
 		String RemoteWebElement = "";
 		String actualStatement = String.format("%s", map.get("actualStatement"));
 		if (actualStatement.contains("RemoteWebElement")){
-			int start = actualStatement.lastIndexOf("@") + 1;
+			int start = actualStatement.indexOf("@") + 1;
 			int end = actualStatement.indexOf(" ", start);
 			//System.out.println("contains RemoteWebElement from " + start + " to " + end);
 			// extract RemoteWebElementID
 			RemoteWebElement = actualStatement.substring(start, end);
 			System.out.println("RemoteWebElement: " + RemoteWebElement);
 		}
-
 
 		ArrayList<String> argumentList = getArguments(map, "varList");
 		System.out.println("argumentList: " + argumentList);
@@ -273,6 +311,10 @@ public class TraceAnalyzer {
 
 		// if varList and varValueList are different then a variable is used to refer to an element locator
 
+		System.out.println("parentNode.toSource(): " + parentNode.toSource());
+		System.out.println("parentNode.shortName(): " + parentNode.shortName());
+		System.out.println("parentNode.getParent().toSource(): " + parentNode.getParent().toSource());
+		System.out.println("parentNode.getParent().shortName(): " + parentNode.getParent().shortName());
 
 		// e.g. var x = document.getElemenyById('id1')
 		if (parentNode.shortName().equals("VariableInitializer")){
@@ -281,12 +323,13 @@ public class TraceAnalyzer {
 			AstNode varLiteral = vi.getInitializer();
 			DOMJSVariable = varName.toSource();
 			//System.out.println("parentNode.getChildBefore(ASTNode).getString() :" + parentNode.getChildBefore(ASTNode).getString());
-			System.out.println("Variable:" + varName.toSource() + " initialized to: " + varLiteral.toSource());
+			System.out.println("Variable:" + DOMJSVariable + " initialized to: " + varLiteral.toSource());
 		}else 
 			// e.g. x = document.getElemenyById('id2')
 			if (parentNode.shortName().equals("Assignment")){
 				Assignment asmt = (Assignment)parentNode;
 				DOMJSVariable = asmt.getLeft().toSource();
+				System.out.println("Variable:" + DOMJSVariable + " is set to: " + asmt.getRight().toSource());
 			}
 
 		// getting the argument (id, class, tag, etc.) based on which DOM element is selected
@@ -294,7 +337,8 @@ public class TraceAnalyzer {
 			argument = fcall.getArguments().get(0).toSource();
 			argument = argument.replace("'", "");
 			argumentShortName = fcall.getArguments().get(0).shortName();
-			System.out.println("argument: " + argument + " - argumentShortName: " + argumentShortName);
+			System.out.println("argument: " + argument);
+			System.out.println("argumentShortName: " + argumentShortName);
 		}
 
 
@@ -312,6 +356,9 @@ public class TraceAnalyzer {
 			targetBody = pg.getRight().toSource();
 			// getting parentNodeElement e.g. document in document.getElemenyById(x) or a in a.getElemenyById(x)
 			String parentNodeElement = pg.getLeft().toSource();
+			// getting rid of [] for array DOMJSVariables. e.g. for spanElems[i].getElementsByTagName('div'), spanElems will be considered as parentNodeElement
+			if (parentNodeElement.contains("["))
+				parentNodeElement = parentNodeElement.substring(0, parentNodeElement.indexOf('['));
 
 			// TODO: return document.getElementbyID(x) -> return should be considered as an assignment *********
 			// TODO: some static analysis!!!!
@@ -321,36 +368,79 @@ public class TraceAnalyzer {
 
 			// Adding the enclosingFunctionName to the list of DDF during static instrumentation. DDF can increase during dynamic execution if a function calls a DDF   
 			DOMDependentFunctions.add(enclosingFunctionName);
-			ElementTypeVariable DOMElement = new ElementTypeVariable();
-			DOMElement.setParentElementJSVariable(parentNodeElement);
-			// adding the child node to the list for the parent
-			for (DOMConstraint d: DOMConstraintList){
-				if (d.getElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
-					System.out.println(d.getElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
-			}
 
-			DOMElement.setDOMJSVariable(DOMJSVariable);
-			if (argumentValueList.size() > 0){
-				DOMElement.setOriginalAccessCode(parentNodeElement + "." + targetBody + "(" + argumentValueList.get(0) + ")");
-				System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + targetBody + "('" + argumentValueList.get(0) + "')");
-
-				if (targetBody.equals("getElementById")){
+			// setting one DOM element when using getElementById
+			if (targetBody.equals("getElementById")){
+				ElementTypeVariable DOMElement = new ElementTypeVariable();
+				DOMElement.setParentElementJSVariable(parentNodeElement);
+				// adding the child node to the list for the parent
+				for (DOMConstraint d: DOMConstraintList){
+					if (d.getElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
+						System.out.println(d.getElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+				}
+				DOMElement.setDOMJSVariable(DOMJSVariable);
+				if (argumentValueList.size() > 0){
+					DOMElement.setOriginalAccessCode(parentNodeElement + "." + targetBody + "(" + argumentValueList.get(0) + ")");
+					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + targetBody + "('" + argumentValueList.get(0) + "')");
 					DOMElement.setId_attribute(argumentValueList.get(0));
-				}else if (targetBody.equals("getElementsByTagName")){
-					DOMElement.setTag_attribute(argumentValueList.get(0));
-				}else if (targetBody.equals("getElementsByName")){
-					DOMElement.setName_attribute(argumentValueList.get(0));
-				}else if (targetBody.equals("getElementsByClassName")){
-					DOMElement.setClass_attribute(argumentValueList.get(0));
-				}	
+				}
+				DOMElement.setRemoteWebElementID(RemoteWebElement);
+				DOMConstraint dc = new DOMConstraint(DOMElement);
+				dc.setEnclosingFunctionName(enclosingFunctionName);
+				if (!DOMConstraintList.contains(dc))
+					DOMConstraintList.add(dc);
+
 			}
+			// setting more than one (initially 2 DOM elements) when using getElementsByTagName, getElementsByName, and getElementsByClassName
+			else{
 
-			DOMElement.setRemoteWebElementID(RemoteWebElement);
-			DOMConstraint dc = new DOMConstraint(DOMElement);
-			dc.setEnclosingFunctionName(enclosingFunctionName);
-			if (!DOMConstraintList.contains(dc))
-				DOMConstraintList.add(dc);
+				ElementTypeVariable DOMElement1 = new ElementTypeVariable();
+				DOMElement1.setParentElementJSVariable(parentNodeElement);
+				// adding the child node to the list for the parent
+				for (DOMConstraint d: DOMConstraintList){
+					if (d.getElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
+						System.out.println(d.getElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+				}
+				DOMElement1.setDOMJSVariable(DOMJSVariable);
 
+				ElementTypeVariable DOMElement2 = new ElementTypeVariable();
+				DOMElement2.setParentElementJSVariable(parentNodeElement);
+				// adding the child node to the list for the parent
+				for (DOMConstraint d: DOMConstraintList){
+					if (d.getElementTypeVariable().getDOMJSVariable().equals(parentNodeElement))
+						System.out.println(d.getElementTypeVariable().getDOMJSVariable() + " is the parent of " + DOMJSVariable);
+				}
+				DOMElement2.setDOMJSVariable(DOMJSVariable);
+
+
+				if (argumentValueList.size() > 0){
+					DOMElement1.setOriginalAccessCode(parentNodeElement + "." + targetBody + "(" + argumentValueList.get(0) + ")");
+					DOMElement2.setOriginalAccessCode(parentNodeElement + "." + targetBody + "(" + argumentValueList.get(0) + ")");
+					System.out.println("Function " + enclosingFunctionName + " accesses DOM via " + parentNodeElement + "." + targetBody + "('" + argumentValueList.get(0) + "')");
+
+					if (targetBody.equals("getElementsByTagName")){
+						DOMElement1.setTag_attribute(argumentValueList.get(0));
+						DOMElement2.setTag_attribute(argumentValueList.get(0));
+					}else if (targetBody.equals("getElementsByName")){
+						DOMElement1.setName_attribute(argumentValueList.get(0));
+						DOMElement2.setName_attribute(argumentValueList.get(0));
+					}else if (targetBody.equals("getElementsByClassName")){
+						DOMElement1.setClass_attribute(argumentValueList.get(0));
+						DOMElement2.setClass_attribute(argumentValueList.get(0));
+					}	
+				}
+
+				DOMElement1.setRemoteWebElementID(RemoteWebElement);
+				DOMElement2.setRemoteWebElementID(RemoteWebElement);
+				DOMConstraint dc1 = new DOMConstraint(DOMElement1);
+				DOMConstraint dc2 = new DOMConstraint(DOMElement2);
+				dc1.setEnclosingFunctionName(enclosingFunctionName);
+				dc2.setEnclosingFunctionName(enclosingFunctionName);
+				if (!DOMConstraintList.contains(dc1))
+					DOMConstraintList.add(dc1);
+				if (!DOMConstraintList.contains(dc2))
+					DOMConstraintList.add(dc2);
+			}
 
 			//}else 
 			// e.g.  DIV = "div";  d = getElementsByTagName(DIV);
@@ -478,6 +568,13 @@ public class TraceAnalyzer {
 		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
 		AstNode conditionNode = es.getExpression();
 
+		String varList = String.format("%s", map.get("varList"));
+		String varValueList = String.format("%s", map.get("varValueList"));
+
+		System.out.println("******************************************* varList: " + varList);
+		System.out.println("******************************************* varValueList: " + varValueList);
+
+
 		// check if it is a DOM dependent condition
 		if (isDOMDependentCondition(conditionNode)){
 
@@ -488,10 +585,8 @@ public class TraceAnalyzer {
 
 			ArrayList<DOMConstraint> pathCondition = new ArrayList<DOMConstraint>(); 
 
-			analyseConditionNode(conditionNode);
+			analyseConditionNode(conditionNode, varList, varValueList);
 
-			//ConditionalConstraints
-			//currentPathCondition.add(pathCondition);
 		}else{
 			System.out.println("Condtion is not DOM dependent!");
 			System.out.println("conditionNode.shortName(): " + conditionNode.shortName());
@@ -507,6 +602,11 @@ public class TraceAnalyzer {
 		System.out.println("Extracting variables used in the condition");
 		String debugPrint = conditionNode.debugPrint();
 		ArrayList<String> candidateDOMJSVariable = new ArrayList<String>();
+
+		// TODO: Need to check if indirect dom access is used (e.g. dg('id').value)
+		System.out.println("debugPrint: " + debugPrint);
+
+		List<String> skipList = Arrays.asList("confixWrapper", "children", "length", "substring");
 		int index = debugPrint.indexOf("NAME");
 		while (index>=0){
 			String token  = debugPrint.substring(debugPrint.indexOf("NAME"));
@@ -514,14 +614,19 @@ public class TraceAnalyzer {
 			token = token.substring(token.indexOf(" ")+1);
 			token = token.substring(token.indexOf(" ")+1);
 			if (token.indexOf("\n")>0){
-				candidateDOMJSVariable.add(token.substring(0,token.indexOf("\n")));
-				System.out.println(token.substring(0,token.indexOf("\n")));
+				String newToken = token.substring(0,token.indexOf("\n"));
+				if (!candidateDOMJSVariable.contains(newToken)  && !skipList.contains(newToken)){
+					candidateDOMJSVariable.add(newToken);
+					System.out.println("newToken: " + newToken);
+				}
 			}
 			else{ 
-				System.out.println(token);
-				candidateDOMJSVariable.add(token);
+				if (!candidateDOMJSVariable.contains(token) && !skipList.contains(token)){
+					candidateDOMJSVariable.add(token);
+					System.out.println("token: " + token);
+				}
 			}
-			debugPrint = debugPrint.substring(debugPrint.indexOf("NAME")+1, debugPrint.length()-1);
+			debugPrint = debugPrint.substring(debugPrint.indexOf("NAME")+1);
 			index = debugPrint.indexOf("NAME");
 		}
 
@@ -530,6 +635,7 @@ public class TraceAnalyzer {
 			for (DOMConstraint dc: DOMConstraintList){
 				if (dc.getElementTypeVariable().getDOMJSVariable().equals(candidateVar)){
 					System.out.println(candidateVar + " is a DOM JS variable!");
+					currentDOMJSVariable  = candidateVar;
 					System.out.println("Condition: " + conditionNode.toSource() + " is DOM dependent");
 					return true;
 				}
@@ -556,9 +662,9 @@ public class TraceAnalyzer {
 		// 2.2) check if an attribute of a recently found DOMJSVariable attribute
 		for (String candidateVar :candidateDOMJSVariable){
 			if(candidateVar.equals("check") || candidateVar.equals("checked")){
-					System.out.println(candidateVar + " attribute was used!");
-					System.out.println("Condition: " + conditionNode.toSource() + " is DOM dependent");
-					return true;
+				System.out.println(candidateVar + " attribute was used!");
+				System.out.println("Condition: " + conditionNode.toSource() + " is DOM dependent");
+				return true;
 			}
 		}
 
@@ -583,10 +689,18 @@ public class TraceAnalyzer {
 
 			ArrayList<DOMConstraint> pathCondition = new ArrayList<DOMConstraint>(); 
 
+
+			String varList = String.format("%s", map.get("varList"));
+			String varValueList = String.format("%s", map.get("varValueList"));
+
+			System.out.println("******************************************* varList: " + varList);
+			System.out.println("******************************************* varValueList: " + varValueList);
+
+
 			// Consider loop conditions only once
 			if (!conditionNode.toSource().equals(lastLoopCondition)){
 				lastLoopCondition = conditionNode.toSource();
-				analyseConditionNode(conditionNode);
+				analyseConditionNode(conditionNode, varList, varValueList);
 
 				//pathConditions.add(pathCondition);
 
@@ -601,11 +715,10 @@ public class TraceAnalyzer {
 	}
 
 
-	private void analyseConditionNode(AstNode conditionNode) {
+	private void analyseConditionNode(AstNode conditionNode, String varList, String varValueList) {
 		String conditionShortName = conditionNode.shortName();
-
 		if (conditionShortName.equals("InfixExpression"))		// e.g. x<5
-			analyseInfixExpressionInCondition(conditionNode);
+			analyseInfixExpressionInCondition(conditionNode, varList, varValueList);
 		else if (conditionShortName.equals("Name"))				// e.g. t  -> variable should be true to go in
 			analyseNameInCondition(conditionNode);
 		else if (conditionShortName.equals("UnaryExpression"))	// e.g. !t  -> variable should be false to go in
@@ -613,20 +726,20 @@ public class TraceAnalyzer {
 		else if (conditionShortName.equals("PropertyGet"))		// e.g. a.innerHTML
 			analysePropertyGetInCondition(conditionNode);
 		else if (conditionShortName.equals("ParenthesizedExpression"))		// e.g. (x<4  && y)
-			analyseParenthesizedExpressionCondition(conditionNode);
+			analyseParenthesizedExpressionCondition(conditionNode, varList, varValueList);
 		else {
-			System.out.println("Condition is of type: " + conditionShortName.equals("InfixExpression") + ". Not supported yet!");
+			System.out.println("Condition is of type: " + conditionShortName + ". Not supported yet!");
 		}
 
 	}
 
 
-	private void analyseParenthesizedExpressionCondition(AstNode conditionNode) {
+	private void analyseParenthesizedExpressionCondition(AstNode conditionNode, String varList, String varValueList) {
 		System.out.println("analyseParenthesizedExpressionCondition");
 		ParenthesizedExpression pe = (ParenthesizedExpression) conditionNode;
 		if (((AstNode) pe.getExpression()) instanceof InfixExpression){
 			System.out.println("Recursive call to analyseInfixExpressionInCondition for the expression inside the parenthesis");
-			analyseConditionNode((AstNode) pe.getExpression());
+			analyseConditionNode((AstNode) pe.getExpression(), varList, varValueList);
 		}
 	}
 
@@ -642,8 +755,45 @@ public class TraceAnalyzer {
 
 		if (property.equals("innerHTML")){
 			System.out.println("innerHTML found");
-		}else if (property.equals("length")){
+
+		}else if (property.equals("length")){   // can be x.children.length, x.value.length, etc.
 			// checking for different possibilities
+
+			// if left refers to value of a DOM element, restrict the size to the required length				
+			String value = "";
+			for (DOMConstraint dconst: DOMConstraintList){
+				if (dconst.getElementTypeVariable().getValue_attributeVariable().equals(left)){
+					System.out.println(left + " refers to value of a DOM element! The length should be limitted...");
+					// now traverse to the parentNode
+					AstNode parentNode = conditionNode.getParent();
+					if (parentNode instanceof InfixExpression){
+						InfixExpression infix = (InfixExpression) parentNode;
+						String leftOperand = infix.getLeft().toSource();
+						String oprator = ASTNodeUtility.operatorToString(infix.getOperator());
+						String rightOperand = infix.getRight().toSource();
+						int length = Integer.parseInt(rightOperand);
+
+						if (oprator.equals("==")){
+							if (length==0)
+								value = "";
+							else
+								value = String.format("%0" + length + "d", 0).replace('0', 'A');
+						}
+						else if (oprator.equals("!==") || oprator.equals("!="))
+							value = String.format("%0" + (length+1) + "d", 0).replace('0', 'A');
+						else if (oprator.equals(">") || oprator.equals(">="))
+							value = String.format("%0" + (length+1) + "d", 0).replace('0', 'A');
+						else if (oprator.equals("<") || oprator.equals("<="))
+							value = String.format("%0" + (length-1) + "d", 0).replace('0', 'A');
+
+						dconst.getElementTypeVariable().setValue_attribute(value);
+						System.out.println("The value of DOM element that is stored at " + left + " is set to " + value);
+					}
+				}
+			}
+
+
+
 			AstNode leftNode = pg.getLeft();
 
 			//  e.g. x.children.length
@@ -651,7 +801,7 @@ public class TraceAnalyzer {
 				PropertyGet pg2 = (PropertyGet)leftNode;
 				//System.out.println("pg2.getLeft().toSource(): " + pg2.getLeft().toSource());
 				//System.out.println("pg2.getRight().toSource(): " + pg2.getRight().toSource());
-				if (pg2.getRight().toSource().equals("children")){
+				if (pg2.getRight().toSource().equals("children") || pg2.getRight().toSource().equals("childNodes")){
 					System.out.println("pg2.getLeft().toSource(): " + pg2.getLeft().toSource());   // e.g. x
 					System.out.println("pg2.getRight().toSource(): " + pg2.getRight().toSource()); 
 
@@ -697,11 +847,11 @@ public class TraceAnalyzer {
 			}
 
 		}else if (property.equals("checked")){
-			
-			
+
+
 			DOMConstraintList.get(DOMConstraintList.size()-1).getElementTypeVariable().setTag_attribute("input");
 			DOMConstraintList.get(DOMConstraintList.size()-1).getElementTypeVariable().setChecked_attribute("true");
-			
+
 			/*
 			// checking for different possibilities
 			AstNode leftNode = pg.getLeft();
@@ -755,7 +905,7 @@ public class TraceAnalyzer {
 					}
 				}
 			}
-			*/
+			 */
 		}
 
 	}
@@ -776,7 +926,7 @@ public class TraceAnalyzer {
 		System.out.println("varName.toSource(): " + varName.toSource());
 	}
 
-	private void analyseInfixExpressionInCondition(AstNode conditionNode) {
+	private void analyseInfixExpressionInCondition(AstNode conditionNode, String varList, String varValueList) {
 		// e.g. if (x<5)
 		String conditionShortName = conditionNode.shortName();
 
@@ -790,11 +940,45 @@ public class TraceAnalyzer {
 		System.out.println("Operator: " + oprator);
 		System.out.println("Right: " + rightOperand);	
 
+
+		// find the value of rightOperand from varValueList by searching varList for rightOperand
+		String rightOperandValue = "";
+
+		if (!varList.equals("") && !varValueList.equals("")){
+
+			varList = varList.substring(1, varList.length()-1); // getting rid of [ ]
+			varValueList = varValueList.substring(1, varValueList.length()-1);
+
+			System.out.println("******************************************* varList: " + varList);
+			System.out.println("******************************************* varValueList: " + varValueList);
+
+			rightOperand = rightOperand.replace(" ", "");
+
+			StringTokenizer tokenizer1 = new StringTokenizer(varList, ",");
+			StringTokenizer tokenizer2 = new StringTokenizer(varValueList, ",");
+			while (tokenizer1.hasMoreTokens() && tokenizer2.hasMoreTokens())
+			{
+				String newVar = tokenizer1.nextToken();
+				System.out.println("newVar: " + newVar);
+				String newVarValue = tokenizer2.nextToken();
+				newVar = newVar.replace(" ", ""); newVarValue = newVarValue.replace(" ", "");
+				if (newVar.equals(rightOperand)){
+					System.out.println("Found rightOperand: " + rightOperand + " with value: " + newVarValue);
+					rightOperandValue = newVarValue;
+					break;
+				}
+			}
+
+		}
+		if (rightOperandValue == "")
+			rightOperandValue = rightOperand;
+
+
 		System.out.println("infix.getLeft().shortName: " + infix.getLeft().shortName());
-		analyseConditionNode(infix.getLeft());
+		analyseConditionNode(infix.getLeft(), varList, varValueList);
 
 		System.out.println("infix.getRight().shortName: " + infix.getRight().shortName());
-		analyseConditionNode(infix.getRight());
+		analyseConditionNode(infix.getRight(), varList, varValueList);
 
 
 
@@ -824,8 +1008,8 @@ public class TraceAnalyzer {
 
 		if (oprator.equals("&&") || oprator.equals("||")){
 			// TODO: Considering multiple constraints
-			analyseConditionNode(infix.getLeft());
-			analyseConditionNode(infix.getRight());
+			analyseConditionNode(infix.getLeft(), varList, varValueList);
+			analyseConditionNode(infix.getRight(), varList, varValueList);
 
 			/*
 			if (infix.getLeft() instanceof InfixExpression){
@@ -838,7 +1022,9 @@ public class TraceAnalyzer {
 			}*/
 
 		}
-		else if (oprator.equals("==") || oprator.equals("===") || oprator.equals("!==")  || oprator.equals("!=") || oprator.equals(">") || oprator.equals("<") || oprator.equals(">=") || oprator.equals("<=")){  
+		else if (oprator.equals("==") || oprator.equals("===") || oprator.equals("!==")  || oprator.equals("!=") 
+				|| oprator.equals(">") || oprator.equals("<") || oprator.equals(">=") || oprator.equals("<=")){
+
 			if (infix.getLeft() instanceof Name){  // e.g. if (a == ...)
 				// search among JSVariables
 				for (DOMConstraint dc: DOMConstraintList){ // e.g. if we have a = $('id') or a = $('id').html()  and then if (a == X)
@@ -879,14 +1065,30 @@ public class TraceAnalyzer {
 						break;
 					}else if (etv.getValue_attributeVariable().equals(leftOperand)){
 						System.out.println(etv.getValue_attributeVariable() + " variable which refers to a value attribute of a DOM element is used in a condition");
-						if (oprator.equals("==") || oprator.equals("==="))
-							etv.setValue_attribute(rightOperand);
-						else if (oprator.equals("!==") || oprator.equals("!="))
-							etv.setValue_attribute(rightOperand+"1");
+
+						if (oprator.equals("==") || oprator.equals("===")){
+							if (rightOperandValue.matches("^-?\\d+$")){  // check if rightOperand string is an integer, can be used to set the value or length of a value
+
+
+								etv.setValue_attribute(Integer.toString(Integer.parseInt(rightOperandValue)));
+
+							}
+							else
+								etv.setValue_attribute(rightOperandValue);
+						}
+						else if (oprator.equals("!==") || oprator.equals("!=")){
+							if (rightOperandValue.matches("^-?\\d+$"))  // check if rightOperand string is an integer
+								etv.setValue_attribute(Integer.toString(Integer.parseInt(rightOperandValue)+1));
+							else
+								etv.setValue_attribute(rightOperandValue+"1");
+						}
 						else if (oprator.equals(">") || oprator.equals(">="))
-							etv.setValue_attribute(Integer.toString(Integer.parseInt(rightOperand)+1));
-						else if (oprator.equals("<") || oprator.equals("<="))
-							etv.setValue_attribute(Integer.toString(Integer.parseInt(rightOperand)-1));
+							if (rightOperandValue.matches("^-?\\d+$"))  // check if rightOperand string is an integer
+								etv.setValue_attribute(Integer.toString(Integer.parseInt(rightOperandValue)+1));
+							else if (oprator.equals("<") || oprator.equals("<=")){
+								if (rightOperandValue.matches("^-?\\d+$"))  // check if rightOperand string is an integer
+									etv.setValue_attribute(Integer.toString(Integer.parseInt(rightOperandValue)-1));
+							}
 						System.out.println("evt:" + etv);
 						// TODO: need to be checked later
 						String condition = conditionNode.toSource();
@@ -911,6 +1113,25 @@ public class TraceAnalyzer {
 						break;
 					}
 				}
+			}else if (infix.getLeft() instanceof PropertyGet){  // e.g. if (a.className == ...) or if (b[0].style == ...)
+				// currentDOMJSVariable is the current DOM referring variable at this point
+				for (DOMConstraint dc: DOMConstraintList){  // search among JSVariables 
+					System.out.println("dc.getElementTypeVariable(): " + dc.getElementTypeVariable());
+
+					ElementTypeVariable etv = dc.getElementTypeVariable();
+					if (etv.getDOMJSVariable().equals(currentDOMJSVariable)){
+						System.out.println(etv.getDOMJSVariable() + " variable which refers to a DOM element is used in a condition");
+						// setting className
+						if (leftOperand.contains(".className")){
+							etv.setClass_attribute(rightOperand);
+							System.out.println("Set the className attribute of " + etv.getDOMJSVariable() + " to " + etv.getClass_attribute());
+						}
+						break;
+					}
+				}
+
+				// TODO: other constraints to be considered
+
 			}
 		}
 	}
@@ -927,6 +1148,7 @@ public class TraceAnalyzer {
 		statement = statement.replace("'url(''+val+'')'", "'url(\\''+val+'\\')'");
 		statement = statement.replace("'url('' + val + '')'", "'url(\\''+val+'\\')'");
 		statement = statement.replace("href=\"", "href=\\\"").replace("\">","\\\">");
+		statement = statement.replace("=\"", "=\\\"");
 
 		System.out.println(statement);
 		AstNode generatedNode = null;
@@ -938,10 +1160,9 @@ public class TraceAnalyzer {
 			statement += ";";
 			System.out.println("new statement: " + statement);
 		}
-		
-		
+
 		generatedNode = parse(statement);
-		
+
 		ExpressionStatement es = (ExpressionStatement)((AstNode) generatedNode.getFirstChild());
 		InfixExpression infix = (InfixExpression) es.getExpression();
 		String left = infix.getLeft().toSource();
@@ -953,295 +1174,21 @@ public class TraceAnalyzer {
 		System.out.println("Right: " + right);			
 
 		// TODO
-
 		if (oprator.equals("=")){  // Assignment: e.g. t = getElemById('x')
-
-			String returenedValue = String.format("%s", map.get("actualStatement"));
-			if (returenedValue.contains("org.openqa.selenium.remote.RemoteWebElement")){
-				System.out.println("Variable "+ left + " referes to a DOM element.");
-				// parsing actual statement to see if there is a DOM element access. e.g. actualStatement: [org.openqa.selenium.remote.RemoteWebElement@1e2123e2 -> unknown locator]
-				String RemoteWebElement = "";
-				// extract RemoteWebElementID
-				RemoteWebElement = returenedValue.substring(returenedValue.lastIndexOf("@") + 1, returenedValue.indexOf(" "));
-				System.out.println("RemoteWebElement: " + RemoteWebElement);
-
-				for (DOMConstraint dc: DOMConstraintList)
-					if (dc.getElementTypeVariable().getRemoteWebElementID().equals(RemoteWebElement)){
-						dc.getElementTypeVariable().setDOMJSVariable(left);
-						System.out.println("Set the RemoteWebElement for " + dc.getElementTypeVariable());
-						break;
-					}
-
-			}
-
-
-
-			// assigning with an attribute value of an element. e.g. a = b.innerHTML or a = b.value
-			// search among current DOMJSVariables, if the RemoteWebElementID is equal to the nodes value 
-
-			if (right.contains(".value")){
-				// e.g. document.getElementById('t').value
-				System.out.println("Variable "+ left + " referes to a DOM element's value attribute.");
-
-				ArrayList<String> argumentValueList = getArguments(map, "varValueList"); // e.g. varValueList: [[org.openqa.selenium.remote.RemoteWebElement@1c5a0a44 -> unknown locator]]
-				String DOMAccess = argumentValueList.get(0);
-
-				if (DOMAccess.contains("org.openqa.selenium.remote.RemoteWebElement")){
-					// parsing actual statement to see if there is a DOM element access. e.g. actualStatement: [org.openqa.selenium.remote.RemoteWebElement@1e2123e2 -> unknown locator]
-					String RemoteWebElement = "";
-					// extract RemoteWebElementID
-					RemoteWebElement = DOMAccess.substring(DOMAccess.lastIndexOf("@") + 1, DOMAccess.indexOf("->"));
-					System.out.println("RemoteWebElement: " + RemoteWebElement);
-
-					boolean foundDOMElement = false;
-					for (DOMConstraint dc: DOMConstraintList)
-						if (dc.getElementTypeVariable().getRemoteWebElementID().equals(RemoteWebElement)){
-							dc.getElementTypeVariable().setValue_attributeVariable(left);
-							System.out.println(left + " is set as the variable refering to the value attribute of element:" + dc.getElementTypeVariable());
-							foundDOMElement = true;
-							break;
-						}
-					if (!foundDOMElement){
-						// the value attribute is not set for an existing element. check if is set for a child node of an existing DOM element
-						if (right.contains(".children")){
-							String parentNodeInJS = right.substring(0, right.indexOf(".children"));
-							System.out.println("The value attribute of a child node of a JSDOMVariable " + parentNodeInJS + " is assigned to the variable:" + left);
-							// updating the child node to the list for the parent
-							for (DOMConstraint dc: DOMConstraintList)
-								if (dc.getElementTypeVariable().getParentElementJSVariable().equals(parentNodeInJS)){
-									dc.getElementTypeVariable().setValue_attributeVariable(left);
-									System.out.println(left + " is set as the variable refering to the value attribute of element:" + dc.getElementTypeVariable());
-									break;
-								}
-						}
-					}
-
-				}else{
-					System.out.println("Something is wrong! Value was used but not for a DOM element!!");
-				}
-
-				AstNode parentNode = infix.getParent();
-				System.out.println("Value attribute used!");
-				System.out.println("parentNode.toSource(): " + parentNode.toSource());
-				System.out.println("parentNode.shortName(): " + parentNode.shortName());
-			}
-			else if (right.contains(".innerHTML")){
-				// e.g. right is document.getElementById('t').innerHTML
-				System.out.println("Variable "+ left + " referes to a DOM element's innerHTML attribute.");
-
-				ArrayList<String> argumentValueList = getArguments(map, "varValueList"); // e.g. varValueList: [[org.openqa.selenium.remote.RemoteWebElement@1c5a0a44 -> unknown locator]]
-				String DOMAccess = argumentValueList.get(0);
-
-				if (DOMAccess.contains("org.openqa.selenium.remote.RemoteWebElement")){
-					// parsing actual statement to see if there is a DOM element access. e.g. actualStatement: [org.openqa.selenium.remote.RemoteWebElement@1e2123e2 -> unknown locator]
-					String RemoteWebElement = "";
-					// extract RemoteWebElementID
-					RemoteWebElement = DOMAccess.substring(DOMAccess.lastIndexOf("@") + 1, DOMAccess.indexOf("->"));
-					System.out.println("RemoteWebElement: " + RemoteWebElement);
-
-					boolean foundDOMElement = false;
-					for (DOMConstraint dc: DOMConstraintList)
-						if (dc.getElementTypeVariable().getRemoteWebElementID().equals(RemoteWebElement)){
-							dc.getElementTypeVariable().setInnerHTML_attributeVariable(left);
-							System.out.println(left + " is set as the variable refering to the innerHTML attribute of element:" + dc.getElementTypeVariable());
-							foundDOMElement = true;
-							break;
-						}
-					if (!foundDOMElement){
-						// the innerHTML attribute is not set for an existing element. check if is set for a child node of an existing DOM element
-						if (right.contains(".children")){
-							String parentNodeInJS = right.substring(0, right.indexOf(".children"));
-							System.out.println("The innerHTML attribute of a child node of a JSDOMVariable " + parentNodeInJS + " is assigned to the variable:" + left);
-							// updating the child node to the list for the parent
-							for (DOMConstraint dc: DOMConstraintList)
-								if (dc.getElementTypeVariable().getParentElementJSVariable().equals(parentNodeInJS)){
-									dc.getElementTypeVariable().setInnerHTML_attributeVariable(left);
-									System.out.println(left + " is set as the variable refering to the innerHTML attribute of element:" + dc.getElementTypeVariable());
-									break;
-								}
-						}
-					}
-
-				}else{
-					System.out.println("Something is wrong! Value was used but not for a DOM element!!");
-				}
-
-				AstNode parentNode = infix.getParent();
-				System.out.println("innerHTML attribute used!");
-				System.out.println("parentNode.toSource(): " + parentNode.toSource());
-				System.out.println("parentNode.shortName(): " + parentNode.shortName());
-			}
-
-
-
-
-		}else if (oprator.equals("GETPROP")){  // -> nodeName: PropertyGet, e.g. Left: $("p").innerHTML
+			performAssignment(map, left, right, infix);
+		}else if (oprator.equals("GETPROP")){  // -> nodeName: PropertyGet, e.g. $("p").innerHTML
 			if (right.equals("innerHTML")){
 				// e.g. $("p").innerHTML
-				AstNode parentNode = infix.getParent();
-				System.out.println("parentNode.toSource(): " + parentNode.toSource());
-				System.out.println("parentNode.shortName(): " + parentNode.shortName());
-
-				if (parentNode instanceof IfStatement){
-					// innerHTML of an element was used in an if condition -> e.g. if (a.innerHTML)
-					System.out.println(left + ".innerHTML is used in an if condition");
-					if (infix.getLeft() instanceof FunctionCall){
-						// this is to make sure infix.getLeft() will be added if not already exist
-						//instrumentFunctionCallNode(infix.getLeft());
-						for (DOMConstraint dc: DOMConstraintList)
-							if (dc.getElementTypeVariable().getSource().equals(left))
-								dc.addConstraint(left+".innerHTML", true);
-					}
-				}else if (parentNode instanceof Assignment){
-					// innerHTML of an element value was used or set -> e.g. a.innerHTML = x .... y = a.innerHTML 
-					Assignment asmt = (Assignment)parentNode;
-					if (asmt.getLeft().equals(infix)){ 
-						// innerHTML is set e.g. a.innerHTML = x
-						System.out.println(left + ".innerHTML is set to " + asmt.getRight().toSource());
-						// TODO: Check if the asmt.getRight() value to be used exists
-					}else{
-						// innerHTML is used e.g. y = a.innerHTML
-						System.out.println(asmt.getLeft().toSource() + " is set to " + left + ".innerHTML");
-						// adding the variable storing this attribute
-						if (infix.getLeft() instanceof FunctionCall){
-							// e.g. f(x).innerHTML
-							System.out.println("analyseFunctionCallNode");
-							// this is to make sure infix.getLeft() will be added if not already exist
-							//instrumentFunctionCallNode(infix.getLeft());
-							for (DOMConstraint dc: DOMConstraintList)
-								if (dc.getElementTypeVariable().getSource().equals(left))
-									dc.getElementTypeVariable().setInnerHTML_attributeVariable(asmt.getLeft().toSource());
-						}
-					}
-				}else if (parentNode instanceof VariableInitializer){
-					// innerHTML of an element used to initialize a variable -> e.g. var v = dg('indicator').innerHTML
-					VariableInitializer vi = (VariableInitializer)parentNode;
-					System.out.println("innerHTML property for " + left + " is used to initialize " + vi.getTarget().toSource());
-					// TODO: in this case there should be sth as an innerHTML value
-				}
+				assignInnerHTML(left, right, infix);
 			}else if (right.equals("checked")){
 				// e.g. if(dg('item').checked)
-				AstNode parentNode = infix.getParent();
-				System.out.println("parentNode.toSource(): " + parentNode.toSource());
-				System.out.println("parentNode.shortName(): " + parentNode.shortName());
-				//  just a use of checked prop, make sure the prop exist and the tag is set to either input, etc...
-				if (infix.getLeft() instanceof FunctionCall){
-					// this is to make sure ie.getLeft() will be added if not already exist
-					//instrumentFunctionCallNode(infix.getLeft());
-					for (DOMConstraint dc: DOMConstraintList)
-						if (dc.getElementTypeVariable().getSource().equals(left)){
-							dc.getElementTypeVariable().setTag_attribute("input");
-							dc.getElementTypeVariable().setSrc_attribute("ConfixGeneratedInput");
-							break;
-						}
-				}
+				performChecked(infix);
 			}else if (right.equals("src")){
 				// e.g. dg('ss_photo').src = ...
-				AstNode parentNode = infix.getParent();
-				System.out.println("parentNode.toSource(): " + parentNode.toSource());
-				System.out.println("parentNode.shortName(): " + parentNode.shortName());
-				if (parentNode instanceof IfStatement){
-					// src of an element was used in an if condition -> e.g. if (a.src)
-					System.out.println(left + ".src is used in an if condition");
-					if (infix.getLeft() instanceof FunctionCall){
-						// e.g. dg('ss_photo').src 
-						// this is to make sure ie.getLeft() will be added if not already exist
-						//instrumentFunctionCallNode(infix.getLeft());
-						for (DOMConstraint dc: DOMConstraintList)
-							if (dc.getElementTypeVariable().getSource().equals(left)){
-								dc.addConstraint(left+".src", true);
-								break;
-							}
-					}
-				}else if (parentNode instanceof Assignment){
-					// src of an element value was used or set -> e.g. a.src = x .... y = a.src 
-					Assignment asmt = (Assignment)parentNode;
-					if (asmt.getLeft().equals(infix)){ // src is set
-						System.out.println(left + ".src is set to " + asmt.getRight().toSource());
-					}else{
-						System.out.println(asmt.getLeft().toSource() + " is set to " + left + ".src");
-						// adding the variable storing this attribute
-						if (infix.getLeft() instanceof FunctionCall){
-							System.out.println("analyseFunctionCallNode");
-							// this is to make sure ie.getLeft() will be added if not already exist
-							//instrumentFunctionCallNode(infix.getLeft());
-							for (DOMConstraint dc: DOMConstraintList)
-								if (dc.getElementTypeVariable().getSource().equals(left))
-									dc.getElementTypeVariable().setSrc_attributeVariable(asmt.getLeft().toSource());
-						}
-					}
-				}else if (parentNode instanceof VariableInitializer){
-					// src of an element used to initialize a variable -> e.g. var v = dg('indicator').src
-					VariableInitializer vi = (VariableInitializer)parentNode;
-					System.out.println("src property for " + left + " is used to initialize " + vi.getTarget().toSource());
-				}else{
-					//  just a use of src prop, make sure the prop exist and the tag is set to either frame, iframe, img, input, layer, script, textarea, video
-					if (infix.getLeft() instanceof FunctionCall){
-						// this is to make sure ie.getLeft() will be added if not already exist
-						//instrumentFunctionCallNode(infix.getLeft());
-						for (DOMConstraint dc: DOMConstraintList)
-							if (dc.getElementTypeVariable().getSource().equals(left)){
-								dc.getElementTypeVariable().setTag_attribute("img");
-								dc.getElementTypeVariable().setSrc_attribute("ConfixGeneratedSrc");
-								break;
-							}
-					}
-
-
-				}
+				assignSrc(infix);
 			}else if (right.equals("style")){  	
 				//  e.g. element.style.property  : Change the style of an HTML element
-				AstNode parentNode = infix.getParent();
-				System.out.println("parentNode.toSource(): " + parentNode.toSource());
-				System.out.println("parentNode.shortName(): " + parentNode.shortName());
-				if (parentNode instanceof InfixExpression){  
-					// e.g. e.style.
-					InfixExpression pie = (InfixExpression) parentNode;
-					String pLeft = pie.getLeft().toSource();
-					String pOprator = ASTNodeUtility.operatorToString(pie.getOperator());
-					String pRight = pie.getRight().toSource();
-					System.out.println(pRight + " property of style attribute for element " + left);
-					if (parentNode.getParent() instanceof IfStatement){
-						// property of style attribute of an element was used in an if condition -> e.g. if (cur.style.MozOpacity)
-						System.out.println(parentNode.toSource() + " is used in an if condition");
-						if (infix.getLeft() instanceof FunctionCall){
-							// this is to make sure infix.getLeft() will be added if not already exist
-							//instrumentFunctionCallNode(infix.getLeft());
-							for (DOMConstraint dc: DOMConstraintList)
-								if (dc.getElementTypeVariable().getSource().equals(left))
-									dc.addConstraint(parentNode.toSource(), true);
-						}
-					}else if (parentNode.getParent() instanceof Assignment){
-						// style of an element value was used or set -> e.g. a.style.display = x ... y = a.style.display
-						Assignment asmt = (Assignment) parentNode.getParent();
-						if (asmt.getLeft().equals(parentNode)){ 
-							// style is set
-							System.out.println(parentNode.toSource() + " is set to " + asmt.getRight().toSource());
-						}else{
-							// style is used
-							System.out.println(asmt.getLeft().toSource() + " is set to " + parentNode.toSource());
-						}
-					}else if (parentNode instanceof VariableInitializer){
-						// style of an element used to initialize a variable -> e.g. var v = dg('indicator').style
-						VariableInitializer vi = (VariableInitializer)parentNode;
-						System.out.println(parentNode + " is used to initialize " + vi.getTarget().toSource());
-					}
-				}else if (parentNode instanceof IfStatement){
-					// style of an element was used as an if condition -> e.g. if (a.style)
-					System.out.println("style property for " + left + " is used as an if condition");
-				}else if (parentNode instanceof Assignment){
-					// style of an element value was used or set -> e.g. a.style = x ... y = a.style 
-					Assignment asmt = (Assignment)parentNode;
-					if (asmt.getLeft().equals(infix)){ // style is set
-						System.out.println("style property for " + left + " is set to " + asmt.getRight().toSource());
-					}else{
-						System.out.println(asmt.getLeft().toSource() + " is set to style property for " + left);
-					}
-				}else if (parentNode instanceof VariableInitializer){
-					// style of an element used to initialize a variable -> e.g. var v = dg('indicator').style
-					VariableInitializer vi = (VariableInitializer)parentNode;
-					System.out.println("style property for " + left + " is used to initialize " + vi.getTarget().toSource());
-				}
+				assignStyle(infix);
 			}else if (right.equals("anchors")){
 				// serach the DOMElementVariable list to check if a corresponding DOMJSVariable exists
 				// e.g. a.innerHTML = document.anchors[0].innerHTML; -> document is a default DOMJSVariable in the DOMElementVariable list
@@ -1282,8 +1229,6 @@ public class TraceAnalyzer {
 		}
 		//TODO: considering other comparison operators
 
-
-
 		/*
 			The following properties can be used on HTML documents:
 			document.anchors 	Returns a collection of all <a> with a value in the name attribute
@@ -1318,9 +1263,313 @@ public class TraceAnalyzer {
 	}
 
 
+	private void assignStyle(InfixExpression infix) {
+		//  e.g. element.style.property  : Change the style of an HTML element
+
+		String left = infix.getLeft().toSource();
+		String oprator = ASTNodeUtility.operatorToString(infix.getOperator());
+		String right = infix.getRight().toSource();
+
+		AstNode parentNode = infix.getParent();
+		System.out.println("parentNode.toSource(): " + parentNode.toSource());
+		System.out.println("parentNode.shortName(): " + parentNode.shortName());
+		if (parentNode instanceof InfixExpression){  
+			// e.g. e.style.
+			InfixExpression pie = (InfixExpression) parentNode;
+			String pLeft = pie.getLeft().toSource();
+			String pOprator = ASTNodeUtility.operatorToString(pie.getOperator());
+			String pRight = pie.getRight().toSource();
+			System.out.println(pRight + " property of style attribute for element " + left);
+			if (parentNode.getParent() instanceof IfStatement){
+				// property of style attribute of an element was used in an if condition -> e.g. if (cur.style.MozOpacity)
+				System.out.println(parentNode.toSource() + " is used in an if condition");
+				if (infix.getLeft() instanceof FunctionCall){
+					// this is to make sure infix.getLeft() will be added if not already exist
+					//instrumentFunctionCallNode(infix.getLeft());
+					for (DOMConstraint dc: DOMConstraintList)
+						if (dc.getElementTypeVariable().getSource().equals(left))
+							dc.addConstraint(parentNode.toSource(), true);
+				}
+			}else if (parentNode.getParent() instanceof Assignment){
+				// style of an element value was used or set -> e.g. a.style.display = x ... y = a.style.display
+				Assignment asmt = (Assignment) parentNode.getParent();
+				if (asmt.getLeft().equals(parentNode)){ 
+					// style is set
+					System.out.println(parentNode.toSource() + " is set to " + asmt.getRight().toSource());
+				}else{
+					// style is used
+					System.out.println(asmt.getLeft().toSource() + " is set to " + parentNode.toSource());
+				}
+			}else if (parentNode instanceof VariableInitializer){
+				// style of an element used to initialize a variable -> e.g. var v = dg('indicator').style
+				VariableInitializer vi = (VariableInitializer)parentNode;
+				System.out.println(parentNode + " is used to initialize " + vi.getTarget().toSource());
+			}
+		}else if (parentNode instanceof IfStatement){
+			// style of an element was used as an if condition -> e.g. if (a.style)
+			System.out.println("style property for " + left + " is used as an if condition");
+		}else if (parentNode instanceof Assignment){
+			// style of an element value was used or set -> e.g. a.style = x ... y = a.style 
+			Assignment asmt = (Assignment)parentNode;
+			if (asmt.getLeft().equals(infix)){ // style is set
+				System.out.println("style property for " + left + " is set to " + asmt.getRight().toSource());
+			}else{
+				System.out.println(asmt.getLeft().toSource() + " is set to style property for " + left);
+			}
+		}else if (parentNode instanceof VariableInitializer){
+			// style of an element used to initialize a variable -> e.g. var v = dg('indicator').style
+			VariableInitializer vi = (VariableInitializer)parentNode;
+			System.out.println("style property for " + left + " is used to initialize " + vi.getTarget().toSource());
+		}
+
+	}
+	private void assignSrc(InfixExpression infix) {
+		// e.g. dg('ss_photo').src = ...
+
+		String left = infix.getLeft().toSource();
+		String oprator = ASTNodeUtility.operatorToString(infix.getOperator());
+		String right = infix.getRight().toSource();
+
+		AstNode parentNode = infix.getParent();
+		System.out.println("parentNode.toSource(): " + parentNode.toSource());
+		System.out.println("parentNode.shortName(): " + parentNode.shortName());
+		if (parentNode instanceof IfStatement){
+			// src of an element was used in an if condition -> e.g. if (a.src)
+			System.out.println(left + ".src is used in an if condition");
+			if (infix.getLeft() instanceof FunctionCall){
+				// e.g. dg('ss_photo').src 
+				// this is to make sure ie.getLeft() will be added if not already exist
+				//instrumentFunctionCallNode(infix.getLeft());
+				for (DOMConstraint dc: DOMConstraintList)
+					if (dc.getElementTypeVariable().getSource().equals(left)){
+						dc.addConstraint(left+".src", true);
+						break;
+					}
+			}
+		}else if (parentNode instanceof Assignment){
+			// src of an element value was used or set -> e.g. a.src = x .... y = a.src 
+			Assignment asmt = (Assignment)parentNode;
+			if (asmt.getLeft().equals(infix)){ // src is set
+				System.out.println(left + ".src is set to " + asmt.getRight().toSource());
+			}else{
+				System.out.println(asmt.getLeft().toSource() + " is set to " + left + ".src");
+				// adding the variable storing this attribute
+				if (infix.getLeft() instanceof FunctionCall){
+					System.out.println("analyseFunctionCallNode");
+					// this is to make sure ie.getLeft() will be added if not already exist
+					//instrumentFunctionCallNode(infix.getLeft());
+					for (DOMConstraint dc: DOMConstraintList)
+						if (dc.getElementTypeVariable().getSource().equals(left))
+							dc.getElementTypeVariable().setSrc_attributeVariable(asmt.getLeft().toSource());
+				}
+			}
+		}else if (parentNode instanceof VariableInitializer){
+			// src of an element used to initialize a variable -> e.g. var v = dg('indicator').src
+			VariableInitializer vi = (VariableInitializer)parentNode;
+			System.out.println("src property for " + left + " is used to initialize " + vi.getTarget().toSource());
+		}else{
+			//  just a use of src prop, make sure the prop exist and the tag is set to either frame, iframe, img, input, layer, script, textarea, video
+			if (infix.getLeft() instanceof FunctionCall){
+				// this is to make sure ie.getLeft() will be added if not already exist
+				//instrumentFunctionCallNode(infix.getLeft());
+				for (DOMConstraint dc: DOMConstraintList)
+					if (dc.getElementTypeVariable().getSource().equals(left)){
+						dc.getElementTypeVariable().setTag_attribute("img");
+						dc.getElementTypeVariable().setSrc_attribute("ConfixGeneratedSrc");
+						break;
+					}
+			}
+
+
+		}
+
+	}
+	private void performChecked(InfixExpression infix) {
+		String left = infix.getLeft().toSource();
+		String oprator = ASTNodeUtility.operatorToString(infix.getOperator());
+		String right = infix.getRight().toSource();
+
+		AstNode parentNode = infix.getParent();
+		System.out.println("parentNode.toSource(): " + parentNode.toSource());
+		System.out.println("parentNode.shortName(): " + parentNode.shortName());
+		//  just a use of checked prop, make sure the prop exist and the tag is set to either input, etc...
+		if (infix.getLeft() instanceof FunctionCall){
+			// this is to make sure ie.getLeft() will be added if not already exist
+			//instrumentFunctionCallNode(infix.getLeft());
+			for (DOMConstraint dc: DOMConstraintList)
+				if (dc.getElementTypeVariable().getSource().equals(left)){
+					dc.getElementTypeVariable().setTag_attribute("input");
+					dc.getElementTypeVariable().setSrc_attribute("ConfixGeneratedInput");
+					break;
+				}
+		}
+	}
+	private void assignInnerHTML(String left, String right, InfixExpression infix) {
+		// e.g. $("p").innerHTML
+		AstNode parentNode = infix.getParent();
+		System.out.println("parentNode.toSource(): " + parentNode.toSource());
+		System.out.println("parentNode.shortName(): " + parentNode.shortName());
+
+		if (parentNode instanceof IfStatement){
+			// innerHTML of an element was used in an if condition -> e.g. if (a.innerHTML)
+			System.out.println(left + ".innerHTML is used in an if condition");
+			if (infix.getLeft() instanceof FunctionCall){
+				// this is to make sure infix.getLeft() will be added if not already exist
+				//instrumentFunctionCallNode(infix.getLeft());
+				for (DOMConstraint dc: DOMConstraintList)
+					if (dc.getElementTypeVariable().getSource().equals(left))
+						dc.addConstraint(left+".innerHTML", true);
+			}
+		}else if (parentNode instanceof Assignment){
+			// innerHTML of an element value was used or set -> e.g. a.innerHTML = x .... y = a.innerHTML 
+			Assignment asmt = (Assignment)parentNode;
+			if (asmt.getLeft().equals(infix)){ 
+				// innerHTML is set e.g. a.innerHTML = x
+				System.out.println(left + ".innerHTML is set to " + asmt.getRight().toSource());
+				// TODO: Check if the asmt.getRight() value to be used exists
+			}else{
+				// innerHTML is used e.g. y = a.innerHTML
+				System.out.println(asmt.getLeft().toSource() + " is set to " + left + ".innerHTML");
+				// adding the variable storing this attribute
+				if (infix.getLeft() instanceof FunctionCall){
+					// e.g. f(x).innerHTML
+					System.out.println("analyseFunctionCallNode");
+					// this is to make sure infix.getLeft() will be added if not already exist
+					//instrumentFunctionCallNode(infix.getLeft());
+					for (DOMConstraint dc: DOMConstraintList)
+						if (dc.getElementTypeVariable().getSource().equals(left))
+							dc.getElementTypeVariable().setInnerHTML_attributeVariable(asmt.getLeft().toSource());
+				}
+			}
+		}else if (parentNode instanceof VariableInitializer){
+			// innerHTML of an element used to initialize a variable -> e.g. var v = dg('indicator').innerHTML
+			VariableInitializer vi = (VariableInitializer)parentNode;
+			System.out.println("innerHTML property for " + left + " is used to initialize " + vi.getTarget().toSource());
+			// TODO: in this case there should be sth as an innerHTML value
+		}
+
+	}
+	private void performAssignment(Map<String, String> map, String left, String right, InfixExpression infix) {
+		String returenedValue = String.format("%s", map.get("actualStatement"));
+		if (returenedValue.contains("org.openqa.selenium.remote.RemoteWebElement")){
+			System.out.println("Variable "+ left + " referes to a DOM element.");
+			// parsing actual statement to see if there is a DOM element access. e.g. actualStatement: [org.openqa.selenium.remote.RemoteWebElement@1e2123e2 -> unknown locator]
+			String RemoteWebElement = "";
+			// extract RemoteWebElementID
+			RemoteWebElement = returenedValue.substring(returenedValue.indexOf("@") + 1, returenedValue.indexOf(" ->"));
+			System.out.println("RemoteWebElement: " + RemoteWebElement);
+
+			for (DOMConstraint dc: DOMConstraintList)
+				if (dc.getElementTypeVariable().getRemoteWebElementID().equals(RemoteWebElement)){
+					dc.getElementTypeVariable().setDOMJSVariable(left);
+					System.out.println("Set the RemoteWebElement for " + dc.getElementTypeVariable());
+					break;
+				}
+		}
+
+		// assigning with an attribute value of an element. e.g. a = b.innerHTML or a = b.value
+		// search among current DOMJSVariables, if the RemoteWebElementID is equal to the nodes value 
+
+		if (right.contains(".value")){
+			// e.g. document.getElementById('t').value
+			System.out.println("Variable "+ left + " referes to a DOM element's value attribute.");
+
+			ArrayList<String> argumentValueList = getArguments(map, "varValueList"); // e.g. varValueList: [[org.openqa.selenium.remote.RemoteWebElement@1c5a0a44 -> unknown locator]]
+			String DOMAccess = argumentValueList.get(0);
+
+			if (DOMAccess.contains("org.openqa.selenium.remote.RemoteWebElement")){
+				// parsing actual statement to see if there is a DOM element access. e.g. actualStatement: [org.openqa.selenium.remote.RemoteWebElement@1e2123e2 -> unknown locator]
+				String RemoteWebElement = "";
+				// extract RemoteWebElementID
+				RemoteWebElement = DOMAccess.substring(DOMAccess.indexOf("@") + 1, DOMAccess.indexOf("->"));
+				System.out.println("RemoteWebElement: " + RemoteWebElement);
+
+				boolean foundDOMElement = false;
+				for (DOMConstraint dc: DOMConstraintList)
+					if (dc.getElementTypeVariable().getRemoteWebElementID().equals(RemoteWebElement)){
+						dc.getElementTypeVariable().setValue_attributeVariable(left);
+						System.out.println(left + " is set as the variable refering to the value attribute of element:" + dc.getElementTypeVariable());
+						foundDOMElement = true;
+						break;
+					}
+				if (!foundDOMElement){
+					// the value attribute is not set for an existing element. check if is set for a child node of an existing DOM element
+					if (right.contains(".children")){
+						String parentNodeInJS = right.substring(0, right.indexOf(".children"));
+						System.out.println("The value attribute of a child node of a JSDOMVariable " + parentNodeInJS + " is assigned to the variable:" + left);
+						// updating the child node to the list for the parent
+						for (DOMConstraint dc: DOMConstraintList)
+							if (dc.getElementTypeVariable().getParentElementJSVariable().equals(parentNodeInJS)){
+								dc.getElementTypeVariable().setValue_attributeVariable(left);
+								System.out.println(left + " is set as the variable refering to the value attribute of element:" + dc.getElementTypeVariable());
+								break;
+							}
+					}
+				}
+
+			}else{
+				System.out.println("Something is wrong! Value was used but not for a DOM element!!");
+			}
+
+			AstNode parentNode = infix.getParent();
+			System.out.println("Value attribute used!");
+			System.out.println("parentNode.toSource(): " + parentNode.toSource());
+			System.out.println("parentNode.shortName(): " + parentNode.shortName());
+		}
+		else if (right.contains(".innerHTML")){
+			// e.g. right is document.getElementById('t').innerHTML
+			System.out.println("Variable "+ left + " referes to a DOM element's innerHTML attribute.");
+
+			ArrayList<String> argumentValueList = getArguments(map, "varValueList"); // e.g. varValueList: [[org.openqa.selenium.remote.RemoteWebElement@1c5a0a44 -> unknown locator]]
+			String DOMAccess = argumentValueList.get(0);
+
+			if (DOMAccess.contains("org.openqa.selenium.remote.RemoteWebElement")){
+				// parsing actual statement to see if there is a DOM element access. e.g. actualStatement: [org.openqa.selenium.remote.RemoteWebElement@1e2123e2 -> unknown locator]
+				String RemoteWebElement = "";
+				// extract RemoteWebElementID
+				RemoteWebElement = DOMAccess.substring(DOMAccess.indexOf("@") + 1, DOMAccess.indexOf("->"));
+				System.out.println("RemoteWebElement: " + RemoteWebElement);
+
+				boolean foundDOMElement = false;
+				for (DOMConstraint dc: DOMConstraintList)
+					if (dc.getElementTypeVariable().getRemoteWebElementID().equals(RemoteWebElement)){
+						dc.getElementTypeVariable().setInnerHTML_attributeVariable(left);
+						System.out.println(left + " is set as the variable refering to the innerHTML attribute of element:" + dc.getElementTypeVariable());
+						foundDOMElement = true;
+						break;
+					}
+				if (!foundDOMElement){
+					// the innerHTML attribute is not set for an existing element. check if is set for a child node of an existing DOM element
+					if (right.contains(".children")){
+						String parentNodeInJS = right.substring(0, right.indexOf(".children"));
+						System.out.println("The innerHTML attribute of a child node of a JSDOMVariable " + parentNodeInJS + " is assigned to the variable:" + left);
+						// updating the child node to the list for the parent
+						for (DOMConstraint dc: DOMConstraintList)
+							if (dc.getElementTypeVariable().getParentElementJSVariable().equals(parentNodeInJS)){
+								dc.getElementTypeVariable().setInnerHTML_attributeVariable(left);
+								System.out.println(left + " is set as the variable refering to the innerHTML attribute of element:" + dc.getElementTypeVariable());
+								break;
+							}
+					}
+				}
+
+			}else{
+				System.out.println("Something is wrong! Value was used but not for a DOM element!!");
+			}
+
+			AstNode parentNode = infix.getParent();
+			System.out.println("innerHTML attribute used!");
+			System.out.println("parentNode.toSource(): " + parentNode.toSource());
+			System.out.println("parentNode.shortName(): " + parentNode.shortName());
+		}
+
+	}
+
+
 	public String generateXpathConstraints() {	
 		String xpathToSolve = generateXpathConstraint();
 		resetXpath();
+		xpathToSolve = xpathToSolve.replace("$", "DOLLAR_").replace("'", "");
 		System.out.println("xpathToSolve: " + xpathToSolve);
 		return xpathToSolve;
 	}
@@ -1368,6 +1617,9 @@ public class TraceAnalyzer {
 		String value = currentConstraint.getElementTypeVariable().getValue_attribute();
 		String src = currentConstraint.getElementTypeVariable().getSrc_attribute();
 		String checked = currentConstraint.getElementTypeVariable().getChecked_attribute();
+		String style = currentConstraint.getElementTypeVariable().getStyle_attribute();
+		if (style!=null)
+			style = style.replace(":", "__");
 		if (numOfDOMElementsInFixture>0)
 			xpath += " and child::";
 		xpath += (tag + "_" + Integer.toString(numOfDOMElementsInFixture++) + "[");  // e.g. div_0[, p_1[, img_2[, ...
@@ -1385,16 +1637,21 @@ public class TraceAnalyzer {
 			xpath += " and @src_" + src;
 		if(checked!=null)
 			xpath += " and @checked_" + checked;
+		if(style!=null)
+			xpath += " and @style_" + style;
 
 		currentConstraint.setAddedToTheXpath(true); // this is to consider each constraint only once
 
 		for (DOMConstraint dc : DOMConstraintList){
 			if (dc.getElementTypeVariable().getDOMJSVariable().equals("document")) // ignore the first node
 				continue;
-			if(dc.getElementTypeVariable().getParentElementJSVariable().equals(currentConstraint.getElementTypeVariable().getDOMJSVariable())){
-				//xpath += " and child::";
-				generateSubXpath(dc);
-			}
+			if(dc.getElementTypeVariable().getParentElementJSVariable() != null)
+				if(dc.getElementTypeVariable().getParentElementJSVariable().equals(currentConstraint.getElementTypeVariable().getDOMJSVariable())){
+					//xpath += " and child::";
+
+					if (!dc.getElementTypeVariable().getParentElementJSVariable().equals(dc.getElementTypeVariable().getDOMJSVariable())) // avoiding infinite loops!
+						generateSubXpath(dc);
+				}
 		}
 		xpath += "]";
 	}
@@ -1446,29 +1703,35 @@ public class TraceAnalyzer {
 		return false;
 	}
 
-
-	// OLD VERSION
-	/*public List<String> generateXpathConstraints() {	
-		// setting the xpathToSolve for each function
-		HashSet<DOMConstraint> dList = getDOMConstraintList();
-		DOMConstraintList.addAll(dList); 
-
-		for (String DDF: DOMDependentFunctions){
-			System.out.println("****** Generating xpath for DOM constraints in DDF: " + DDF);
-			String xpathToSolve = generateXpathConstraint(DDF);
-			resetXpath();
-			xpathsToSolve.add(xpathToSolve);
-			System.out.println("xpathToSolve: " + xpathToSolve);
+	//make sure that all parentElementJSVariables actually exist in the DOMConstraintList. This is due to DOM element (manually generated) as function arguments
+	public void makeSureAllParentsExist() {
+		HashSet<String> parentsToBeAdded = new HashSet<String>();
+		boolean parentFound = false;
+		for (DOMConstraint dc1: DOMConstraintList){
+			for (DOMConstraint dc2: DOMConstraintList){
+				if (dc1.getElementTypeVariable().getParentElementJSVariable().equals(dc2.getElementTypeVariable().getDOMJSVariable())){
+					parentFound = true;
+					break;
+				}
+			}
+			if (!parentFound){
+				if (!dc1.getElementTypeVariable().getParentElementJSVariable().equals("document"))
+					parentsToBeAdded.add(dc1.getElementTypeVariable().getParentElementJSVariable());
+				parentFound = false;
+			}
 		}
 
-		// e.g. select("html/body/descendant::switch[ancestor::body[ancestor::html]]//descendant::audio[preceding-sibling::video/test2]/
-		//		descendant::seq/descendant::audio[preceding-sibling::video/test2]/test[@attr_100]")
+		System.out.println("parentsToBeAdded: " + parentsToBeAdded);
 
-		// System.out.println(xpathsToSolve);
-		return xpathsToSolve;
-	}*/
-
-
+		for (String parent: parentsToBeAdded){
+			// adding the parent node to be used for xpath generation with defualt tag = div
+			ElementTypeVariable DOMElement = new ElementTypeVariable();
+			DOMElement.setDOMJSVariable(parent);
+			DOMElement.setId_attribute("ConfixInputTo");
+			DOMConstraint newDC = new DOMConstraint(DOMElement);
+			DOMConstraintList.add(newDC);
+		}
+	}
 }
 
 

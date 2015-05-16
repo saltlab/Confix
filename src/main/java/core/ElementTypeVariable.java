@@ -32,10 +32,12 @@ public class ElementTypeVariable {
 	private String name_attribute = null; // e.g. name="subject"
 	private String tag_attribute = "div"; // using tag="div" as a default value for the element as long as we have no more information about it
 	private String class_attribute = null; // e.g. class="main"
-	private String value_attribute = null; // e.g. value="test"
+	private String value_attribute = ""; // e.g. value="test"
 	private String src_attribute = null; // e.g. scr="/image.jpg"
 	private String innerHTML_attribute = null; // e.g. innerHTML="text"
 	private String checked_attribute = null; // e.g. checked="true"
+	//private String style_attribute = "display:initial"; // using style="display:initial" as a default value
+	private String style_attribute = "display:initial"; // using style="display:initial" as a default value
 
 	// variables set by attribute values: e.g. a = document.getElementById("demo").innerHTML; then a is an innerHTML_attributeVariable
 	private String id_attributeVariable = ""; 
@@ -46,6 +48,7 @@ public class ElementTypeVariable {
 	private String src_attributeVariable = ""; 
 	private String innerHTML_attributeVariable = ""; 
 	private String checked_attributeVariable = ""; 
+	private String style_attributeVariable = ""; 
 
 
 	@Override
@@ -90,6 +93,8 @@ public class ElementTypeVariable {
 			attribues += (" innerHTML=\"" + innerHTML_attribute + "\"");	
 		if (checked_attribute!=null)
 			attribues += (" checked=\"" + checked_attribute + "\"");	
+		if (style_attribute!=null)
+			attribues += (" style=\"" + style_attribute + "\"");	
 
 		return attribues;
 	}
@@ -140,6 +145,7 @@ public class ElementTypeVariable {
 
 	public void setClass_attribute(String class_attribute) {
 		class_attribute = class_attribute.replace("\"", "");
+		class_attribute = class_attribute.replace("\'", "");
 		this.class_attribute = class_attribute;
 	}
 
@@ -150,8 +156,10 @@ public class ElementTypeVariable {
 	public void setValue_attribute(String value_attribute) {
 		// changing the default div tag to input as div elements do not have value attributes
 		setTag_attribute("input");
+		setType_attribute("text");
 		value_attribute = value_attribute.replace("\"", "");
-		this.value_attribute = value_attribute;
+		if (!value_attribute.contains("confixWrapper"))   // this happens at some cases that a wrapper is set for the value, needs more investigation later...
+			this.value_attribute = value_attribute;
 	}
 
 	public String getSrc_attribute() {
@@ -185,7 +193,17 @@ public class ElementTypeVariable {
 	}
 
 	public void setChecked_attribute(String checked_attribute) {
+		setTag_attribute("input");
+		setType_attribute("checkbox");
 		this.checked_attribute = checked_attribute;
+	}
+
+	public String getStyle_attribute() {
+		return style_attribute;
+	}
+
+	public void setStyle_attribute(String style_attribute) {
+		this.style_attribute = style_attribute;
 	}
 
 	@Override
@@ -397,5 +415,15 @@ public class ElementTypeVariable {
 	public void setChecked_attributeVariable(String checked_attributeVariable) {
 		this.checked_attributeVariable = checked_attributeVariable;
 	}
+
+
+	public String getStyle_attributeVariable() {
+		return style_attributeVariable;
+	}
+
+	public void setStyle_attributeVariable(String style_attributeVariable) {
+		this.style_attributeVariable = style_attributeVariable;
+	}
+
 
 }

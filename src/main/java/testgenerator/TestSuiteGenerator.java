@@ -55,8 +55,9 @@ public class TestSuiteGenerator {
 		testFunction.setFixture(DOMFixture);
 		// calling the function
 		testFunction.addStatement(functionName + ";");
-		// adding the test method to the file
-		testFunctions.add(testFunction);
+		// adding the test method to the file if DOM fixture and statement is not already there
+		if (!testFunctions.contains(testFunction))
+			testFunctions.add(testFunction);
 	}
 
 	/**

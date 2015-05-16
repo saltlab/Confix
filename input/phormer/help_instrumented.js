@@ -31,26 +31,26 @@ function captureMousedown(e) {
   confixWrapper("functionCall", "ReleaseMouse()", [], [], "captureMousedown", ReleaseMouse());
   var mc = confixWrapper("initvar", "var mc = e ? e.which : window.event.button", [""], [], "captureMousedown", e ? e.which : window.event.button);
   var myX = confixWrapper("initvar", "var myX = confixWrapper(\"functionCall\", \"getMyXY(e, 0)\", [\"e\", \"0\"], [e, 0], \"captureMousedown\", getMyXY(e, 0))", [""], [], "captureMousedown", confixWrapper("functionCall", "getMyXY(e, 0)", ["e", "0"], [e, 0], "captureMousedown", getMyXY(e, 0)));
-  if (confixWrapper("condition", "mc == 1 && (window.screen.width - myX > 20)", [""], [], "captureMousedown", mc == 1 && (window.screen.width - myX > 20))) 
+  if (confixWrapper("condition", "mc == 1 && (window.screen.width - myX > 20)", ["e", "mc", "myX", "dont_help", "_AIDIN_MAIL"], [e, mc, myX, dont_help, _AIDIN_MAIL], "captureMousedown", mc == 1 && (window.screen.width - myX > 20))) 
   confixWrapper("functionCall", "HideHelp()", [], [], "captureMousedown", HideHelp());
 }
 function captureKeydown(e) {
   var k = confixWrapper("initvar", "var k = e ? e.which : window.event.keyCode", [""], [], "captureKeydown", e ? e.which : window.event.keyCode);
-  if (confixWrapper("condition", "k == 27", [""], [], "captureKeydown", k == 27)) 
+  if (confixWrapper("condition", "k == 27", ["e", "k", "dont_help", "_AIDIN_MAIL"], [e, k, dont_help, _AIDIN_MAIL], "captureKeydown", k == 27)) 
   confixWrapper("functionCall", "HideHelp()", [], [], "captureKeydown", HideHelp());
-  if (confixWrapper("condition", "k == 16", [""], [], "captureKeydown", k == 16)) 
+  if (confixWrapper("condition", "k == 16", ["e", "k", "dont_help", "_AIDIN_MAIL"], [e, k, dont_help, _AIDIN_MAIL], "captureKeydown", k == 16)) 
   shiftDown = confixWrapper("infix", "shiftDown = true", [""], [], "captureKeydown", true);
 }
 function captureKeyup(e) {
   var k = confixWrapper("initvar", "var k = e ? e.which : window.event.keyCode", [""], [], "captureKeyup", e ? e.which : window.event.keyCode);
-  if (confixWrapper("condition", "k == 16", [""], [], "captureKeyup", k == 16)) 
+  if (confixWrapper("condition", "k == 16", ["e", "k", "dont_help", "_AIDIN_MAIL"], [e, k, dont_help, _AIDIN_MAIL], "captureKeyup", k == 16)) 
   shiftDown = confixWrapper("infix", "shiftDown = false", [""], [], "captureKeyup", false);
 }
 function DontHideHelp() {
   dont_help = confixWrapper("infix", "dont_help = true", [""], [], "DontHideHelp", true);
 }
 function HideHelp() {
-  if (confixWrapper("condition", "(confixWrapper(\"functionCall\", \"dgp('helpBox')\", [\"helpBox\"], ['helpBox'], \"HideHelp\", dgp('helpBox')).style.display != 'block') || (dont_help)", [""], [], "HideHelp", (confixWrapper("functionCall", "dgp('helpBox')", ["helpBox"], ['helpBox'], "HideHelp", dgp('helpBox')).style.display != 'block') || (dont_help))) 
+  if (confixWrapper("condition", "(confixWrapper(\"functionCall\", \"dgp('helpBox')\", [\"helpBox\"], ['helpBox'], \"HideHelp\", dgp('helpBox')).style.display != 'block') || (dont_help)", ["dont_help", "_AIDIN_MAIL"], [dont_help, _AIDIN_MAIL], "HideHelp", (confixWrapper("functionCall", "dgp('helpBox')", ["helpBox"], ['helpBox'], "HideHelp", dgp('helpBox')).style.display != 'block') || (dont_help))) 
   {
     dont_help = confixWrapper("infix", "dont_help = false", [""], [], "HideHelp", false);
     return;
@@ -58,7 +58,7 @@ function HideHelp() {
   confixWrapper("functionCall", "dgp('helpBox')", ["helpBox"], ['helpBox'], "HideHelp", dgp('helpBox')).style.display = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dgp('helpBox')\", [\"helpBox\"], ['helpBox'], \"HideHelp\", dgp('helpBox')).style.display = 'none'", [""], [], "HideHelp", 'none');
   confixWrapper("functionCall", "dgp('helpBoxLegend')", ["helpBoxLegend"], ['helpBoxLegend'], "HideHelp", dgp('helpBoxLegend')).innerHTML = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dgp('helpBoxLegend')\", [\"helpBoxLegend\"], ['helpBoxLegend'], \"HideHelp\", dgp('helpBoxLegend')).innerHTML = ''", [""], [], "HideHelp", '');
   confixWrapper("functionCall", "SwitchSelectIE(1)", ["1"], [1], "HideHelp", SwitchSelectIE(1));
-  if (confixWrapper("condition", "!confixWrapper(\"functionCall\", \"isIE()\", [], [], \"HideHelp\", isIE())", [""], [], "HideHelp", !confixWrapper("functionCall", "isIE()", [], [], "HideHelp", isIE()))) 
+  if (confixWrapper("condition", "!confixWrapper(\"functionCall\", \"isIE()\", [], [], \"HideHelp\", isIE())", ["dont_help", "_AIDIN_MAIL"], [dont_help, _AIDIN_MAIL], "HideHelp", !confixWrapper("functionCall", "isIE()", [], [], "HideHelp", isIE()))) 
   {
     confixWrapper("functionCall", "window.blur()", [], [], "HideHelp", window.blur());
     confixWrapper("functionCall", "window.focus()", [], [], "HideHelp", window.focus());
@@ -68,7 +68,7 @@ function dgp(x) {
   return confixWrapper("return", "return confixWrapper(\"functionCall\", \"document.getElementById(x)\", [\"x\"], [x], \"dgp\", document.getElementById(x));", [""], [], "dgp", confixWrapper("functionCall", "document.getElementById(x)", ["x"], [x], "dgp", document.getElementById(x)));
 }
 function ShowHelp(s, eve, lang) {
-  if (confixWrapper("condition", "(confixWrapper(\"functionCall\", \"dgp('helpBoxLegend')\", [\"helpBoxLegend\"], ['helpBoxLegend'], \"ShowHelp\", dgp('helpBoxLegend')).innerHTML == s)", [""], [], "ShowHelp", (confixWrapper("functionCall", "dgp('helpBoxLegend')", ["helpBoxLegend"], ['helpBoxLegend'], "ShowHelp", dgp('helpBoxLegend')).innerHTML == s))) 
+  if (confixWrapper("condition", "(confixWrapper(\"functionCall\", \"dgp('helpBoxLegend')\", [\"helpBoxLegend\"], ['helpBoxLegend'], \"ShowHelp\", dgp('helpBoxLegend')).innerHTML == s)", ["s", "eve", "lang", "myX", "myY", "helpMsg", "dont_help", "_AIDIN_MAIL"], [s, eve, lang, myX, myY, helpMsg, dont_help, _AIDIN_MAIL], "ShowHelp", (confixWrapper("functionCall", "dgp('helpBoxLegend')", ["helpBoxLegend"], ['helpBoxLegend'], "ShowHelp", dgp('helpBoxLegend')).innerHTML == s))) 
   {
     confixWrapper("functionCall", "HideHelp()", [], [], "ShowHelp", HideHelp());
     return;
@@ -76,9 +76,9 @@ function ShowHelp(s, eve, lang) {
   dont_help = confixWrapper("infix", "dont_help = false", [""], [], "ShowHelp", false);
   var myX = confixWrapper("initvar", "var myX = confixWrapper(\"functionCall\", \"parseInt(getMyXY(eve, 0))\", [\"getMyXY(eve, 0)\"], [confixWrapper(\"functionCall\", \"getMyXY(eve, 0)\", [\"eve\", \"0\"], [eve, 0], \"ShowHelp\", getMyXY(eve, 0))], \"ShowHelp\", parseInt(confixWrapper(\"functionCall\", \"getMyXY(eve, 0)\", [\"eve\", \"0\"], [eve, 0], \"ShowHelp\", getMyXY(eve, 0))))", [""], [], "ShowHelp", confixWrapper("functionCall", "parseInt(getMyXY(eve, 0))", ["getMyXY(eve, 0)"], [confixWrapper("functionCall", "getMyXY(eve, 0)", ["eve", "0"], [eve, 0], "ShowHelp", getMyXY(eve, 0))], "ShowHelp", parseInt(confixWrapper("functionCall", "getMyXY(eve, 0)", ["eve", "0"], [eve, 0], "ShowHelp", getMyXY(eve, 0)))));
   var myY = confixWrapper("initvar", "var myY = confixWrapper(\"functionCall\", \"parseInt(getMyXY(eve, 1))\", [\"getMyXY(eve, 1)\"], [confixWrapper(\"functionCall\", \"getMyXY(eve, 1)\", [\"eve\", \"1\"], [eve, 1], \"ShowHelp\", getMyXY(eve, 1))], \"ShowHelp\", parseInt(confixWrapper(\"functionCall\", \"getMyXY(eve, 1)\", [\"eve\", \"1\"], [eve, 1], \"ShowHelp\", getMyXY(eve, 1))))", [""], [], "ShowHelp", confixWrapper("functionCall", "parseInt(getMyXY(eve, 1))", ["getMyXY(eve, 1)"], [confixWrapper("functionCall", "getMyXY(eve, 1)", ["eve", "1"], [eve, 1], "ShowHelp", getMyXY(eve, 1))], "ShowHelp", parseInt(confixWrapper("functionCall", "getMyXY(eve, 1)", ["eve", "1"], [eve, 1], "ShowHelp", getMyXY(eve, 1)))));
-  if (confixWrapper("condition", "myX < 100", [""], [], "ShowHelp", myX < 100)) 
+  if (confixWrapper("condition", "myX < 100", ["s", "eve", "lang", "myX", "myY", "helpMsg", "dont_help", "_AIDIN_MAIL"], [s, eve, lang, myX, myY, helpMsg, dont_help, _AIDIN_MAIL], "ShowHelp", myX < 100)) 
   myX = confixWrapper("infix", "myX = 100", [""], [], "ShowHelp", 100);
-  if (confixWrapper("condition", "myX + 250 > window.screen.width - 50", [""], [], "ShowHelp", myX + 250 > window.screen.width - 50)) 
+  if (confixWrapper("condition", "myX + 250 > window.screen.width - 50", ["s", "eve", "lang", "myX", "myY", "helpMsg", "dont_help", "_AIDIN_MAIL"], [s, eve, lang, myX, myY, helpMsg, dont_help, _AIDIN_MAIL], "ShowHelp", myX + 250 > window.screen.width - 50)) 
   myX = confixWrapper("infix", "myX = window.screen.width - 300", [""], [], "ShowHelp", window.screen.width - 300);
   confixWrapper("functionCall", "dgp('helpBox')", ["helpBox"], ['helpBox'], "ShowHelp", dgp('helpBox')).style.top = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dgp('helpBox')\", [\"helpBox\"], ['helpBox'], \"ShowHelp\", dgp('helpBox')).style.top = '' + (myY + 10) + 'px'", [""], [], "ShowHelp", '' + (myY + 10) + 'px');
   confixWrapper("functionCall", "dgp('helpBox')", ["helpBox"], ['helpBox'], "ShowHelp", dgp('helpBox')).style.left = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dgp('helpBox')\", [\"helpBox\"], ['helpBox'], \"ShowHelp\", dgp('helpBox')).style.left = '' + (myX - 70) + 'px'", [""], [], "ShowHelp", '' + (myX - 70) + 'px');
@@ -95,31 +95,14 @@ function ShowHelp(s, eve, lang) {
   confixWrapper("functionCall", "dgp('helpBoxInner')", ["helpBoxInner"], ['helpBoxInner'], "ShowHelp", dgp('helpBoxInner')).innerHTML = confixWrapper("infix", "confixWrapper(\"functionCall\", \"dgp('helpBoxInner')\", [\"helpBoxInner\"], ['helpBoxInner'], \"ShowHelp\", dgp('helpBoxInner')).innerHTML = helpMsg", [""], [], "ShowHelp", helpMsg);
   confixWrapper("functionCall", "SwitchSelectIE(0)", ["0"], [0], "ShowHelp", SwitchSelectIE(0));
 }
-function getMyXY(eve, t) {
-  var myY, myX;
-  if (confixWrapper("condition", "!eve", [""], [], "getMyXY", !eve)) 
-  var eve = confixWrapper("initvar", "var eve = window.event", [""], [], "getMyXY", window.event);
-  if (confixWrapper("condition", "document.all", [""], [], "getMyXY", document.all)) 
-  {
-    myX = confixWrapper("infix", "myX = eve.clientX", [""], [], "getMyXY", eve.clientX);
-    var dY = confixWrapper("initvar", "var dY = 0", [""], [], "getMyXY", 0);
-    if (confixWrapper("condition", "document.body.scrollTop", [""], [], "getMyXY", document.body.scrollTop)) 
-    dY = confixWrapper("infix", "dY = document.body.scrollTop", [""], [], "getMyXY", document.body.scrollTop); else dY = confixWrapper("infix", "dY = document.documentElement.scrollTop", [""], [], "getMyXY", document.documentElement.scrollTop);
-    myY = confixWrapper("infix", "myY = eve.clientY + dY", [""], [], "getMyXY", eve.clientY + dY);
-  } else {
-    myX = confixWrapper("infix", "myX = eve.pageX", [""], [], "getMyXY", eve.pageX);
-    myY = confixWrapper("infix", "myY = eve.pageY", [""], [], "getMyXY", eve.pageY);
-  }
-  return confixWrapper("return", "return ((t) ? myY : myX);", [""], [], "getMyXY", ((t) ? myY : myX));
-}
 function SwitchSelectIE(t) {
-  if (confixWrapper("condition", "confixWrapper(\"functionCall\", \"isIE()\", [], [], \"SwitchSelectIE\", isIE())", [""], [], "SwitchSelectIE", confixWrapper("functionCall", "isIE()", [], [], "SwitchSelectIE", isIE()))) 
+  if (confixWrapper("condition", "confixWrapper(\"functionCall\", \"isIE()\", [], [], \"SwitchSelectIE\", isIE())", ["t", "SS", "dont_help", "_AIDIN_MAIL"], [t, SS, dont_help, _AIDIN_MAIL], "SwitchSelectIE", confixWrapper("functionCall", "isIE()", [], [], "SwitchSelectIE", isIE()))) 
   {
     var SS = confixWrapper("initvar", "var SS = document.styleSheets[0]", [""], [], "SwitchSelectIE", document.styleSheets[0]);
-    if (confixWrapper("condition", "SS.cssRules", [""], [], "SwitchSelectIE", SS.cssRules)) 
-    inRule = confixWrapper("infix", "inRule = SS.cssRules", [""], [], "SwitchSelectIE", SS.cssRules); else if (confixWrapper("condition", "SS.rules", [""], [], "SwitchSelectIE", SS.rules)) 
+    if (confixWrapper("condition", "SS.cssRules", ["t", "SS", "dont_help", "_AIDIN_MAIL"], [t, SS, dont_help, _AIDIN_MAIL], "SwitchSelectIE", SS.cssRules)) 
+    inRule = confixWrapper("infix", "inRule = SS.cssRules", [""], [], "SwitchSelectIE", SS.cssRules); else if (confixWrapper("condition", "SS.rules", ["t", "SS", "dont_help", "_AIDIN_MAIL"], [t, SS, dont_help, _AIDIN_MAIL], "SwitchSelectIE", SS.rules)) 
     inRule = confixWrapper("infix", "inRule = SS.rules", [""], [], "SwitchSelectIE", SS.rules);
-    if (confixWrapper("condition", "confixWrapper(\"functionCall\", \"dg('helpBox')\", [\"helpBox\"], ['helpBox'], \"SwitchSelectIE\", dg('helpBox')).style.display != 'none'", [""], [], "SwitchSelectIE", confixWrapper("functionCall", "dg('helpBox')", ["helpBox"], ['helpBox'], "SwitchSelectIE", dg('helpBox')).style.display != 'none')) 
+    if (confixWrapper("condition", "confixWrapper(\"functionCall\", \"dg('helpBox')\", [\"helpBox\"], ['helpBox'], \"SwitchSelectIE\", dg('helpBox')).style.display != 'none'", ["t", "SS", "dont_help", "_AIDIN_MAIL"], [t, SS, dont_help, _AIDIN_MAIL], "SwitchSelectIE", confixWrapper("functionCall", "dg('helpBox')", ["helpBox"], ['helpBox'], "SwitchSelectIE", dg('helpBox')).style.display != 'none')) 
     t = confixWrapper("infix", "t = 0", [""], [], "SwitchSelectIE", 0);
     inRule[0].style.visibility = confixWrapper("infix", "inRule[0].style.visibility = (t) ? 'visible' : 'hidden'", [""], [], "SwitchSelectIE", (t) ? 'visible' : 'hidden');
   }

@@ -75,7 +75,7 @@ function trim(s) {
 //DDF
 function checkValid(){
 	var cardNumber=document.getElementsByName('cardno').value;
-	//var cardNumber= cardno f.cardno.value;
+	//var cardNumber=f.cardno.value;
 
 	if(document.getElementById('c1').checked) {
 		if(!isValidVISA(cardNumber)){

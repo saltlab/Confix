@@ -79,9 +79,33 @@ test("Testing function CheckAddPhoto() for path 1", function() {
 });
 
 
+test("Testing function confirmDelete('test') for path 1", function() {
+	expect(0);
+	confirmDelete('test');
+});
+
+
+test("Testing function ConfirmDelPhotoID('test') for path 1", function() {
+	expect(0);
+	ConfirmDelPhotoID('test');
+});
+
+
 test("Testing function ConfirmDelPhoto() for path 1", function() {
 	expect(0);
 	ConfirmDelPhoto();
+});
+
+
+test("Testing function ConfirmRestore() for path 1", function() {
+	expect(0);
+	ConfirmRestore();
+});
+
+
+test("Testing function ConfirmSave() for path 1", function() {
+	expect(0);
+	ConfirmSave();
 });
 
 
@@ -97,15 +121,15 @@ test("Testing function hidelinkline('test') for path 1", function() {
 });
 
 
-test("Testing function linkAddBelow('test') for path 1", function() {
+test("Testing function linkAddBelow(0) for path 1", function() {
 	expect(0);
-	linkAddBelow('test');
+	linkAddBelow(0);
 });
 
 
-test("Testing function linkDelThis('test') for path 1", function() {
+test("Testing function linkDelThis() for path 1", function() {
 	expect(0);
-	linkDelThis('test');
+	linkDelThis();
 });
 
 
@@ -139,18 +163,6 @@ test("Testing function changePrev() for path 1", function() {
 });
 
 
-test("Testing function rethumb_fill('test') for path 1", function() {
-	expect(0);
-	rethumb_fill('test');
-});
-
-
-test("Testing function rethumb() for path 1", function() {
-	expect(0);
-	rethumb();
-});
-
-
 test("Testing function ToggleAdvPref() for path 1", function() {
 	expect(0);
 	ToggleAdvPref();
@@ -172,6 +184,12 @@ test("Testing function CheckDateDrafts() for path 1", function() {
 test("Testing function CheckActionDrafts() for path 1", function() {
 	expect(0);
 	CheckActionDrafts();
+});
+
+
+test("Testing function CheckDeleteThisDrafts('test') for path 1", function() {
+	expect(0);
+	CheckDeleteThisDrafts('test');
 });
 
 

@@ -182,7 +182,7 @@ function prepareBody() {
 	} catch(e) {}
 }
 
-//NonDDF
+//NonDDF, not called by DDF
 function confirmDelete(x) {
 	return confirm('Are you sure you want to delete "'+x+'"?');
 }
@@ -227,7 +227,8 @@ function checkWV() {
 		return false;
 	}
 	// TODO
-	if (dg('cmntTextArea').value.length == 0) {
+	var ta = dg('cmntTextArea').value;
+	if (ta.length == 0) {
 		alert('Empty comment is not allowed!');
 		return false;
 	}
@@ -302,9 +303,9 @@ function ss_update() {
 }
 
 //NonDDF
-function ss_loaddone() {
+/*function ss_loaddone() {
 	ss_loaded = true;
-}
+}*/
 
 //DDF
 function ss_playpause() {

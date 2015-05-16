@@ -24,3 +24,9 @@ test("Testing function SwitchSelectIE() for path 1", function() {
 	SwitchSelectIE();
 });
 
+
+test("Testing function GetItHelpMsg('test') for path 1", function() {
+	expect(0);
+	GetItHelpMsg('test');
+});
+

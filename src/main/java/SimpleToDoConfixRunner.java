@@ -6,11 +6,9 @@ import core.utils.Method;
 public class SimpleToDoConfixRunner {
 
 	//static Method testGenerationMethod = Method.NOINP;
-	//static Method testGenerationMethod = Method.FIXINP;
 	//static Method testGenerationMethod = Method.JALANGI;
 	//static Method testGenerationMethod = Method.MANUAL;
 	//static Method testGenerationMethod = Method.CONFIX_NOINP;
-	//static Method testGenerationMethod = Method.CONFIX_FIXINP;
 	//static Method testGenerationMethod = Method.CONFIX_JALANGI;
 	static Method testGenerationMethod = Method.CONFIX_MANUAL;
 
@@ -28,17 +26,31 @@ public class SimpleToDoConfixRunner {
 
 		long startTime = System.currentTimeMillis();
 
-		// Testing game.js DDFs
 		if (testGenerationMethod == Method.MANUAL || testGenerationMethod == Method.CONFIX_MANUAL){
-			functionToTest.add("test()");
+			functionToTest.add("createNewTaskElement('test')");
+			functionToTest.add("addTask()");
+			functionToTest.add("editTask()");
+			functionToTest.add("deleteTask()");
+			functionToTest.add("tasksCompleted()");
+			functionToTest.add("tasksIncomplete()");
+			functionToTest.add("bindTaskEvents()");
 		} else if (testGenerationMethod == Method.JALANGI || testGenerationMethod == Method.CONFIX_JALANGI){
-			functionToTest.add("test()");
+			functionToTest.add("createNewTaskElement()");
+			functionToTest.add("addTask()");
+			functionToTest.add("editTask()");
+			functionToTest.add("deleteTask()");
+			functionToTest.add("tasksCompleted()");
+			functionToTest.add("tasksIncomplete()");
+			functionToTest.add("bindTaskEvents()");
 		}else if (testGenerationMethod == Method.NOINP || testGenerationMethod == Method.CONFIX_NOINP){
-			functionToTest.add("test()");
-		}else if (testGenerationMethod == Method.FIXINP || testGenerationMethod == Method.CONFIX_FIXINP){
-			functionToTest.add("test()");
+			functionToTest.add("createNewTaskElement()");
+			functionToTest.add("addTask()");
+			functionToTest.add("editTask()");
+			functionToTest.add("deleteTask()");
+			functionToTest.add("tasksCompleted()");
+			functionToTest.add("tasksIncomplete()");
+			functionToTest.add("bindTaskEvents()");
 		}
-
 
 		ConcolicEngine ce = new ConcolicEngine(jsPathToTest, jsNameToTest, functionToTest, testSuitePathToGenerate, testSuiteFileToGenerate, testGenerationMethod);
 		ce.run();

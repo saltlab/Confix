@@ -61,18 +61,6 @@ test("Testing function isCorrect() for path 1", function() {
 });
 
 
-test("Testing function getTopPos() for path 1", function() {
-	expect(0);
-	getTopPos();
-});
-
-
-test("Testing function getLeftPos() for path 1", function() {
-	expect(0);
-	getLeftPos();
-});
-
-
 test("Testing function getPossibleNumbers() for path 1", function() {
 	expect(0);
 	getPossibleNumbers();

@@ -79,9 +79,33 @@ test("Testing function CheckAddPhoto() for path 1", function() {
 });
 
 
+test("Testing function confirmDelete() for path 1", function() {
+	expect(0);
+	confirmDelete();
+});
+
+
+test("Testing function ConfirmDelPhotoID() for path 1", function() {
+	expect(0);
+	ConfirmDelPhotoID();
+});
+
+
 test("Testing function ConfirmDelPhoto() for path 1", function() {
 	expect(0);
 	ConfirmDelPhoto();
+});
+
+
+test("Testing function ConfirmRestore() for path 1", function() {
+	expect(0);
+	ConfirmRestore();
+});
+
+
+test("Testing function ConfirmSave() for path 1", function() {
+	expect(0);
+	ConfirmSave();
 });
 
 
@@ -139,18 +163,6 @@ test("Testing function changePrev() for path 1", function() {
 });
 
 
-test("Testing function rethumb_fill() for path 1", function() {
-	expect(0);
-	rethumb_fill();
-});
-
-
-test("Testing function rethumb() for path 1", function() {
-	expect(0);
-	rethumb();
-});
-
-
 test("Testing function ToggleAdvPref() for path 1", function() {
 	expect(0);
 	ToggleAdvPref();
@@ -184,6 +196,12 @@ test("Testing function updateSelCount() for path 1", function() {
 test("Testing function DraftsSelectBit() for path 1", function() {
 	expect(0);
 	DraftsSelectBit();
+});
+
+
+test("Testing function CheckDeleteThisDrafts() for path 1", function() {
+	expect(0);
+	CheckDeleteThisDrafts();
 });
 
 
